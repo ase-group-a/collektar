@@ -24,3 +24,8 @@ pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000)
+
+Testing components with Jest and React testing library:
+```bash
+pnpm test
+```
