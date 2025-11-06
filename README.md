@@ -6,7 +6,7 @@ npm install -g pnpm
 ```
 
 Select **pnpm** as package manager in IDE (optional), to prevent accidental npm commands:
-<img src="img.png" alt="Select pnpm in IDE" width="500" />
+<img src="/frontend/public/pnpm.png" alt="Select pnpm in IDE" width="500" />
 
 Make sure you are in frontend folder:
 ```bash
