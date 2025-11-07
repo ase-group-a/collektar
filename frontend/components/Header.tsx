@@ -4,41 +4,32 @@ import { UserIcon } from "lucide-react";
 
 export default function Header() {
     return (
-        <header className="bg-neutral text-neutral-content m-6">
-            <div className="container mx-auto px-6 flex items-center justify-between h-16">
-                <Link href="/" className="flex items-center gap-2">
+        <div className="navbar bg-base-200 shadow-md px-4 py-4 relative">
+            <div className="flex-none">
+                <Link href="/">
                     <img
                         src="/collektar-logo.svg"
                         alt="Collektar logo"
-                        className="w-50 h-50"
+                        className="w-50"
                     />
                 </Link>
-
-                <nav className="hidden md:flex items-center gap-10 text-lg font-medium">
-                    <Link href="/games" className="hover:text-primary transition-colors">
-                        Games
-                    </Link>
-                    <Link href="/films" className="hover:text-primary transition-colors">
-                        Films / Series
-                    </Link>
-                    <Link href="/music" className="hover:text-primary transition-colors">
-                        Music
-                    </Link>
-                    <Link href="/books" className="hover:text-primary transition-colors">
-                        Books
-                    </Link>
-                </nav>
-
-                <div className="flex items-center gap-2">
-                    <Link
-                        href="/login"
-                        className="flex items-center gap-2 hover:text-primary transition-colors"
-                    >
-                        <span>Login</span>
-                        <UserIcon size={20} />
-                    </Link>
-                </div>
             </div>
-        </header>
+
+            <div className="absolute left-1/2 transform -translate-x-1/2 hidden md:flex ">
+                <ul className="menu menu-horizontal text-lg font-medium gap-x-8">
+                    <li><Link href="/media/games">Games</Link></li>
+                    <li><Link href="/media/films">Films / Series</Link></li>
+                    <li><Link href="/media/music">Music</Link></li>
+                    <li><Link href="/media/books">Books</Link></li>
+                </ul>
+            </div>
+
+            <div className="flex-none ml-auto">
+                <Link href="/login" className="btn btn-ghost gap-2">
+                    <UserIcon size={20} />
+                    Login
+                </Link>
+            </div>
+        </div>
     );
 }
