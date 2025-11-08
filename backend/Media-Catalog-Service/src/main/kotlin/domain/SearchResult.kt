@@ -3,9 +3,9 @@ package domain
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class SearchResult<T>(
+data class SearchResult(
     val total: Int,
     val limit: Int,
     val offset: Int,
-    val items: List<T>
+    val items: List<MediaItem>
 )
