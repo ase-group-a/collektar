@@ -1,6 +1,7 @@
 package com.collektar
 
 import io.ktor.client.HttpClient
+import io.ktor.client.HttpClientConfig
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -37,17 +38,22 @@ fun Application.configureHTTP() {
 }
 
 object HttpProvider {
-    val client: HttpClient by lazy {
-        HttpClient(CIO) {
-            install(ContentNegotiation) {
-                json(Json {
-                    ignoreUnknownKeys = true
-                    isLenient = true
-                })
-            }
-            engine {
-                requestTimeout = 60_000 // ms
-            }
+
+    private val defaultConfig: HttpClientConfig<CIOEngineConfig>.() -> Unit = {
+        install(ContentNegotiation) {
+            json(Json { ignoreUnknownKeys = true; isLenient = true })
+        }
+        engine { requestTimeout = 60_000 }
+    }
+
+    // Default client
+    val client: HttpClient by lazy { HttpClient(CIO, defaultConfig) }
+
+    // Use this if your API needs a specific configuration
+    fun createClient(configure: HttpClientConfig<CIOEngineConfig>.() -> Unit): HttpClient {
+        return HttpClient(CIO) {
+            defaultConfig()
+            configure()
         }
     }
 }
