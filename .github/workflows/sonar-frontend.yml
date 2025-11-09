@@ -1,0 +1,38 @@
+name: Build
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "frontend/**"
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "frontend/**"
+jobs:
+  sonarqube:
+    name: SonarQube
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Install node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: "pnpm"
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+      - name: Install dependencies
+        working-directory: frontend
+        run: pnpm install
+      - name: Run Tests
+        working-directory: frontend
+        run:  pnpm test --coverage
+      - name: SonarQube Scan
+        with:
+          projectBaseDir: ./frontend
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_FRONTEND }}
