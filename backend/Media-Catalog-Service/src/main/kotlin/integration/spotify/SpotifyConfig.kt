@@ -20,11 +20,11 @@ data class SpotifyConfig(
 
             val baseUrl = System.getenv("SPOTIFY_BASE_URL")
                 ?: env.config.propertyOrNull("spotify.baseUrl")?.getString()
-                ?: "https://api.spotify.com/v1"
+                ?: error("SPOTIFY_BASE_URL not set")
 
             val tokenUrl = System.getenv("SPOTIFY_TOKEN_URL")
                 ?: env.config.propertyOrNull("spotify.tokenUrl")?.getString()
-                ?: "https://accounts.spotify.com/api/token"
+                ?: error("SPOTIFY_TOKEN_URL not set")
 
             return SpotifyConfig(clientId, clientSecret, baseUrl, tokenUrl)
         }

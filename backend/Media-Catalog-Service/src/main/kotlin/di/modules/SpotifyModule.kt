@@ -6,6 +6,7 @@ import integration.spotify.SpotifyClient
 import integration.spotify.SpotifyClientImpl
 import integration.spotify.SpotifyConfig
 import integration.spotify.SpotifyTokenCache
+import integration.spotify.SpotifyTokenProvider
 import io.ktor.server.application.*
 import org.koin.dsl.module
 import service.MusicService
@@ -15,16 +16,9 @@ fun spotifyModule(env: ApplicationEnvironment) = module {
 
     single { SpotifyTokenCache() }
 
-    single<SpotifyClient> {
-        SpotifyClientImpl(
-            httpClient = get(),
-            clientId = get<SpotifyConfig>().clientId,
-            clientSecret = get<SpotifyConfig>().clientSecret,
-            tokenUrl = get<SpotifyConfig>().tokenUrl,
-            baseUrl = get<SpotifyConfig>().baseUrl,
-            tokenCache = get()
-        )
-    }
+    single { SpotifyTokenProvider(get(), get()) }
+
+    single<SpotifyClient> { SpotifyClientImpl(get(), get(), get()) }
 
     single { MusicService(get()) }
 

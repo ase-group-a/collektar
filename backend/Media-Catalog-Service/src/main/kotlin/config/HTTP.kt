@@ -49,7 +49,7 @@ object HttpProvider {
     // Default client
     val client: HttpClient by lazy { HttpClient(CIO, defaultConfig) }
 
-    // Use this if your API needs a specific configuration
+    // Client for specific configuration
     fun createClient(configure: HttpClientConfig<CIOEngineConfig>.() -> Unit): HttpClient {
         return HttpClient(CIO) {
             defaultConfig()
