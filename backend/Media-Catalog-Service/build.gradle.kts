@@ -7,6 +7,7 @@ plugins {
     kotlin("jvm") version "2.2.20"
     id("io.ktor.plugin") version "3.3.1"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.2.20"
+    id("org.sonarqube") version "7.0.1.6134"
 }
 
 group = "com.collektar"
@@ -36,4 +37,11 @@ dependencies {
     implementation("io.ktor:ktor-server-config-yaml")
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+}
+
+sonar {
+    properties {
+        property("sonar.projectKey", "collektar_Media-Catalog-Service")
+        property("sonar.organization", "ase-group-a")
+    }
 }
