@@ -24,10 +24,11 @@ fun Application.configureHTTP() {
 
         allowHeader(HttpHeaders.Authorization)
         allowHeader(HttpHeaders.ContentType)
-        allowHeader("MyCustomHeader")
 
         allowCredentials = true
-        anyHost() // @TODO: Don't do this in production if possible. Try to limit it.
+
+        // allowHost("collektar.com", schemes = listOf("https")) for prod
+        anyHost() // For dev only
     }
     install(DefaultHeaders) {
         header("X-Engine", "Ktor")
@@ -46,10 +47,10 @@ object HttpProvider {
         engine { requestTimeout = 60_000 }
     }
 
-    // Default client
+    // Client with default configuration
     val client: HttpClient by lazy { HttpClient(CIO, defaultConfig) }
 
-    // Client for specific configuration
+    // Client with specific configuration
     fun createClient(configure: HttpClientConfig<CIOEngineConfig>.() -> Unit): HttpClient {
         return HttpClient(CIO) {
             defaultConfig()
