@@ -1,14 +1,17 @@
-package di
+package di.modules
 
-import com.collektar.HttpProvider
+import controllers.Controller
+import controllers.MusicController
 import integration.spotify.SpotifyClient
 import integration.spotify.SpotifyClientImpl
 import integration.spotify.SpotifyConfig
 import integration.spotify.SpotifyTokenCache
+import io.ktor.server.application.*
 import org.koin.dsl.module
+import service.MusicService
 
-val clientModule = module {
-    single { HttpProvider.client }
+fun spotifyModule(env: ApplicationEnvironment) = module {
+    single { SpotifyConfig.fromEnv(env) }
 
     single { SpotifyTokenCache() }
 
@@ -22,4 +25,8 @@ val clientModule = module {
             tokenCache = get()
         )
     }
+
+    single { MusicService(get()) }
+
+    single<Controller> { MusicController(get()) }
 }
