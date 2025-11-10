@@ -1,5 +1,5 @@
 package com.collektar
-
+import config.configureFrameworks
 import io.ktor.server.application.*
 
 fun main(args: Array<String>) {
