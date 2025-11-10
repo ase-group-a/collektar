@@ -13,9 +13,8 @@ class ApplicationTest {
         application {
             module()
         }
-        client.get("/").apply {
-            // Changed to 404 as the service has not been set up yet, this is just for sonar to run
-            assertEquals(HttpStatusCode.NotFound, status)
+        client.get("/health").apply {
+            assertEquals(HttpStatusCode.OK, status)
         }
     }
 
