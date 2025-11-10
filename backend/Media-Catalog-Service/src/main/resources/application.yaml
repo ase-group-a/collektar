@@ -8,3 +8,9 @@ jwt:
   domain: "https://jwt-provider-domain/"
   audience: "jwt-audience"
   realm: "ktor sample app"
+
+spotify:
+  clientId: ${SPOTIFY_CLIENT_ID}
+  clientSecret: ${SPOTIFY_CLIENT_SECRET}
+  baseUrl: ${SPOTIFY_BASE_URL}
+  tokenUrl: ${SPOTIFY_TOKEN_URL:https}
