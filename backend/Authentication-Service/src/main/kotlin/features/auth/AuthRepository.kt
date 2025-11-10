@@ -11,17 +11,18 @@ import java.time.Instant
 import java.util.*
 
 class AuthRepository(database: Database) : BaseRepository(database), IAuthRepository {
+    override suspend fun <T> transaction(block: suspend () -> T): T = dbTransaction(block)
+
     override suspend fun createUser(
+        userId: UUID,
         username: String,
         email: String,
         displayName: String,
         passwordHash: String
     ): AuthModel = dbQuery {
-        val uuid = UUID.randomUUID()
         val now = System.currentTimeMillis()
-
         val id: UUID = Users.insert {
-            it[id] = uuid
+            it[id] = userId
             it[Users.username] = username
             it[Users.email] = email
             it[Users.displayName] = displayName
