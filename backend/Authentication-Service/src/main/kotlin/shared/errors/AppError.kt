@@ -22,11 +22,11 @@ sealed class AppError(message: String, val statusCode: HttpStatusCode) : Excepti
     }
 
     sealed class Unauthorized(message: String) : AppError(message, HttpStatusCode.Unauthorized) {
-        data class InvalidCredentials() : Unauthorized(
+        class InvalidCredentials : Unauthorized(
             "Invalid Credentials provided."
         )
 
-        data class InvalidToken() : Unauthorized(
+        class InvalidToken : Unauthorized(
             "Invalid or expired token"
         )
     }
