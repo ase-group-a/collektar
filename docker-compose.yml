@@ -40,16 +40,22 @@ services:
     restart: unless-stopped
     expose:
       - "8080"
+    env_file:
+      - .env
     environment:
       - KTOR_ENV=${KTOR_ENV}
-      - DB_URL=jbdc:postgresql://auth-db:5432/${AUTH_DB_NAME}
+      - DB_URL=jdbc:postgresql://auth-db:5432/${AUTH_DB_NAME}
       - DB_USER=${AUTH_DB_USER}
       - DB_PASSWORD=${AUTH_DB_PASSWORD}
+    user: "1000:1000"
     depends_on:
       auth-db:
         condition: service_healthy
     networks:
       - media-network
+    volumes:
+      - ./secrets/jwt_private.pem:/run/secrets/jwt_private.pem:ro
+      - ./config/jwt_public.pem:/run/config/jwt_public.pem:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -80,7 +86,7 @@ services:
       - "8080"
     environment:
       - KTOR_ENV=${KTOR_ENV}
-      - DB_URL=jbdc:postgresql://collection-db:5432/${COLLECTION_DB_NAME}
+      - DB_URL=jdbc:postgresql://collection-db:5432/${COLLECTION_DB_NAME}
       - DB_USER=${COLLECTION_DB_USER}
       - DB_PASSWORD=${COLLECTION_DB_PASSWORD}
     depends_on:
@@ -146,6 +152,8 @@ services:
       - /data/auth-db:/var/lib/postgresql
     networks:
       - media-network
+    ports:
+      - "5432:5432" #map to host to access db from dbclients
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${AUTH_DB_USER} -d ${AUTH_DB_NAME}"]
       interval: 10s
