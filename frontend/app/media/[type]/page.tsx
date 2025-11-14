@@ -2,6 +2,7 @@
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { useState } from "react";
+import { Bars3Icon, Squares2X2Icon } from "@heroicons/react/24/solid";
 
 import MediaList from "@/components/MediaList";
 import { MediaItem } from "@/types/media";
@@ -14,6 +15,8 @@ import Pagination from "@/components/common/Pagination";
 const MediaPage = () => {
     const params = useParams();
     const { type } = params;
+
+    const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
     const [query, setQuery] = useState("");
     const [page, setPage] = useState(1);
@@ -30,7 +33,7 @@ const MediaPage = () => {
 
     return (
         <div className="px-80 py-10">
-            <div className="pb-5">
+            <div className="pb-5 flex justify-between items-center">
                 <SearchBar
                     initialQuery={query}
                     onSearch={(q) => {
@@ -38,6 +41,22 @@ const MediaPage = () => {
                         setPage(1);
                     }}
                 />
+
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setViewMode("list")}
+                        className={`btn btn-sm ${viewMode === "list" ? "btn-active" : ""}`}
+                    >
+                        <Bars3Icon className="w-5 h-5" />
+                    </button>
+                    <button
+                        onClick={() => setViewMode("grid")}
+                        className={`btn btn-sm ${viewMode === "grid" ? "btn-active" : ""}`}
+                    >
+                        <Squares2X2Icon className="w-5 h-5" />
+                    </button>
+
+                </div>
             </div>
 
             {isLoading ? (
@@ -52,7 +71,7 @@ const MediaPage = () => {
                     />
                 </div>
             ) : (
-                <MediaList items={mediaItems} />
+                <MediaList items={mediaItems} layout={viewMode}/>
             )}
 
             {totalPages > 1 && (
