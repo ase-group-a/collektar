@@ -7,6 +7,7 @@ import com.collektar.shared.security.JWTService.AccessToken
 import com.collektar.shared.security.JWTService.IJWTService
 import com.collektar.shared.security.JWTService.RefreshToken
 import com.collektar.shared.security.RefreshTokenHasher.IRefreshTokenHasher
+import com.collektar.shared.security.opaquetokengeneration.IOpaqueTokenGenerator
 import java.time.Duration
 import java.time.Instant
 import java.util.*
@@ -14,16 +15,17 @@ import java.util.*
 class TokenService(
     private val jwtService: IJWTService,
     private val tokenHasher: IRefreshTokenHasher,
+    private val opaqueTokenGenerator: IOpaqueTokenGenerator,
     private val repository: IAuthRepository,
 ) : ITokenService {
     override suspend fun generateTokens(userId: UUID, email: String): TokenPair {
         val accessToken: AccessToken = jwtService.generateAccessToken(userId, email)
-        val refreshToken: RefreshToken = jwtService.generateRefreshToken(userId)
+        val refreshToken: RefreshToken = opaqueTokenGenerator.generate(userId)
 
         val accessTokenExpiresIn: Long = Duration.between(Instant.now(), accessToken.expiresAt).toMillis()
         val refreshTokenExpiresIn: Long = Duration.between(Instant.now(), refreshToken.expiresAt).toMillis()
 
-        saveRefreshToken(userId = userId, token = refreshToken)
+        saveRefreshToken(refreshToken)
 
         return TokenPair(
             accessToken = accessToken.token,
@@ -44,11 +46,11 @@ class TokenService(
         return generateTokens(userId = user.id, email = user.email)
     }
 
-    private suspend fun saveRefreshToken(userId: UUID, token: RefreshToken) {
+    private suspend fun saveRefreshToken(token: RefreshToken) {
         val tokenHash = tokenHasher.hash(token.token)
 
         repository.saveRefreshToken(
-            userId = userId,
+            userId = token.userId,
             tokenHash = tokenHash,
             expiresAt = token.expiresAt,
             issuedAt = token.issuedAt
@@ -56,27 +58,20 @@ class TokenService(
     }
 
     private suspend fun validateRefreshToken(token: String): Pair<UUID, String> {
-        val decodedJWT = jwtService.verify(
-            token = token
-        ) ?: throw AppError.Unauthorized.InvalidToken()
-
-        val userId = UUID.fromString(decodedJWT.subject)
         val tokenHash = tokenHasher.hash(token)
 
         val storedToken: StoredRefreshToken = repository.findRefreshToken(
             tokenHash = tokenHash
         ) ?: throw AppError.Unauthorized.InvalidToken()
 
-        if (storedToken.userId != userId) {
-            throw AppError.Unauthorized.InvalidToken()
-        }
-
         if (isTokenExpired(storedToken)) {
             repository.revokeRefreshToken(tokenHash)
             throw AppError.Unauthorized.InvalidToken()
         }
 
-        return userId to tokenHash
+        repository.updateLastUsed(tokenHash)
+
+        return storedToken.userId to tokenHash
     }
 
     private fun isTokenExpired(token: StoredRefreshToken): Boolean {
