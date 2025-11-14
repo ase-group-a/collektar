@@ -2,15 +2,14 @@
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { useState } from "react";
-import { Bars3Icon, Squares2X2Icon } from "@heroicons/react/24/solid";
 
 import MediaList from "@/components/MediaList";
 import { MediaItem } from "@/types/media";
 import { searchMedia } from "@/lib/api/mediaApi";
 import LoadingState from "@/components/common/LoadingState";
 import ErrorState from "@/components/common/ErrorState";
-import SearchBar from "@/components/common/SearchBar";
 import Pagination from "@/components/common/Pagination";
+import MediaToolbar from "@/components/common/MediaToolbar";
 
 const MediaPage = () => {
     const params = useParams();
@@ -32,56 +31,29 @@ const MediaPage = () => {
     const totalPages = Math.ceil((data?.total || 0) / limit);
 
     return (
-        <div className="px-80 py-10">
-            <div className="pb-5 flex justify-between items-center">
-                <SearchBar
-                    initialQuery={query}
-                    onSearch={(q) => {
-                        setQuery(q);
-                        setPage(1);
-                    }}
-                />
-
-                <div className="flex gap-2">
-                    <button
-                        onClick={() => setViewMode("list")}
-                        className={`btn btn-sm ${viewMode === "list" ? "btn-active" : ""}`}
-                    >
-                        <Bars3Icon className="w-5 h-5" />
-                    </button>
-                    <button
-                        onClick={() => setViewMode("grid")}
-                        className={`btn btn-sm ${viewMode === "grid" ? "btn-active" : ""}`}
-                    >
-                        <Squares2X2Icon className="w-5 h-5" />
-                    </button>
-
-                </div>
-            </div>
+        <div className="px-80 py-10 text-center">
+            <MediaToolbar
+                query={query}
+                setQuery={setQuery}
+                viewMode={viewMode}
+                setViewMode={setViewMode}
+                resetPage={() => setPage(1)}
+            />
 
             {isLoading ? (
-                <div className="text-center">
-                    <LoadingState />
-                </div>
+                <LoadingState />
             ) : error ? (
-                <div className="text-center">
-                    <ErrorState
-                        message={(error as any).message}
-                        onRetry={() => window.location.reload()}
-                    />
-                </div>
+                <ErrorState message={(error as any).message} onRetry={() => window.location.reload()}/>
             ) : (
                 <MediaList items={mediaItems} layout={viewMode}/>
             )}
 
             {totalPages > 1 && (
-                <div className="text-center">
                     <Pagination
                         page={page}
                         totalPages={totalPages}
                         onPageChange={(p) => setPage(p)}
                     />
-                </div>
             )}
         </div>
     );
