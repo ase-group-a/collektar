@@ -3,6 +3,7 @@ package com.collektar.features.auth
 import com.collektar.dto.LoginRequest
 import com.collektar.dto.RefreshTokenRequest
 import com.collektar.dto.RegisterRequest
+import com.collektar.shared.errors.AppError
 import com.collektar.shared.validation.Validator
 import io.ktor.http.*
 import io.ktor.server.request.*
@@ -29,6 +30,9 @@ fun Route.authRoutes(authService: IAuthService) {
 
         post("/refresh") {
             val req = call.receive<RefreshTokenRequest>()
+            if (req.refreshToken.isBlank()) {
+                throw AppError.BadRequest.RefreshTokenMissing()
+            }
             val res = authService.refresh(req)
             call.respond(HttpStatusCode.OK, res)
         }
