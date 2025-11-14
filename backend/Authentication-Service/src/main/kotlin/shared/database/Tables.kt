@@ -18,7 +18,7 @@ object Tables {
     object RefreshTokens : Table("refresh_tokens") {
         val id = uuid("id").uniqueIndex()
         val userId = reference("user_id", Users.id)
-        val token = varchar("token", 1000).uniqueIndex()
+        val tokenHash = varchar("token_hash", 1000).uniqueIndex()
         val expiresAt = long("expires_at")
         val issuedAt = long("issued_at").clientDefault { System.currentTimeMillis() }
         val lastUsedAt = long("last_used_at")
