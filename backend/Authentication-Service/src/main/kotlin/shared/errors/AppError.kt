@@ -4,20 +4,24 @@ import io.ktor.http.*
 
 sealed class AppError(message: String, val statusCode: HttpStatusCode) : Exception(message) {
     sealed class BadRequest(message: String) : AppError(message, HttpStatusCode.BadRequest) {
-        data class InvalidUsername(val username: String) : BadRequest(
+        class InvalidUsername() : BadRequest(
             "Username must be 3-50 characters, alphanumeric with underscores/hyphens"
         )
 
-        data class InvalidEmail(val email: String) : BadRequest(
+        class InvalidEmail : BadRequest(
             "Invalid email format"
         )
 
-        data class InvalidDisplayName(val displayName: String) : BadRequest(
+        class InvalidDisplayName : BadRequest(
             "Display name must be 1-100 characters"
         )
 
         data class InvalidPassword(val reason: String) : BadRequest(
             "Password validation failed: $reason"
+        )
+
+        class RefreshTokenMissing : BadRequest(
+            "Refresh token is required."
         )
     }
 
@@ -29,6 +33,10 @@ sealed class AppError(message: String, val statusCode: HttpStatusCode) : Excepti
         class InvalidToken : Unauthorized(
             "Invalid or expired token"
         )
+
+        class TokenReused : Unauthorized(
+            "Token already used"
+        )
     }
 
     sealed class Conflict(message: String) : AppError(message, HttpStatusCode.NotFound) {
@@ -36,7 +44,7 @@ sealed class AppError(message: String, val statusCode: HttpStatusCode) : Excepti
             "Username $username is already taken"
         )
 
-        data class EmailAlreadyInUse(val email: String) : Conflict(
+        class EmailAlreadyInUse : Conflict(
             "Email is already in use"
         )
     }

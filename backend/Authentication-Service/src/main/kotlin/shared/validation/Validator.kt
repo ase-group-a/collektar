@@ -18,19 +18,19 @@ object Validator {
 
     fun validateUsername(username: String) {
         if (!username.matches(USERNAME_REGEX)) {
-            throw AppError.BadRequest.InvalidUsername(username)
+            throw AppError.BadRequest.InvalidUsername()
         }
     }
 
     fun validateEmail(email: String) {
         if (!email.matches(EMAIL_REGEX)) {
-            throw AppError.BadRequest.InvalidEmail(email)
+            throw AppError.BadRequest.InvalidEmail()
         }
     }
 
     fun validateDisplayName(displayName: String) {
         if (displayName.isBlank() || displayName.length > 100) {
-            throw AppError.BadRequest.InvalidDisplayName(displayName)
+            throw AppError.BadRequest.InvalidDisplayName()
         }
     }
 
