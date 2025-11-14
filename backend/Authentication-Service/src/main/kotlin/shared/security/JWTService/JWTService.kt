@@ -24,6 +24,7 @@ class JWTService(private val config: JWTConfig) : IJWTService {
             .withAudience(config.audience)
             .withClaim("userId", userId.toString())
             .withClaim("email", email)
+            .withClaim("type", "access")
             .withIssuedAt(issuedAt)
             .withExpiresAt(expiresAt)
             .sign(algorithm)
@@ -34,26 +35,6 @@ class JWTService(private val config: JWTConfig) : IJWTService {
             issuedAt = issuedAt.toInstant(),
             userId = userId,
             email = email
-        )
-    }
-
-    override fun generateRefreshToken(userId: UUID): RefreshToken {
-        val issuedAt = Date()
-        val expiresAt = Date(System.currentTimeMillis() + config.refreshTokenValidityMS)
-        val token = JWT.create()
-            .withIssuer(config.issuer)
-            .withAudience(config.audience)
-            .withSubject(userId.toString())
-            .withClaim("type", "refresh")
-            .withIssuedAt(issuedAt)
-            .withExpiresAt(expiresAt)
-            .sign(algorithm)
-
-        return RefreshToken(
-            token = token,
-            expiresAt = expiresAt.toInstant(),
-            issuedAt = issuedAt.toInstant(),
-            userId = userId,
         )
     }
 

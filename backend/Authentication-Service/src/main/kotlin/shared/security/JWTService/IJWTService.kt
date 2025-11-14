@@ -5,6 +5,5 @@ import java.util.*
 
 interface IJWTService {
     fun generateAccessToken(userId: UUID, email: String): AccessToken
-    fun generateRefreshToken(userId: UUID): RefreshToken
     fun verify(token: String): DecodedJWT?
 }
