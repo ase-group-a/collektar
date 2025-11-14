@@ -20,8 +20,14 @@ object Tables {
         val userId = reference("user_id", Users.id)
         val token = varchar("token", 1000).uniqueIndex()
         val expiresAt = long("expires_at")
-        val issuedAt = long("issuedAt").clientDefault { System.currentTimeMillis() }
+        val issuedAt = long("issued_at").clientDefault { System.currentTimeMillis() }
+        val lastUsedAt = long("last_used_at")
 
         override val primaryKey = PrimaryKey(id)
+
+        init {
+            index(false, userId)
+            index(false, expiresAt)
+        }
     }
 }
