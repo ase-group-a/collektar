@@ -57,6 +57,7 @@ class AuthService(
             throw AppError.Unauthorized.InvalidCredentials()
         }
 
+        repository.revokeAllUserTokens(user.id)
         val tokenPair: TokenPair = tokenService.generateTokens(userId = user.id, email = user.email)
 
         return AuthenticationResponse(
