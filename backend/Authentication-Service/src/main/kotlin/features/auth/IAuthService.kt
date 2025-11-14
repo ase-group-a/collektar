@@ -1,7 +1,6 @@
 package com.collektar.features.auth
 
 import com.collektar.dto.*
-import java.util.*
 
 interface IAuthService {
     suspend fun register(request: RegisterRequest): RegisterResponse

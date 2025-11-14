@@ -1,4 +1,4 @@
-package com.collektar.DTOs
+package com.collektar.dto
 
 import kotlinx.serialization.Serializable
 

@@ -1,7 +1,6 @@
-package com.collektar.shared.security.Hasher
+package com.collektar.shared.security.PasswordHasher
 
 
-import com.collektar.shared.security.PasswordHasher.IPasswordHasher
 import org.mindrot.jbcrypt.BCrypt
 
 class BCryptHasher : IPasswordHasher {

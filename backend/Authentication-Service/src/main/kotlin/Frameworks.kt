@@ -7,9 +7,9 @@ import com.collektar.features.auth.AuthService
 import com.collektar.features.auth.IAuthRepository
 import com.collektar.features.auth.IAuthService
 import com.collektar.shared.database.DatabaseFactory
-import com.collektar.shared.security.Hasher.BCryptHasher
 import com.collektar.shared.security.JWTService.IJWTService
 import com.collektar.shared.security.JWTService.JWTService
+import com.collektar.shared.security.PasswordHasher.BCryptHasher
 import com.collektar.shared.security.PasswordHasher.IPasswordHasher
 import io.ktor.server.application.*
 import org.koin.dsl.module

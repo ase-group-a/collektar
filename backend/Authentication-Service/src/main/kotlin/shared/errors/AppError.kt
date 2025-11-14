@@ -4,7 +4,7 @@ import io.ktor.http.*
 
 sealed class AppError(message: String, val statusCode: HttpStatusCode) : Exception(message) {
     sealed class BadRequest(message: String) : AppError(message, HttpStatusCode.BadRequest) {
-        class InvalidUsername() : BadRequest(
+        class InvalidUsername : BadRequest(
             "Username must be 3-50 characters, alphanumeric with underscores/hyphens"
         )
 
@@ -32,10 +32,6 @@ sealed class AppError(message: String, val statusCode: HttpStatusCode) : Excepti
 
         class InvalidToken : Unauthorized(
             "Invalid or expired token"
-        )
-
-        class TokenReused : Unauthorized(
-            "Token already used"
         )
     }
 
