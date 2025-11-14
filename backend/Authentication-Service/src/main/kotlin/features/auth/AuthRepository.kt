@@ -3,16 +3,12 @@ package com.collektar.features.auth
 import com.collektar.shared.database.Tables.RefreshTokens
 import com.collektar.shared.database.Tables.Users
 import com.collektar.shared.repository.BaseRepository
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import java.time.Instant
 import java.util.*
 
 class AuthRepository(database: Database) : BaseRepository(database), IAuthRepository {
-    override suspend fun <T> transaction(block: suspend () -> T): T = dbTransaction(block)
-
     override suspend fun createUser(
         userId: UUID,
         username: String,
@@ -79,18 +75,43 @@ class AuthRepository(database: Database) : BaseRepository(database), IAuthReposi
 
     override suspend fun saveRefreshToken(
         userId: UUID,
-        token: String,
+        tokenHash: String,
         expiresAt: Instant,
         issuedAt: Instant
     ): Unit = dbQuery {
         RefreshTokens
             .insert {
-                it[RefreshTokens.id] = UUID.randomUUID()
+                it[id] = UUID.randomUUID()
                 it[RefreshTokens.userId] = userId
-                it[RefreshTokens.token] = token
+                it[this.tokenHash] = tokenHash
                 it[RefreshTokens.expiresAt] = expiresAt.toEpochMilli()
                 it[RefreshTokens.issuedAt] = issuedAt.toEpochMilli()
+                it[lastUsedAt] = System.currentTimeMillis()
             }
+    }
+
+    override suspend fun findRefreshToken(tokenHash: String): StoredRefreshToken? = dbQuery {
+        RefreshTokens
+            .selectAll()
+            .where { RefreshTokens.tokenHash eq tokenHash }
+            .map { it.toStoredRefreshToken() }
+            .singleOrNull()
+    }
+
+    override suspend fun revokeRefreshToken(tokenHash: String): Unit = dbQuery {
+        RefreshTokens.deleteWhere { RefreshTokens.tokenHash eq tokenHash }
+    }
+
+    override suspend fun revokeAllUserTokens(userId: UUID): Unit = dbQuery {
+        RefreshTokens.deleteWhere { RefreshTokens.userId eq userId }
+    }
+
+    override suspend fun updateLastUsed(tokenHash: String): Unit = dbQuery {
+        RefreshTokens.update({
+            RefreshTokens.tokenHash eq tokenHash
+        }) {
+            it[lastUsedAt] = System.currentTimeMillis()
+        }
     }
 
     private fun ResultRow.toAuthModel() = AuthModel(
@@ -99,5 +120,12 @@ class AuthRepository(database: Database) : BaseRepository(database), IAuthReposi
         email = this[Users.email],
         displayName = this[Users.displayName],
         passwordHash = this[Users.passwordHash],
+    )
+
+    private fun ResultRow.toStoredRefreshToken() = StoredRefreshToken(
+        tokenHash = this[RefreshTokens.tokenHash],
+        userId = this[RefreshTokens.userId],
+        expiresAt = Instant.ofEpochMilli(this[RefreshTokens.expiresAt]),
+        issuedAt = Instant.ofEpochMilli(this[RefreshTokens.issuedAt])
     )
 }

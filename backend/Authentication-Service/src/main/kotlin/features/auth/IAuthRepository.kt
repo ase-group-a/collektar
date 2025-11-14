@@ -4,7 +4,6 @@ import java.time.Instant
 import java.util.*
 
 interface IAuthRepository {
-    suspend fun <T> transaction(block: suspend () -> T): T
     suspend fun createUser(
         userId: UUID,
         username: String,
@@ -18,5 +17,9 @@ interface IAuthRepository {
     suspend fun findByUserId(userId: UUID): AuthModel?
     suspend fun usernameExists(username: String): Boolean
     suspend fun emailExists(email: String): Boolean
-    suspend fun saveRefreshToken(userId: UUID, token: String, expiresAt: Instant, issuedAt: Instant)
+    suspend fun saveRefreshToken(userId: UUID, tokenHash: String, expiresAt: Instant, issuedAt: Instant)
+    suspend fun findRefreshToken(tokenHash: String): StoredRefreshToken?
+    suspend fun updateLastUsed(tokenHash: String)
+    suspend fun revokeRefreshToken(tokenHash: String)
+    suspend fun revokeAllUserTokens(userId: UUID)
 }
