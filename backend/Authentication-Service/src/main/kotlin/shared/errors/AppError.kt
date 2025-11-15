@@ -33,6 +33,10 @@ sealed class AppError(message: String, val statusCode: HttpStatusCode) : Excepti
         class InvalidToken : Unauthorized(
             "Invalid or expired token"
         )
+
+        class MissingToken : Unauthorized(
+            "Missing authentication token"
+        )
     }
 
     sealed class Conflict(message: String) : AppError(message, HttpStatusCode.NotFound) {
