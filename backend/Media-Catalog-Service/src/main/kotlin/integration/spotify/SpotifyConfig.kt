@@ -6,7 +6,8 @@ data class SpotifyConfig(
     val clientId: String,
     val clientSecret: String,
     val baseUrl: String,
-    val tokenUrl: String
+    val tokenUrl: String,
+    val defaultPlaylistId: String
 ) {
     companion object {
         fun fromEnv(env: ApplicationEnvironment): SpotifyConfig {
@@ -18,15 +19,16 @@ data class SpotifyConfig(
                 ?: env.config.propertyOrNull("spotify.clientSecret")?.getString()
                 ?: error("SPOTIFY_CLIENT_SECRET not set")
 
-            val baseUrl = System.getenv("SPOTIFY_BASE_URL")
-                ?: env.config.propertyOrNull("spotify.baseUrl")?.getString()
-                ?: error("SPOTIFY_BASE_URL not set")
+            val baseUrl = env.config.propertyOrNull("spotify.baseUrl")?.getString()
+                ?: error("spotify.baseUrl not set")
 
-            val tokenUrl = System.getenv("SPOTIFY_TOKEN_URL")
-                ?: env.config.propertyOrNull("spotify.tokenUrl")?.getString()
-                ?: error("SPOTIFY_TOKEN_URL not set")
+            val tokenUrl = env.config.propertyOrNull("spotify.tokenUrl")?.getString()
+                ?: error("spotify.tokenUrl not set")
 
-            return SpotifyConfig(clientId, clientSecret, baseUrl, tokenUrl)
+            val defaultPlaylistId = env.config.propertyOrNull("spotify.defaultPlaylistId")?.getString()
+                ?: error("spotify.defaultPlaylistId not set")
+
+            return SpotifyConfig(clientId, clientSecret, baseUrl, tokenUrl, defaultPlaylistId)
         }
     }
 }

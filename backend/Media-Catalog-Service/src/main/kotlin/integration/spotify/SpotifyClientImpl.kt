@@ -17,7 +17,8 @@ class SpotifyClientImpl(
         val token = tokenProvider.getToken()
 
         val response: HttpResponse = if (query.isNullOrBlank()) {
-            val playlistId = "5iwkYfnHAGMEFLiHFFGnP4" // Today's Top Hits Playlist (dein Wert)
+            val playlistId = config.defaultPlaylistId
+
             httpClient.get("${config.baseUrl}/playlists/$playlistId/tracks") {
                 header(HttpHeaders.Authorization, "Bearer $token")
                 url {

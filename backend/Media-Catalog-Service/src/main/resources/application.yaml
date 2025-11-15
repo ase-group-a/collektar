@@ -12,5 +12,6 @@ jwt:
 spotify:
   clientId: ${SPOTIFY_CLIENT_ID}
   clientSecret: ${SPOTIFY_CLIENT_SECRET}
-  baseUrl: ${SPOTIFY_BASE_URL}
-  tokenUrl: ${SPOTIFY_TOKEN_URL:https}
+  baseUrl: https://api.spotify.com/v1
+  tokenUrl: https://accounts.spotify.com/api/token
+  defaultPlaylistId: "5iwkYfnHAGMEFLiHFFGnP4" # Todays Top Hits Playlist
