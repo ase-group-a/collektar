@@ -42,4 +42,6 @@ jobs:
           SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
           SPOTIFY_BASE_URL: "https://api.spotify.com/v1"
           SPOTIFY_TOKEN_URL: "https://accounts.spotify.com/api/token"
+          TMDB_BEARER_TOKEN: ${{ secrets.TMDB_BEARER_TOKEN }}
+          TMDB_BASE_URL: "https://api.themoviedb.org/3"
         run: ./gradlew build sonar --info
