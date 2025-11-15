@@ -23,6 +23,8 @@ services:
       - ./backend/traefik/dynamic:/etc/traefik/dynamic:ro
     networks:
       - media-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     labels:
       - "traefik.enable=true"
       # Dashboard
@@ -107,7 +109,7 @@ services:
       - "traefik.http.routers.collection.service=collection-service"
       - "traefik.http.services.collection-service.loadbalancer.server.port=8080"
       - "traefik.http.middlewares.collection-stripprefix.stripprefix.prefixes=/api/collection"
-      - "traefik.http.routers.collection.middlewares=collection-stripprefix"
+      - "traefik.http.routers.collection.middlewares=auth-forward@file,collection-stripprefix"
   #
   # Service to interface and handle external APIs
   #
@@ -121,6 +123,8 @@ services:
       - "8080"
     environment:
       - KTOR_ENV=${KTOR_ENV}
+    env_file:
+      - .env
     networks:
       - media-network
     healthcheck:
@@ -136,7 +140,7 @@ services:
       - "traefik.http.routers.media.service=media-catalog-service"
       - "traefik.http.services.media-catalog-service.loadbalancer.server.port=8080"
       - "traefik.http.middlewares.media-stripprefix.stripprefix.prefixes=/api/media"
-      - "traefik.http.routers.media.middlewares=media-stripprefix"
+      - "traefik.http.routers.media.middlewares=auth-forward@file,media-stripprefix"
   #
   # Postgres DB to store user data
   #
