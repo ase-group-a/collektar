@@ -42,11 +42,13 @@ dependencies {
     implementation("io.ktor:ktor-client-logging")
 
     testImplementation("io.ktor:ktor-server-test-host")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5:$kotlin_version")
 
     testImplementation("io.mockk:mockk:1.13.10")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
     testImplementation("io.ktor:ktor-client-mock")
+
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.10.0")
 }
 
 tasks.test {
