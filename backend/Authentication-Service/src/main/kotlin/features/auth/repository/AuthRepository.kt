@@ -1,4 +1,4 @@
-package com.collektar.features.auth
+package com.collektar.features.auth.repository
 
 import com.collektar.shared.database.Tables.RefreshTokens
 import com.collektar.shared.database.Tables.Users

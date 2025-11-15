@@ -1,4 +1,4 @@
-package com.collektar.shared.security.JWTService
+package com.collektar.shared.security.jwt
 
 import java.time.Instant
 import java.util.*

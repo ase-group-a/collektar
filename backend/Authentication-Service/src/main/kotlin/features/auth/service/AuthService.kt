@@ -1,8 +1,9 @@
-package com.collektar.features.auth
+package com.collektar.features.auth.service
 
 import com.collektar.dto.*
+import com.collektar.features.auth.repository.IAuthRepository
 import com.collektar.shared.errors.AppError
-import com.collektar.shared.security.PasswordHasher.IPasswordHasher
+import com.collektar.shared.security.passwordhasher.IPasswordHasher
 import com.collektar.shared.security.tokenservice.ITokenService
 import com.collektar.shared.security.tokenservice.TokenPair
 import io.ktor.server.routing.*

@@ -3,6 +3,7 @@ package com.collektar.features.auth
 import com.collektar.dto.LoginRequest
 import com.collektar.dto.RefreshTokenRequest
 import com.collektar.dto.RegisterRequest
+import com.collektar.features.auth.service.IAuthService
 import com.collektar.shared.errors.AppError
 import com.collektar.shared.validation.Validator
 import io.ktor.http.*

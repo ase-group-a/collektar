@@ -1,4 +1,4 @@
-package com.collektar.shared.security.RefreshTokenHasher
+package com.collektar.shared.security.tokenhasher
 
 import com.collektar.config.TokenHasherConfig
 import java.util.*

@@ -1,4 +1,4 @@
-package com.collektar.shared.security.PasswordHasher
+package com.collektar.shared.security.passwordhasher
 
 interface IPasswordHasher {
     fun hash(password: String): String

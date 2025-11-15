@@ -1,8 +1,8 @@
 package com.collektar.plugins
 
 import com.collektar.dto.ErrorResponse
-import com.collektar.features.auth.IAuthService
 import com.collektar.features.auth.authRoutes
+import com.collektar.features.auth.service.IAuthService
 import com.collektar.shared.errors.AppError
 import io.ktor.http.*
 import io.ktor.server.application.*

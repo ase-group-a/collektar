@@ -1,4 +1,4 @@
-package com.collektar.features.auth
+package com.collektar.features.auth.service
 
 import com.collektar.dto.*
 import io.ktor.server.routing.*

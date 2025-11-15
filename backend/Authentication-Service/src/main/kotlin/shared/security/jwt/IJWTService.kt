@@ -1,4 +1,4 @@
-package com.collektar.shared.security.JWTService
+package com.collektar.shared.security.jwt
 
 import com.auth0.jwt.interfaces.DecodedJWT
 import java.util.*

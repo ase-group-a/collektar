@@ -1,14 +1,14 @@
 package com.collektar.shared.security.tokenservice
 
 import com.auth0.jwt.interfaces.DecodedJWT
-import com.collektar.features.auth.IAuthRepository
-import com.collektar.features.auth.StoredRefreshToken
+import com.collektar.features.auth.repository.IAuthRepository
+import com.collektar.features.auth.repository.StoredRefreshToken
 import com.collektar.shared.errors.AppError
-import com.collektar.shared.security.JWTService.AccessToken
-import com.collektar.shared.security.JWTService.IJWTService
-import com.collektar.shared.security.JWTService.RefreshToken
-import com.collektar.shared.security.RefreshTokenHasher.IRefreshTokenHasher
+import com.collektar.shared.security.jwt.AccessToken
+import com.collektar.shared.security.jwt.IJWTService
+import com.collektar.shared.security.jwt.RefreshToken
 import com.collektar.shared.security.opaquetokengeneration.IOpaqueTokenGenerator
+import com.collektar.shared.security.tokenhasher.IRefreshTokenHasher
 import java.time.Duration
 import java.time.Instant
 import java.util.*

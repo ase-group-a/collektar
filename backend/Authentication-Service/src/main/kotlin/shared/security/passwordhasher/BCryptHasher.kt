@@ -1,4 +1,4 @@
-package com.collektar.shared.security.PasswordHasher
+package com.collektar.shared.security.passwordhasher
 
 
 import org.mindrot.jbcrypt.BCrypt
