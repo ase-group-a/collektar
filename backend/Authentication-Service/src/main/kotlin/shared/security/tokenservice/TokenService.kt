@@ -1,5 +1,6 @@
 package com.collektar.shared.security.tokenservice
 
+import com.auth0.jwt.interfaces.DecodedJWT
 import com.collektar.features.auth.IAuthRepository
 import com.collektar.features.auth.StoredRefreshToken
 import com.collektar.shared.errors.AppError
@@ -44,6 +45,33 @@ class TokenService(
         ) ?: throw AppError.Unauthorized.InvalidToken()
 
         return generateTokens(userId = user.id, email = user.email)
+    }
+
+    override suspend fun validateAccessToken(token: String): TokenClaims {
+        val decodedToken: DecodedJWT = jwtService.verify(
+            token
+        ) ?: throw AppError.Unauthorized.InvalidToken()
+
+        val tokenType = decodedToken.getClaim("type").asString()
+        if (tokenType != "access") {
+            throw AppError.Unauthorized.InvalidToken()
+        }
+
+        val userIdString = decodedToken.getClaim("userId").asString()
+            ?: throw AppError.Unauthorized.InvalidToken()
+        val email = decodedToken.getClaim("email").asString()
+            ?: throw AppError.Unauthorized.InvalidToken()
+
+        val userId = try {
+            UUID.fromString(userIdString)
+        } catch (_: Exception) {
+            throw AppError.Unauthorized.InvalidToken()
+        }
+
+        return TokenClaims(
+            userId = userId,
+            email = email
+        )
     }
 
     private suspend fun saveRefreshToken(token: RefreshToken) {
