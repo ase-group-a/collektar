@@ -5,6 +5,7 @@ import com.collektar.shared.errors.AppError
 import com.collektar.shared.security.PasswordHasher.IPasswordHasher
 import com.collektar.shared.security.tokenservice.ITokenService
 import com.collektar.shared.security.tokenservice.TokenPair
+import io.ktor.server.routing.*
 import java.util.*
 
 class AuthService(
@@ -77,5 +78,11 @@ class AuthService(
             refreshToken = tokenPair.refreshToken,
             refreshTokenExpiresIn = tokenPair.refreshTokenExpiresIn
         )
+    }
+
+    override suspend fun verify(token: String, routingCall: RoutingCall) {
+        val claims = tokenService.validateAccessToken(token)
+        routingCall.response.headers.append("X-User-Id", claims.userId.toString())
+        routingCall.response.headers.append("X-User-Email", claims.email)
     }
 }
