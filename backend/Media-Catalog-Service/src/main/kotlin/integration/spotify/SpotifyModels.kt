@@ -32,7 +32,7 @@ data class TracksItems(val items: List<TrackDto> = emptyList(), val total: Int =
 
 @Serializable
 data class SpotifyTracksSearchResponse(
-    val tracks: TracksItems? = null
+    val tracks: TracksItems = TracksItems()
 )
 
 @Serializable
