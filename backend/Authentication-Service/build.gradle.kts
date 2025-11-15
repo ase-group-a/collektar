@@ -47,6 +47,10 @@ dependencies {
     implementation("io.ktor:ktor-serialization-gson:3.3.1")
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+    testImplementation("io.mockk:mockk:1.14.5")
+    testImplementation("io.kotest:kotest-runner-junit5:6.0.4")
+    testImplementation("io.kotest:kotest-assertions-core:6.0.4")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
 }
 
 sonar {
@@ -54,4 +58,8 @@ sonar {
         property("sonar.projectKey", "collektar_Authentication-Service")
         property("sonar.organization", "ase-group-a")
     }
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
 }
