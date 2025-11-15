@@ -45,7 +45,6 @@ services:
     env_file:
       - .env
     environment:
-      - KTOR_ENV=${KTOR_ENV}
       - DB_URL=jdbc:postgresql://auth-db:5432/${AUTH_DB_NAME}
       - DB_USER=${AUTH_DB_USER}
       - DB_PASSWORD=${AUTH_DB_PASSWORD}
@@ -87,7 +86,6 @@ services:
     expose:
       - "8080"
     environment:
-      - KTOR_ENV=${KTOR_ENV}
       - DB_URL=jdbc:postgresql://collection-db:5432/${COLLECTION_DB_NAME}
       - DB_USER=${COLLECTION_DB_USER}
       - DB_PASSWORD=${COLLECTION_DB_PASSWORD}
@@ -121,8 +119,6 @@ services:
     restart: unless-stopped
     expose:
       - "8080"
-    environment:
-      - KTOR_ENV=${KTOR_ENV}
     env_file:
       - .env
     networks:
