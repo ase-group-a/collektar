@@ -36,5 +36,20 @@ fun Route.authRoutes(authService: IAuthService) {
             val res = authService.refresh(req)
             call.respond(HttpStatusCode.OK, res)
         }
+
+        get("/verify") {
+            val authHeader = call.request.header(
+                "Authorization"
+            ) ?: throw AppError.Unauthorized.MissingToken()
+            if (!authHeader.startsWith("Bearer ")) {
+                throw AppError.Unauthorized.InvalidToken()
+            }
+            val token = authHeader.removePrefix("Bearer ")
+            if (token.isBlank()) {
+                throw AppError.Unauthorized.MissingToken()
+            }
+            authService.verify(token, call)
+            call.respond(HttpStatusCode.OK)
+        }
     }
 }
