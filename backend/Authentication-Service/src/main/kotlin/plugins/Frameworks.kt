@@ -1,4 +1,4 @@
-package com.collektar
+package com.collektar.plugins
 
 
 import com.collektar.config.JWTConfig

@@ -1,4 +1,4 @@
-package com.collektar
+package com.collektar.plugins
 
 import com.collektar.dto.ErrorResponse
 import com.collektar.features.auth.IAuthService

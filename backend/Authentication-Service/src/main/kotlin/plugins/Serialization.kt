@@ -1,4 +1,4 @@
-package com.collektar
+package com.collektar.plugins
 
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
