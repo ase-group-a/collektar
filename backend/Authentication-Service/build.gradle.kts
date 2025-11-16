@@ -53,6 +53,8 @@ dependencies {
     testImplementation("io.kotest:kotest-runner-junit5:6.0.4")
     testImplementation("io.kotest:kotest-assertions-core:6.0.4")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+    testImplementation("org.testcontainers:testcontainers-postgresql:2.0.2")
+    testImplementation("uk.org.webcompere:system-stubs-jupiter:2.1.8")
 }
 
 sonar {
