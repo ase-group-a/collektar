@@ -33,7 +33,6 @@ class SpotifyClientImplTest {
         coEvery { getToken() } returns "TEST_TOKEN"
     }
 
-    // Test: if query = null choose default Playlist route
     @Test
     fun `searchTracks returns playlist tracks when query is null`() = runTest {
         val mockResponseJson = """
@@ -67,7 +66,6 @@ class SpotifyClientImplTest {
     }
 
 
-    // Test: search route
     @Test
     fun `searchTracks calls search endpoint when query is provided`() = runTest {
         val mockResponseJson = """
@@ -101,7 +99,6 @@ class SpotifyClientImplTest {
         assertEquals("Search Result", result.tracks.items.first().name)
     }
 
-    // Test: rate limit error
     @Test
     fun `searchTracks throws RateLimitException on HTTP 429`() = runTest {
         val client = mockHttpClient { _ ->
@@ -121,7 +118,6 @@ class SpotifyClientImplTest {
         assertEquals(5, ex.retryAfterSeconds)
     }
 
-    // Test: bad request error
     @Test
     fun `searchTracks throws RuntimeException on non-success`() = runTest {
         val client = mockHttpClient { _ ->
