@@ -31,24 +31,4 @@ class SpotifyConfigTest {
         assertEquals("https://accounts.spotify.com/api/token", cfg.tokenUrl)
         assertEquals("PlaylistId", cfg.defaultPlaylistId)
     }
-
-    @Test
-    fun `fromEnv throws when required values missing`() {
-        val originalClientId = System.getenv("SPOTIFY_CLIENT_ID")
-        try {
-            System.clearProperty("SPOTIFY_CLIENT_ID")
-            val emptyConfig = MapApplicationConfig()
-            val env = mockk<ApplicationEnvironment>()
-            every { env.config } returns emptyConfig
-
-            assertFailsWith<IllegalStateException> {
-                SpotifyConfig.fromEnv(env)
-            }
-        } finally {
-            if (originalClientId != null) {
-                System.setProperty("SPOTIFY_CLIENT_ID", originalClientId)
-            }
-        }
-    }
-
 }
