@@ -40,13 +40,7 @@ class JWTService(private val config: JWTConfig) : IJWTService {
 
     override fun verify(token: String): DecodedJWT? {
         return try {
-            val decoded: DecodedJWT = verifier.verify(token)
-
-            if (decoded.expiresAt.before(Date())) {
-                return null
-            }
-
-            decoded
+            verifier.verify(token)
         } catch (e: Exception) {
             null
         }
