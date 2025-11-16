@@ -42,4 +42,5 @@ jobs:
           SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
           SPOTIFY_BASE_URL: "https://api.spotify.com/v1"
           SPOTIFY_TOKEN_URL: "https://accounts.spotify.com/api/token"
-        run: ./gradlew build sonar --info
+          SPOTIFY_DEFAULT_PLAYLIST_ID: "5iwkYfnHAGMEFLiHFFGnP4"
+        run: ./gradlew test jacocoTestReport sonar --info

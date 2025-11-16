@@ -28,9 +28,20 @@ data class TrackDto(
 )
 
 @Serializable
-data class TracksItems(val items: List<TrackDto> = emptyList())
+data class TracksItems(val items: List<TrackDto> = emptyList(), val total: Int = 0)
 
 @Serializable
 data class SpotifyTracksSearchResponse(
-    val tracks: TracksItems? = null
+    val tracks: TracksItems = TracksItems()
+)
+
+@Serializable
+data class PlaylistTrackItemDto(
+    val track: TrackDto? = null
+)
+
+@Serializable
+data class PlaylistTracksResponse(
+    val items: List<PlaylistTrackItemDto> = emptyList(),
+    val total: Int = 0
 )

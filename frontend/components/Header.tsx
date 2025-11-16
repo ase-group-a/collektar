@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { UserIcon } from "lucide-react";
+import { UserCircleIcon } from "@heroicons/react/24/outline";
 
 export default function Header() {
     return (
@@ -27,7 +27,7 @@ export default function Header() {
 
             <div className="flex-none ml-auto">
                 <Link href="/login" className="btn btn-ghost gap-2">
-                    <UserIcon size={20} />
+                    <UserCircleIcon className="w-5 h-5" />
                     Login
                 </Link>
             </div>
