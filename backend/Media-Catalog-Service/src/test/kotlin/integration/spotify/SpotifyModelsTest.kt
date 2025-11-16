@@ -71,4 +71,41 @@ class SpotifyModelsTest {
         assertEquals(artist.id, decoded.id)
         assertEquals(artist.name, decoded.name)
     }
+
+    @Test
+    fun `TracksItems serializes with items`() {
+        val track = TrackDto("track1", "track1", listOf(ArtistDto("arist1", "artist1")), AlbumDto("album1", "album1"))
+        val tracksItems = TracksItems(listOf(track), total = 1)
+        val str = json.encodeToString(tracksItems)
+        val decoded = json.decodeFromString<TracksItems>(str)
+
+        assertEquals(1, decoded.items.size)
+        assertEquals("track1", decoded.items[0].id)
+        assertEquals(1, decoded.total)
+    }
+
+    @Test
+    fun `PlaylistTrackItemDto with track serializes`() {
+        val track = TrackDto("track2", "track2")
+        val item = PlaylistTrackItemDto(track)
+        val str = json.encodeToString(item)
+        val decoded = json.decodeFromString<PlaylistTrackItemDto>(str)
+
+        assertNotNull(decoded.track)
+        assertEquals("track2", decoded.track.id)
+    }
+
+    @Test
+    fun `PlaylistTracksResponse serializes with items`() {
+        val track = TrackDto("track3", "track3")
+        val item = PlaylistTrackItemDto(track)
+        val response = PlaylistTracksResponse(listOf(item), total = 1)
+
+        val str = json.encodeToString(response)
+        val decoded = json.decodeFromString<PlaylistTracksResponse>(str)
+
+        assertEquals(1, decoded.items.size)
+        assertEquals("track3", decoded.items[0].track!!.id)
+        assertEquals(1, decoded.total)
+    }
 }
