@@ -10,7 +10,8 @@ data class SpotifyTokenResponse(
     @SerialName("expires_in") val expiresIn: Long
 )
 
-@Serializable data class ImageDto(val height: Int? = null, val url: String, val width: Int? = null)
+@Serializable
+data class ImageDto(val height: Int? = null, val url: String, val width: Int? = null)
 
 @Serializable
 data class ArtistDto(val id: String, val name: String)
