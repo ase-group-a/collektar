@@ -64,6 +64,11 @@ tasks.jacocoTestReport {
     }
 }
 
+jacoco {
+    toolVersion = "0.8.14"
+}
+
+
 sonar {
     properties {
         property("sonar.projectKey", "collektar_Media-Catalog-Service")
