@@ -11,6 +11,7 @@ plugins {
     id("io.ktor.plugin") version "3.3.1"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.2.20"
     id("org.sonarqube") version "7.0.1.6134"
+    id("jacoco")
 }
 
 group = "com.collektar"
@@ -61,6 +62,19 @@ sonar {
     }
 }
 
-tasks.withType<Test> {
+tasks.test {
     useJUnitPlatform()
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.14"
 }
