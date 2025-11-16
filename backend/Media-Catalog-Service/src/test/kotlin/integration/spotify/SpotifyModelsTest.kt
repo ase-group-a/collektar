@@ -108,4 +108,13 @@ class SpotifyModelsTest {
         assertEquals("track3", decoded.items[0].track!!.id)
         assertEquals(1, decoded.total)
     }
+
+    @Test
+    fun `AlbumDto serializer invoked`() {
+        val album = AlbumDto("album1", "album1", listOf(ImageDto(100, "url1")))
+        val json = Json { encodeDefaults = true }
+        val s = json.encodeToString(album)
+        val decoded = json.decodeFromString<AlbumDto>(s)
+        assertEquals("album1", decoded.id)
+    }
 }
