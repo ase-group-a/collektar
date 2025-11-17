@@ -1,13 +1,18 @@
 package com.collektar.config
 
+import com.collektar.shared.utility.TokenHasherSecretLoader
+import javax.crypto.spec.SecretKeySpec
+
 data class TokenHasherConfig(
-    val secret: String,
-    val algorithm: String = "HmacSHA256"
+    val secret: SecretKeySpec,
+    val algorithm: String = ALGORITHM,
 ) {
     companion object {
+        private const val ALGORITHM = "HmacSHA256"
+
         fun fromEnv(): TokenHasherConfig {
             return TokenHasherConfig(
-                secret = env("TOKEN_HASHER_SECRET")
+                secret = TokenHasherSecretLoader.loadSecret(env("TOKEN_HASHER_SECRET_PATH"), ALGORITHM),
             )
         }
 
