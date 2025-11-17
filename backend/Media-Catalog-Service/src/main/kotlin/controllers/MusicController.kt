@@ -1,7 +1,6 @@
 package controllers
 
 import io.ktor.server.routing.*
-import io.ktor.server.response.respondText
 import service.MusicService
 
 class MusicController(
@@ -12,13 +11,6 @@ class MusicController(
         routing.mediaRoute("music") {
             get {
                 val q = call.queryParam("q")
-                if (q.isNullOrBlank()) {
-                    return@get call.respondText(
-                        "Missing query parameter 'q'",
-                        status = io.ktor.http.HttpStatusCode.BadRequest
-                    )
-                }
-
                 val limit = call.queryParamInt("limit", 20)
                 val offset = call.queryParamInt("offset", 0)
 
