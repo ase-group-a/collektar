@@ -57,6 +57,7 @@ services:
     volumes:
       - ./secrets/jwt_private.pem:/run/secrets/jwt_private.pem:ro
       - ./config/jwt_public.pem:/run/config/jwt_public.pem:ro
+      - ./secrets/token_hasher_secret:/run/secrets/token_hasher_secret
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
