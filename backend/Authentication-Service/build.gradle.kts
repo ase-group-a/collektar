@@ -61,6 +61,7 @@ sonar {
     properties {
         property("sonar.projectKey", "collektar_Authentication-Service")
         property("sonar.organization", "ase-group-a")
+        property("sonar.exclusions", "\"src/main/kotlin/plugins/**/*\"")
     }
 }
 
