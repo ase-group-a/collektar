@@ -9,10 +9,6 @@ class BCryptHasher : IPasswordHasher {
     }
 
     override fun verify(password: String, hash: String): Boolean {
-        return try {
-            BCrypt.checkpw(password, hash)
-        } catch (e: Exception) {
-            false
-        }
+        return BCrypt.checkpw(password, hash)
     }
 }
