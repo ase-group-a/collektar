@@ -21,7 +21,7 @@ object RSAKeyLoader {
     }
 
     private fun loadKeySpec(pemPath: String): ByteArray {
-        val pem = Files.readString(Paths.get(pemPath)) ?: error("$pemPath is missing.")
+        val pem = Files.readString(Paths.get(pemPath))
         val clean = cleanKey(pem)
         return Base64.getDecoder().decode(clean)
     }
