@@ -8,15 +8,17 @@ data class TmdbConfig(
 ) {
     companion object {
         fun fromEnv(env: ApplicationEnvironment): TmdbConfig {
-            val bearer = System.getenv("TMDB_BEARER_TOKEN")
-                ?: env.config.propertyOrNull("tmdb.bearerToken")?.getString()
-                ?: error("TMDB_BEARER_TOKEN not set")
 
-            val base = System.getenv("TMDB_BASE_URL")
-                ?: env.config.propertyOrNull("tmdb.baseUrl")?.getString()
-                ?: "TMDB_BASE_URL not set"
+            fun get(keyEnv: String, keyConf: String, default: String? = null): String =
+                env.config.propertyOrNull(keyConf)?.getString()
+                    ?: System.getenv(keyEnv)
+                    ?: default
+                    ?: error("$keyEnv not set")
 
-            return TmdbConfig(bearer, base)
+            return TmdbConfig(
+                bearerToken = get("TMDB_BEARER_TOKEN", "tmdb.bearerToken"),
+                baseUrl = get("TMDB_BASE_URL", "tmdb.baseUrl", "https://api.themoviedb.org/3")
+            )
         }
     }
 }
