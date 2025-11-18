@@ -7,7 +7,7 @@ class MusicService(
     private val spotifyClient: SpotifyClient
 ) {
 
-    suspend fun search(query: String, limit: Int, offset: Int): SearchResult {
+    suspend fun search(query: String?, limit: Int, offset: Int): SearchResult {
         val spotifyResult = spotifyClient.searchTracks(query, limit, offset)
 
         val mediaItems = spotifyResult.tracks?.items?.map { track ->
@@ -15,7 +15,7 @@ class MusicService(
         } ?: emptyList()
 
         return SearchResult(
-            total = mediaItems.size, //TODO: Get total count of items from spotify / api directly
+            total = spotifyResult.tracks?.total ?: 0,
             limit = limit,
             offset = offset,
             items = mediaItems
