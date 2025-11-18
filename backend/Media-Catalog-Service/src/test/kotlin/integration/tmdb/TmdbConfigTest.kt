@@ -1,7 +1,7 @@
 package integration.tmdb
 
-import io.ktor.server.application.ApplicationEnvironment
-import io.ktor.server.config.MapApplicationConfig
+import io.ktor.server.application.*
+import io.ktor.server.config.*
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.Test
@@ -18,6 +18,22 @@ class TmdbConfigTest {
 
         val env = mockk<ApplicationEnvironment>()
         every { env.config } returns mapConfig
+        val cfg = TmdbConfig.fromEnv(env)
+
+        assertEquals("bearer", cfg.bearerToken)
+        assertEquals("https://api.themoviedb.org/3", cfg.baseUrl)
+    }
+
+    @Test
+    fun `fromEnv uses default baseUrl when none configured or in env`() {
+        val mapConfig = MapApplicationConfig(
+            "tmdb.bearerToken" to "bearer"
+            // no tmdb.baseUrl
+        )
+
+        val env = mockk<ApplicationEnvironment>()
+        every { env.config } returns mapConfig
+
         val cfg = TmdbConfig.fromEnv(env)
 
         assertEquals("bearer", cfg.bearerToken)
