@@ -62,7 +62,17 @@ tasks.jacocoTestReport {
         xml.required.set(true)
         html.required.set(true)
     }
+    classDirectories.setFrom(
+        files(
+            classDirectories.files.map {
+                fileTree(it) {
+                    exclude("**/integration/tmdb/TmdbClient.*")
+                }
+            }
+        )
+    )
 }
+
 
 jacoco {
     toolVersion = "0.8.14"
@@ -74,5 +84,9 @@ sonar {
         property("sonar.projectKey", "collektar_Media-Catalog-Service")
         property("sonar.organization", "ase-group-a")
         property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml")
+        property(
+            "sonar.coverage.exclusions",
+            "src/main/kotlin/integration/tmdb/TmdbClient.kt"
+        )
     }
 }
