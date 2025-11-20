@@ -66,7 +66,9 @@ tasks.jacocoTestReport {
         files(
             classDirectories.files.map {
                 fileTree(it) {
-                    exclude("**/integration/tmdb/TmdbClient.*")
+                    exclude("**/integration/tmdb/TmdbClient.*",
+                        "**/di/AppModules.*"
+                    )
                 }
             }
         )
@@ -86,7 +88,7 @@ sonar {
         property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml")
         property(
             "sonar.coverage.exclusions",
-            "src/main/kotlin/integration/tmdb/TmdbClient.kt"
+            "src/main/kotlin/integration/tmdb/TmdbClient.kt, src/main/kotlin/di/AppModules.kt"
         )
     }
 }
