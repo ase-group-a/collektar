@@ -1,5 +1,6 @@
 package integration.tmdb
 
+import com.collektar.config.ConfigUtils.getConfigValue
 import io.ktor.server.application.*
 
 data class TmdbConfig(
@@ -7,18 +8,15 @@ data class TmdbConfig(
     val baseUrl: String
 ) {
     companion object {
-        fun fromEnv(env: ApplicationEnvironment): TmdbConfig {
-
-            fun get(keyEnv: String, keyConf: String, default: String? = null): String =
-                env.config.propertyOrNull(keyConf)?.getString()
-                    ?: System.getenv(keyEnv)
-                    ?: default
-                    ?: error("$keyEnv not set")
-
-            return TmdbConfig(
-                bearerToken = get("TMDB_BEARER_TOKEN", "tmdb.bearerToken"),
-                baseUrl = get("TMDB_BASE_URL", "tmdb.baseUrl", "https://api.themoviedb.org/3")
+        fun fromEnv(env: ApplicationEnvironment): TmdbConfig =
+            TmdbConfig(
+                bearerToken = getConfigValue(env, "TMDB_BEARER_TOKEN", "tmdb.bearerToken"),
+                baseUrl = getConfigValue(
+                    env,
+                    "TMDB_BASE_URL",
+                    "tmdb.baseUrl",
+                    "https://api.themoviedb.org/3"
+                )
             )
-        }
     }
 }
