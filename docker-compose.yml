@@ -137,7 +137,7 @@ services:
       - "traefik.http.routers.media.service=media-catalog-service"
       - "traefik.http.services.media-catalog-service.loadbalancer.server.port=8080"
       - "traefik.http.middlewares.media-stripprefix.stripprefix.prefixes=/api/media"
-      - "traefik.http.routers.media.middlewares=auth-forward@file,media-stripprefix"
+      - "traefik.http.routers.media.middlewares=media-stripprefix"
   #
   # Postgres DB to store user data
   #
