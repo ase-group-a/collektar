@@ -1,0 +1,9 @@
+---
+http:
+  middlewares:
+    auth-forward:
+      forwardAuth:
+        address: "http://auth-service:8080/verify"
+        authResponseHeaders:
+          - "X-User-Id"
+          - "X-User-Email"

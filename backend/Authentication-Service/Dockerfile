@@ -30,6 +30,9 @@ WORKDIR /app
 # Copy the JAR
 COPY --from=build --chown=appuser:appuser /home/gradle/src/build/libs/*-all.jar /app/app.jar
 
+# make secrets accessible to non-root usre
+RUN mkdir -p /run/secrets && chmod 755 /run/secrets
+
 # Switch to non-root user
 USER appuser
 

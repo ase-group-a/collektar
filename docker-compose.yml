@@ -23,6 +23,8 @@ services:
       - ./backend/traefik/dynamic:/etc/traefik/dynamic:ro
     networks:
       - media-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     labels:
       - "traefik.enable=true"
       # Dashboard
@@ -40,16 +42,22 @@ services:
     restart: unless-stopped
     expose:
       - "8080"
+    env_file:
+      - .env
     environment:
-      - KTOR_ENV=${KTOR_ENV}
-      - DB_URL=jbdc:postgresql://auth-db:5432/${AUTH_DB_NAME}
+      - DB_URL=jdbc:postgresql://auth-db:5432/${AUTH_DB_NAME}
       - DB_USER=${AUTH_DB_USER}
       - DB_PASSWORD=${AUTH_DB_PASSWORD}
+    user: "1000:1000"
     depends_on:
       auth-db:
         condition: service_healthy
     networks:
       - media-network
+    volumes:
+      - ./secrets/jwt_private.pem:/run/secrets/jwt_private.pem:ro
+      - ./config/jwt_public.pem:/run/config/jwt_public.pem:ro
+      - ./secrets/token_hasher_secret:/run/secrets/token_hasher_secret
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -79,8 +87,7 @@ services:
     expose:
       - "8080"
     environment:
-      - KTOR_ENV=${KTOR_ENV}
-      - DB_URL=jbdc:postgresql://collection-db:5432/${COLLECTION_DB_NAME}
+      - DB_URL=jdbc:postgresql://collection-db:5432/${COLLECTION_DB_NAME}
       - DB_USER=${COLLECTION_DB_USER}
       - DB_PASSWORD=${COLLECTION_DB_PASSWORD}
     depends_on:
@@ -101,7 +108,7 @@ services:
       - "traefik.http.routers.collection.service=collection-service"
       - "traefik.http.services.collection-service.loadbalancer.server.port=8080"
       - "traefik.http.middlewares.collection-stripprefix.stripprefix.prefixes=/api/collection"
-      - "traefik.http.routers.collection.middlewares=collection-stripprefix"
+      - "traefik.http.routers.collection.middlewares=auth-forward@file,collection-stripprefix"
   #
   # Service to interface and handle external APIs
   #
@@ -113,8 +120,8 @@ services:
     restart: unless-stopped
     expose:
       - "8080"
-    environment:
-      - KTOR_ENV=${KTOR_ENV}
+    env_file:
+      - .env
     networks:
       - media-network
     healthcheck:
@@ -146,6 +153,8 @@ services:
       - /data/auth-db:/var/lib/postgresql
     networks:
       - media-network
+    ports:
+      - "5432:5432" #map to host to access db from dbclients
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${AUTH_DB_USER} -d ${AUTH_DB_NAME}"]
       interval: 10s

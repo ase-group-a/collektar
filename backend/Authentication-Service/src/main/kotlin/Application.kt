@@ -1,5 +1,6 @@
 package com.collektar
 
+import com.collektar.plugins.*
 import io.ktor.server.application.*
 
 fun main(args: Array<String>) {
