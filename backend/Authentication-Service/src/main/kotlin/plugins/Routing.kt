@@ -25,7 +25,7 @@ fun Application.configureRouting() {
             call.application.log.error("Unhandled exception caught", cause)
             call.respond(
                 HttpStatusCode.InternalServerError,
-                ErrorResponse(message = "Internal Server Error: $cause")
+                ErrorResponse("Internal Server Error")
             )
         }
     }
