@@ -30,5 +30,5 @@ fun ApplicationCall.queryParamInt(name: String, default: Int): Int =
     request.queryParameters[name]?.toIntOrNull() ?: default
 
 fun Routing.mediaRoute(path: String, block: Route.() -> Unit) {
-    route("/api/v1/media/$path", block)
+    route("/$path", block)
 }

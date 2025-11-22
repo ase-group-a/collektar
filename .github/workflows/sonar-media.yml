@@ -43,4 +43,6 @@ jobs:
           SPOTIFY_BASE_URL: "https://api.spotify.com/v1"
           SPOTIFY_TOKEN_URL: "https://accounts.spotify.com/api/token"
           SPOTIFY_DEFAULT_PLAYLIST_ID: "5iwkYfnHAGMEFLiHFFGnP4"
+          TMDB_BEARER_TOKEN: ${{ secrets.TMDB_BEARER_TOKEN }}
+          TMDB_BASE_URL: "https://api.themoviedb.org/3"
         run: ./gradlew test jacocoTestReport sonar --info
