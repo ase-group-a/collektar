@@ -7,10 +7,7 @@ import org.koin.dsl.module
 
 val coreModule = module {
     single { HttpProvider.client }
-    single {
-        ControllerRegistry(
-            musicService = get(),
-            movieService = get()
-        )
-    }
+    single { ControllerRegistry(getAll<Controller>()) }
+
+    // Add other global singletons here that are relevant for all APIs
 }
