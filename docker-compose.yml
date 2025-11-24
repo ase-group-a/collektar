@@ -1,14 +1,14 @@
 ---
 networks:
-  #
-  # Definition of the shared network
-  #
+  # ----------------------------------------------------------------------
+  # NETWORK DEFINITIONS
+  # ----------------------------------------------------------------------
   media-network:
     driver: bridge
 services:
-  #
-  # Reverse Proxy / API-Gateway
-  #
+  # ----------------------------------------------------------------------
+  # REVERSE PROXY / API-GATEWAY
+  # ----------------------------------------------------------------------
   traefik:
     image: traefik:v3
     container_name: traefik
@@ -27,13 +27,15 @@ services:
       - "host.docker.internal:host-gateway"
     labels:
       - "traefik.enable=true"
-      # Dashboard
+      # ----------------------------------------------------------------------
+      # DASHBOARD ROUTER
+      # ----------------------------------------------------------------------
       - "traefik.http.routers.dashboard.rule=Host(`traefik.${DOMAIN}`)"
       - "traefik.http.routers.dashboard.service=api@internal"
       - "traefik.http.routers.dashboard.entrypoints=web"
-  #
-  # Authentication- and User-Service
-  #
+  # ----------------------------------------------------------------------
+  # AUTHENTICATION SERVICE
+  # ----------------------------------------------------------------------
   auth-service:
     build:
       context: ./backend/Authentication-Service/
@@ -66,18 +68,29 @@ services:
       start_period: 10s
     labels:
       - "traefik.enable=true"
-      # HTTP Router
-      - "traefik.http.routers.auth.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/auth`)"
-      - "traefik.http.routers.auth.entrypoints=web"
-      - "traefik.http.routers.auth.service=auth-service"
-      # Service definition
+      # ----------------------------------------------------------------------
+      # PUBLIC ROUTER
+      # ----------------------------------------------------------------------
+      - "traefik.http.routers.auth-public.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/auth`) && (Path(`/api/auth/register`) || Path(`/api/auth/login`) || Path(`/api/auth/refresh`) || Path(`/api/auth/verify`) || Path(`/api/auth/health`))"
+      - "traefik.http.routers.auth-public.entrypoints=web"
+      - "traefik.http.routers.auth-public.service=auth-service"
+      - "traefik.http.routers.auth-public.middlewares=auth-stripprefix"
+      # ----------------------------------------------------------------------
+      # PROTECTED ROUTER
+      # ----------------------------------------------------------------------
+      - "traefik.http.routers.auth-protected.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/auth`)"
+      - "traefik.http.routers.auth-protected.entrypoints=web"
+      - "traefik.http.routers.auth-protected.service=auth-service"
+      - "traefik.http.routers.auth-protected.priority=50"
+      - "traefik.http.routers.auth-protected.middlewares=auth-forward@file,auth-stripprefix"
+      # ----------------------------------------------------------------------
+      # GENERAL SERVICE DEFINITIONS
+      # ----------------------------------------------------------------------
       - "traefik.http.services.auth-service.loadbalancer.server.port=8080"
-      # Middleware to strip /api/auth prefix
       - "traefik.http.middlewares.auth-stripprefix.stripprefix.prefixes=/api/auth"
-      - "traefik.http.routers.auth.middlewares=auth-stripprefix"
-  #
-  # Service to manage user collections
-  #
+  # ----------------------------------------------------------------------
+  # COLLECTION SERVICE
+  # ----------------------------------------------------------------------
   collection-service:
     build:
       context: ./backend/Collection-Service/
@@ -87,8 +100,7 @@ services:
     expose:
       - "8080"
     environment:
-      - DB_URL=jdbc:postgresql://collection-db:5432/${COLLECTION_DB_NAME}
-      - DB_USER=${COLLECTION_DB_USER}
+      - DB_URL=jdbc:postgresql://collection-db:5432/${COLLECTION_DB_NAME} - DB_USER=${COLLECTION_DB_USER}
       - DB_PASSWORD=${COLLECTION_DB_PASSWORD}
     depends_on:
       collection-db:
@@ -103,15 +115,18 @@ services:
       start_period: 10s
     labels:
       - "traefik.enable=true"
+      # ----------------------------------------------------------------------
+      # PROTECTED ROUTER
+      # ----------------------------------------------------------------------
       - "traefik.http.routers.collection.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/collection`)"
       - "traefik.http.routers.collection.entrypoints=web"
       - "traefik.http.routers.collection.service=collection-service"
       - "traefik.http.services.collection-service.loadbalancer.server.port=8080"
       - "traefik.http.middlewares.collection-stripprefix.stripprefix.prefixes=/api/collection"
       - "traefik.http.routers.collection.middlewares=auth-forward@file,collection-stripprefix"
-  #
-  # Service to interface and handle external APIs
-  #
+  # ----------------------------------------------------------------------
+  # MEDIA CATALOG SERVICE
+  # ----------------------------------------------------------------------
   media-catalog-service:
     build:
       context: ./backend/Media-Catalog-Service/
@@ -132,15 +147,18 @@ services:
       start_period: 10s
     labels:
       - "traefik.enable=true"
+      # ----------------------------------------------------------------------
+      # PUBLIC ROUTER
+      # ----------------------------------------------------------------------
       - "traefik.http.routers.media.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/media`)"
       - "traefik.http.routers.media.entrypoints=web"
       - "traefik.http.routers.media.service=media-catalog-service"
       - "traefik.http.services.media-catalog-service.loadbalancer.server.port=8080"
       - "traefik.http.middlewares.media-stripprefix.stripprefix.prefixes=/api/media"
       - "traefik.http.routers.media.middlewares=media-stripprefix"
-  #
-  # Postgres DB to store user data
-  #
+  # ----------------------------------------------------------------------
+  # POSTGRESQL DB for Authentication Service
+  # ----------------------------------------------------------------------
   auth-db:
     image: postgres:18
     container_name: auth-db
@@ -154,16 +172,17 @@ services:
     networks:
       - media-network
     ports:
-      - "5432:5432" #map to host to access db from dbclients
+      # Mapping to access with DB-Client
+      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${AUTH_DB_USER} -d ${AUTH_DB_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
-  #
-  # Postgres DB to user collections
-  #
+  # ----------------------------------------------------------------------
+  # POSTGRESQL DB for Collection Service
+  # ----------------------------------------------------------------------
   collection-db:
     image: postgres:18
     container_name: collection-db
@@ -176,6 +195,9 @@ services:
       - ./data/collection-db:/var/lib/postgresql
     networks:
       - media-network
+    #ports:
+      # Mapping to access with DB-Client
+      #- "5433:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${COLLECTION_DB_USER} -d ${COLLECTION_DB_NAME}"]
       interval: 10s
