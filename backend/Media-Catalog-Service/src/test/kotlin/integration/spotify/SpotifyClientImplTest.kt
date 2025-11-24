@@ -1,5 +1,6 @@
 package integration.spotify
 
+import com.collektar.integration.shared.OauthTokenProvider
 import exceptions.RateLimitException
 import io.ktor.client.*
 import io.ktor.client.engine.mock.*
@@ -29,8 +30,8 @@ class SpotifyClientImplTest {
         defaultPlaylistId = "TEST_PLAYLIST"
     )
 
-    private val mockTokenProvider = mockk<SpotifyTokenProvider>().apply {
-        coEvery { getToken() } returns "TEST_TOKEN"
+    private val mockTokenProvider = mockk<OauthTokenProvider>().apply {
+        coEvery { getToken(mockConfig) } returns "TEST_TOKEN"
     }
 
     @Test

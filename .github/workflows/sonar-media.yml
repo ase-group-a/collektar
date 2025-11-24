@@ -45,4 +45,8 @@ jobs:
           SPOTIFY_DEFAULT_PLAYLIST_ID: "5iwkYfnHAGMEFLiHFFGnP4"
           TMDB_BEARER_TOKEN: ${{ secrets.TMDB_BEARER_TOKEN }}
           TMDB_BASE_URL: "https://api.themoviedb.org/3"
+          IGDB_CLIENT_ID: ${{ secrets.IGDB_CLIENT_ID }}
+          IGDB_CLIENT_SECRET: ${{ secrets.IGDB_CLIENT_SECRET }}
+          IGDB_BASE_URL: "https://api.igdb.com/v4"
+          IGDB_TOKEN_URL: "https://id.twitch.tv/oauth2"
         run: ./gradlew test jacocoTestReport sonar --info

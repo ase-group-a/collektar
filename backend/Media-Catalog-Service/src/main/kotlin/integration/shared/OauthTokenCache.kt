@@ -1,6 +1,6 @@
-package integration.spotify
+package com.collektar.integration.shared
 
-class SpotifyTokenCache {
+class OauthTokenCache {
     @Volatile
     private var cached: CachedToken? = null
 

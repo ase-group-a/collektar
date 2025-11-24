@@ -1,5 +1,6 @@
 package integration.spotify
 
+import com.collektar.integration.shared.OauthTokenProvider
 import exceptions.RateLimitException
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -10,11 +11,11 @@ import io.ktor.http.*
 class SpotifyClientImpl(
     private val httpClient: HttpClient,
     private val config: SpotifyConfig,
-    private val tokenProvider: SpotifyTokenProvider
+    private val tokenProvider: OauthTokenProvider
 ) : SpotifyClient {
 
     override suspend fun searchTracks(query: String?, limit: Int, offset: Int): SpotifyTracksSearchResponse {
-        val token = tokenProvider.getToken()
+        val token = tokenProvider.getToken(config)
 
         val response: HttpResponse = if (query.isNullOrBlank()) {
             val playlistId = config.defaultPlaylistId
