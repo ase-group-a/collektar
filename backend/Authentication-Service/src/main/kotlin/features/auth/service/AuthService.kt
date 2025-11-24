@@ -2,6 +2,7 @@ package com.collektar.features.auth.service
 
 import com.collektar.dto.*
 import com.collektar.features.auth.repository.IAuthRepository
+import com.collektar.features.user.repository.IUserRepository
 import com.collektar.shared.errors.AppError
 import com.collektar.shared.security.passwordhasher.IPasswordHasher
 import com.collektar.shared.security.tokenservice.ITokenService
@@ -10,22 +11,23 @@ import io.ktor.server.routing.*
 import java.util.*
 
 class AuthService(
-    private val repository: IAuthRepository,
+    private val authRepository: IAuthRepository,
+    private val userRepository: IUserRepository,
     private val tokenService: ITokenService,
     private val passwordHasher: IPasswordHasher,
 ) : IAuthService {
     override suspend fun register(request: RegisterRequest): RegisterResponse {
-        if (repository.usernameExists(request.username)) {
+        if (userRepository.usernameExists(request.username)) {
             throw AppError.Conflict.UsernameTaken(request.username)
         }
 
-        if (repository.emailExists(request.email)) {
+        if (userRepository.emailExists(request.email)) {
             throw AppError.Conflict.EmailAlreadyInUse()
         }
 
         val userId = UUID.randomUUID()
         val passwordHash = passwordHasher.hash(request.password)
-        repository.createUser(
+        authRepository.createUser(
             userId = userId,
             username = request.username,
             email = request.email,
@@ -51,7 +53,7 @@ class AuthService(
     }
 
     override suspend fun login(request: LoginRequest): AuthenticationResponse {
-        val user = repository.findByUsername(
+        val user = userRepository.findByUsername(
             username = request.username
         ) ?: throw AppError.Unauthorized.InvalidCredentials()
 
@@ -59,7 +61,7 @@ class AuthService(
             throw AppError.Unauthorized.InvalidCredentials()
         }
 
-        repository.revokeAllUserTokens(user.id)
+        authRepository.revokeAllUserTokens(user.id)
         val tokenPair: TokenPair = tokenService.generateTokens(userId = user.id, email = user.email)
 
         return AuthenticationResponse(

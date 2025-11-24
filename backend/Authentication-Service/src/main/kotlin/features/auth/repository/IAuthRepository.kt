@@ -12,11 +12,6 @@ interface IAuthRepository {
         passwordHash: String
     ): AuthModel?
 
-    suspend fun findByUsername(username: String): AuthModel?
-    suspend fun findByEmail(email: String): AuthModel?
-    suspend fun findByUserId(userId: UUID): AuthModel?
-    suspend fun usernameExists(username: String): Boolean
-    suspend fun emailExists(email: String): Boolean
     suspend fun saveRefreshToken(userId: UUID, tokenHash: String, expiresAt: Instant, issuedAt: Instant)
     suspend fun findRefreshToken(tokenHash: String): StoredRefreshToken?
     suspend fun updateLastUsed(tokenHash: String)

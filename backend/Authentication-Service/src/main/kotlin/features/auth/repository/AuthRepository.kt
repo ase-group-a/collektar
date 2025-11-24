@@ -35,43 +35,6 @@ class AuthRepository(database: Database) : BaseRepository(database), IAuthReposi
         )
     }
 
-    override suspend fun findByUsername(username: String): AuthModel? = dbQuery {
-        Users
-            .selectAll()
-            .where { Users.username eq username }
-            .map { it.toAuthModel() }
-            .singleOrNull()
-    }
-
-    override suspend fun findByEmail(email: String): AuthModel? = dbQuery {
-        Users
-            .selectAll()
-            .where { Users.email eq email }
-            .map { it.toAuthModel() }
-            .singleOrNull()
-    }
-
-    override suspend fun findByUserId(userId: UUID): AuthModel? = dbQuery {
-        Users
-            .selectAll()
-            .where { Users.id eq userId }
-            .map { it.toAuthModel() }
-            .singleOrNull()
-    }
-
-    override suspend fun usernameExists(username: String): Boolean = dbQuery {
-        Users
-            .selectAll()
-            .where { Users.username eq username }
-            .count() > 0
-    }
-
-    override suspend fun emailExists(email: String): Boolean = dbQuery {
-        Users
-            .selectAll()
-            .where { Users.email eq email }
-            .count() > 0
-    }
 
     override suspend fun saveRefreshToken(
         userId: UUID,
