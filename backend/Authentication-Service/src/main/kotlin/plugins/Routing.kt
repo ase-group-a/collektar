@@ -3,6 +3,8 @@ package com.collektar.plugins
 import com.collektar.dto.ErrorResponse
 import com.collektar.features.auth.authRoutes
 import com.collektar.features.auth.service.IAuthService
+import com.collektar.features.user.service.IUserService
+import com.collektar.features.user.userRoutes
 import com.collektar.shared.errors.AppError
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -13,6 +15,7 @@ import org.koin.ktor.ext.get
 
 fun Application.configureRouting() {
     val authService = get<IAuthService>()
+    val userService = get<IUserService>()
 
     install(StatusPages) {
         exception<AppError> { call, cause ->
@@ -39,5 +42,6 @@ fun Application.configureRouting() {
             call.respondText("OK", ContentType.Text.Plain, HttpStatusCode.OK)
         }
         authRoutes(authService)
+        userRoutes(userService)
     }
 }
