@@ -3,6 +3,7 @@ package com.collektar.shared.security.tokenservice
 import com.auth0.jwt.interfaces.DecodedJWT
 import com.collektar.features.auth.repository.IAuthRepository
 import com.collektar.features.auth.repository.StoredRefreshToken
+import com.collektar.features.user.repository.IUserRepository
 import com.collektar.shared.errors.AppError
 import com.collektar.shared.security.jwt.AccessToken
 import com.collektar.shared.security.jwt.IJWTService
@@ -17,7 +18,8 @@ class TokenService(
     private val jwtService: IJWTService,
     private val tokenHasher: IRefreshTokenHasher,
     private val opaqueTokenGenerator: IOpaqueTokenGenerator,
-    private val repository: IAuthRepository,
+    private val authRepository: IAuthRepository,
+    private val userRepository: IUserRepository
 ) : ITokenService {
     override suspend fun generateTokens(userId: UUID, email: String): TokenPair {
         val accessToken: AccessToken = jwtService.generateAccessToken(userId, email)
@@ -39,8 +41,8 @@ class TokenService(
     override suspend fun validateAndRefresh(token: String): TokenPair {
         val (userId: UUID, tokenHash: String) = validateRefreshToken(token)
 
-        repository.revokeRefreshToken(tokenHash)
-        val user = repository.findByUserId(
+        authRepository.revokeRefreshToken(tokenHash)
+        val user = userRepository.findByUserId(
             userId = userId
         ) ?: throw AppError.Unauthorized.InvalidToken()
 
@@ -77,7 +79,7 @@ class TokenService(
     private suspend fun saveRefreshToken(token: RefreshToken) {
         val tokenHash = tokenHasher.hash(token.token)
 
-        repository.saveRefreshToken(
+        authRepository.saveRefreshToken(
             userId = token.userId,
             tokenHash = tokenHash,
             expiresAt = token.expiresAt,
@@ -88,16 +90,16 @@ class TokenService(
     private suspend fun validateRefreshToken(token: String): Pair<UUID, String> {
         val tokenHash = tokenHasher.hash(token)
 
-        val storedToken: StoredRefreshToken = repository.findRefreshToken(
+        val storedToken: StoredRefreshToken = authRepository.findRefreshToken(
             tokenHash = tokenHash
         ) ?: throw AppError.Unauthorized.InvalidToken()
 
         if (isTokenExpired(storedToken)) {
-            repository.revokeRefreshToken(tokenHash)
+            authRepository.revokeRefreshToken(tokenHash)
             throw AppError.Unauthorized.InvalidToken()
         }
 
-        repository.updateLastUsed(tokenHash)
+        authRepository.updateLastUsed(tokenHash)
 
         return storedToken.userId to tokenHash
     }
