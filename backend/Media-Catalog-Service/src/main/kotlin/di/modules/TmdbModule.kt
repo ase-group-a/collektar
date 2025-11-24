@@ -6,6 +6,7 @@ import integration.tmdb.TmdbClient
 import integration.tmdb.TmdbClientImpl
 import integration.tmdb.TmdbConfig
 import io.ktor.server.application.ApplicationEnvironment
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import service.MovieService
 
@@ -16,5 +17,5 @@ fun tmdbModule(env: ApplicationEnvironment) = module {
 
     single { MovieService(get()) }
 
-    single<Controller> { MovieController(get()) }
+    single<Controller>(named("movies")) { MovieController(get()) }
 }
