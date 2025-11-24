@@ -23,6 +23,10 @@ sealed class AppError(message: String, val statusCode: HttpStatusCode) : Excepti
         class RefreshTokenMissing : BadRequest(
             "Refresh token is required."
         )
+
+        class InvalidUserIdFormat : BadRequest(
+            "Invalid user ID"
+        )
     }
 
     sealed class Unauthorized(message: String) : AppError(message, HttpStatusCode.Unauthorized) {
@@ -36,6 +40,10 @@ sealed class AppError(message: String, val statusCode: HttpStatusCode) : Excepti
 
         class MissingToken : Unauthorized(
             "Missing authentication token"
+        )
+
+        class MissingUserId: Unauthorized(
+            "Missing user ID"
         )
     }
 
