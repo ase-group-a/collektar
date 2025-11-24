@@ -182,3 +182,32 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+  #
+  # Next.js Frontend (pnpm)
+  #
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    restart: unless-stopped
+    expose:
+      - "3000"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+    networks:
+      - media-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/ || exit 1"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.front.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.front.entrypoints=web"
+      - "traefik.http.routers.front.service=frontend-service"
+      - "traefik.http.services.frontend-service.loadbalancer.server.port=3000"
