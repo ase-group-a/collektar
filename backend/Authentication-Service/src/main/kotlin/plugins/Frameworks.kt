@@ -8,6 +8,10 @@ import com.collektar.features.auth.repository.AuthRepository
 import com.collektar.features.auth.repository.IAuthRepository
 import com.collektar.features.auth.service.AuthService
 import com.collektar.features.auth.service.IAuthService
+import com.collektar.features.user.repository.IUserRepository
+import com.collektar.features.user.repository.UserRepository
+import com.collektar.features.user.service.IUserService
+import com.collektar.features.user.service.UserService
 import com.collektar.shared.database.DatabaseFactory
 import com.collektar.shared.security.jwt.IJWTService
 import com.collektar.shared.security.jwt.JWTService
@@ -41,9 +45,11 @@ fun Application.configureFrameworks() {
             single<IPasswordHasher> { BCryptHasher() }
             single<IRefreshTokenHasher> { HmacTokenHasher(get()) }
             single<IOpaqueTokenGenerator> { OpaqueTokenGenerator(get()) }
+            single<IUserRepository> { UserRepository(get()) }
+            single<IUserService> { UserService(get()) }
             single<IAuthRepository> { AuthRepository(get()) }
-            single<ITokenService> { TokenService(get(), get(), get(), get()) }
-            single<IAuthService> { AuthService(get(), get(), get()) }
+            single<ITokenService> { TokenService(get(), get(), get(), get(), get()) }
+            single<IAuthService> { AuthService(get(), get(), get(), get()) }
         })
     }
 }
