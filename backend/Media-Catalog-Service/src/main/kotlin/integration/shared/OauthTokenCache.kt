@@ -1,27 +1,35 @@
 package com.collektar.integration.shared
 
+import java.util.concurrent.ConcurrentHashMap
+
+
 class OauthTokenCache {
-    @Volatile
-    private var cached: CachedToken? = null
+    
+    private val cachedTokens = ConcurrentHashMap<String, CachedToken>()
 
     data class CachedToken(val token: String, val expiresAtEpochMillis: Long)
 
     @Synchronized
-    fun getIfValid(): String? {
-        val c = cached ?: return null
+    fun getIfValid(tokenName: String): String? {
+        val c = cachedTokens[tokenName] ?: return null
         if (System.currentTimeMillis() < c.expiresAtEpochMillis) return c.token
-        cached = null
+        cachedTokens.remove(tokenName)
         return null
     }
 
     @Synchronized
-    fun put(token: String, expiresInSeconds: Long) {
+    fun put(tokenName: String, token: String, expiresInSeconds: Long) {
         val expiry = System.currentTimeMillis() + (expiresInSeconds * 1000L) - 5_000L // 5s safety
-        cached = CachedToken(token, expiry)
+        cachedTokens[tokenName] = CachedToken(token, expiry)
     }
 
     @Synchronized
     fun clear() {
-        cached = null
+        cachedTokens.clear()
+    }
+    
+    @Synchronized
+    fun clearToken(tokenName: String) {
+        cachedTokens.remove(tokenName)
     }
 }
