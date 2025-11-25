@@ -1,32 +1,24 @@
 package integration.spotify
 
 import io.ktor.server.application.*
+import com.collektar.config.ConfigUtils.getConfigValue
 
 data class SpotifyConfig(
     val clientId: String,
     val clientSecret: String,
     val baseUrl: String,
-    val tokenUrl: String
+    val tokenUrl: String,
+    val defaultPlaylistId: String
 ) {
     companion object {
         fun fromEnv(env: ApplicationEnvironment): SpotifyConfig {
-            val clientId = System.getenv("SPOTIFY_CLIENT_ID")
-                ?: env.config.propertyOrNull("spotify.clientId")?.getString()
-                ?: error("SPOTIFY_CLIENT_ID not set")
-
-            val clientSecret = System.getenv("SPOTIFY_CLIENT_SECRET")
-                ?: env.config.propertyOrNull("spotify.clientSecret")?.getString()
-                ?: error("SPOTIFY_CLIENT_SECRET not set")
-
-            val baseUrl = System.getenv("SPOTIFY_BASE_URL")
-                ?: env.config.propertyOrNull("spotify.baseUrl")?.getString()
-                ?: error("SPOTIFY_BASE_URL not set")
-
-            val tokenUrl = System.getenv("SPOTIFY_TOKEN_URL")
-                ?: env.config.propertyOrNull("spotify.tokenUrl")?.getString()
-                ?: error("SPOTIFY_TOKEN_URL not set")
-
-            return SpotifyConfig(clientId, clientSecret, baseUrl, tokenUrl)
+            return SpotifyConfig(
+                clientId = getConfigValue(env, "SPOTIFY_CLIENT_ID", "spotify.clientId"),
+                clientSecret = getConfigValue(env, "SPOTIFY_CLIENT_SECRET", "spotify.clientSecret"),
+                baseUrl = getConfigValue(env, "SPOTIFY_BASE_URL", "spotify.baseUrl"),
+                tokenUrl = getConfigValue(env, "SPOTIFY_TOKEN_URL", "spotify.tokenUrl"),
+                defaultPlaylistId = getConfigValue(env, "SPOTIFY_DEFAULT_PLAYLIST_ID", "spotify.defaultPlaylistId")
+            )
         }
     }
 }

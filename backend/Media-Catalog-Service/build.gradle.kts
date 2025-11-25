@@ -8,6 +8,7 @@ plugins {
     id("io.ktor.plugin") version "3.3.1"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.2.20"
     id("org.sonarqube") version "7.0.1.6134"
+    id("jacoco")
 }
 
 group = "com.collektar"
@@ -39,13 +40,55 @@ dependencies {
     implementation("io.ktor:ktor-client-cio")
     implementation("io.ktor:ktor-client-content-negotiation")
     implementation("io.ktor:ktor-client-logging")
+
     testImplementation("io.ktor:ktor-server-test-host")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5:$kotlin_version")
+
+    testImplementation("io.mockk:mockk:1.13.10")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
+    testImplementation("io.ktor:ktor-client-mock")
+
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.10.0")
 }
+
+tasks.test {
+    useJUnitPlatform()
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+    classDirectories.setFrom(
+        files(
+            classDirectories.files.map {
+                fileTree(it) {
+                    exclude("**/integration/tmdb/TmdbClient.*",
+                        "**/di/AppModules.*"
+                    )
+                }
+            }
+        )
+    )
+}
+
+
+jacoco {
+    toolVersion = "0.8.14"
+}
+
 
 sonar {
     properties {
         property("sonar.projectKey", "collektar_Media-Catalog-Service")
         property("sonar.organization", "ase-group-a")
+        property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml")
+        property(
+            "sonar.coverage.exclusions",
+            "src/main/kotlin/integration/tmdb/TmdbClient.kt, src/main/kotlin/di/AppModules.kt"
+        )
     }
 }

@@ -11,6 +11,7 @@ plugins {
     id("io.ktor.plugin") version "3.3.1"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.2.20"
     id("org.sonarqube") version "7.0.1.6134"
+    id("jacoco")
 }
 
 group = "com.collektar"
@@ -43,13 +44,40 @@ dependencies {
     implementation("io.ktor:ktor-server-netty")
     implementation("ch.qos.logback:logback-classic:$logback_version")
     implementation("io.ktor:ktor-server-config-yaml")
+    implementation("org.mindrot:jbcrypt:0.4")
+    implementation("io.ktor:ktor-serialization-gson:3.3.1")
+    implementation("io.ktor:ktor-client-content-negotiation:3.3.1")
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+    testImplementation("io.mockk:mockk:1.14.5")
+    testImplementation("io.kotest:kotest-runner-junit5:6.0.4")
+    testImplementation("io.kotest:kotest-assertions-core:6.0.4")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+    testImplementation("org.testcontainers:testcontainers-postgresql:2.0.2")
+    testImplementation("uk.org.webcompere:system-stubs-jupiter:2.1.8")
 }
 
 sonar {
     properties {
         property("sonar.projectKey", "collektar_Authentication-Service")
         property("sonar.organization", "ase-group-a")
+        property("sonar.exclusions", "\"src/main/kotlin/plugins/**/*\"")
     }
+}
+
+tasks.test {
+    useJUnitPlatform()
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.14"
 }
