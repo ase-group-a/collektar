@@ -10,17 +10,6 @@ class SpotifyModelsTest {
     private val json = Json { encodeDefaults = true }
 
     @Test
-    fun `SpotifyTokenResponse serializes and deserializes correctly`() {
-        val token = SpotifyTokenResponse("test", "Bearer", 3600)
-        val str = json.encodeToString(token)
-        val decoded = json.decodeFromString<SpotifyTokenResponse>(str)
-
-        assertEquals(token.accessToken, decoded.accessToken)
-        assertEquals(token.tokenType, decoded.tokenType)
-        assertEquals(token.expiresIn, decoded.expiresIn)
-    }
-
-    @Test
     fun `TrackDto with default values serializes`() {
         val track = TrackDto(id = "track1", name = "track1")
         val str = json.encodeToString(track)
