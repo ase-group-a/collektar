@@ -1,5 +1,6 @@
 package com.collektar.integration.igdb
 
+import com.collektar.config.ConfigUtils.getConfigValue
 import com.collektar.di.modules.OauthParameterType
 import com.collektar.integration.shared.OauthConfig
 import io.ktor.server.application.ApplicationEnvironment
@@ -14,10 +15,10 @@ data class IGDBConfig (
     companion object {
         fun fromEnv(env: ApplicationEnvironment): IGDBConfig {
             return IGDBConfig(
-                clientId = env.config.property("IGDB_CLIENT_ID").getString(),
-                clientSecret = env.config.property("IGDB_CLIENT_SECRET").getString(),
-                baseUrl = env.config.property("IGDB_BASE_URL").getString(),
-                tokenUrl = env.config.property("IGDB_TOKEN_URL").getString()
+                clientId = getConfigValue(env, "IGDB_CLIENT_ID", "igdb.clientId"),
+                clientSecret = getConfigValue(env, "IGDB_CLIENT_SECRET", "igdb.clientSecret"),
+                baseUrl = getConfigValue(env, "IGDB_BASE_URL", "igdb.baseUrl"),
+                tokenUrl = getConfigValue(env, "IGDB_TOKEN_URL", "igdb.tokenUrl"),
             )
         }
     }

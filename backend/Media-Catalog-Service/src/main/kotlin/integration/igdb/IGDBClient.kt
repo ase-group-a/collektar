@@ -1,5 +1,5 @@
 package com.collektar.integration.igdb
 
 interface IGDBClient {
-    suspend fun searchGame(query: String) // https://api-docs.igdb.com/?shell#search
+    suspend fun searchGames(query: String?, limit: Int = 20, offset: Int = 0) : IGDBGamesResponse
 }
