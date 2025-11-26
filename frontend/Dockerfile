@@ -6,6 +6,8 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 
 COPY . .
 ENV CI=true
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 RUN pnpm install --frozen-lockfile
 RUN pnpm build
