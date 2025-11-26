@@ -27,7 +27,7 @@ class IGDBClientImpl(
                 "fields id, name, summary, cover.image_id;" +
                         "limit ${limit};" +
                         "offset ${offset};" +
-                        if (query != null) // Add optional search query
+                        if (!query.isNullOrBlank()) // Add optional search query
                             "search \"${query}\";"
                         else ""
             )
