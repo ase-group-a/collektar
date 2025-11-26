@@ -11,7 +11,7 @@ object IGDBMapper {
             id = "igdbb:${game.id}",
             title = game.name,
             type = MediaType.GAME,
-            imageUrl = "https://images.igdb.com/igdb/image/upload/t_cover_big/${game.cover?.image_id}.webp",
+            imageUrl = if (game.cover != null) "https://images.igdb.com/igdb/image/upload/t_cover_big/${game.cover.image_id}.webp" else null,
             description = game.summary,
             source = "igdb"
         )
