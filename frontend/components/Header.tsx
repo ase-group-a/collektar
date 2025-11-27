@@ -1,8 +1,12 @@
 "use client";
+
 import Link from "next/link";
+import { useAuth } from "@/lib/auth/AuthProvider";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
 
 export default function Header() {
+    const { user, isAuthenticated, logout } = useAuth();
+
     return (
         <div className="navbar bg-base-200 shadow-md px-6 py-5 relative">
             <div className="flex-none">
@@ -15,7 +19,7 @@ export default function Header() {
                 </Link>
             </div>
 
-            <div className="absolute left-1/2 transform -translate-x-1/2 hidden md:flex ">
+            <div className="absolute left-1/2 transform -translate-x-1/2 hidden md:flex">
                 <ul className="menu menu-horizontal text-lg font-medium gap-x-8">
                     <li><Link href="/media/games">Games</Link></li>
                     <li><Link href="/media/movies">Movies</Link></li>
@@ -26,10 +30,39 @@ export default function Header() {
             </div>
 
             <div className="flex-none ml-auto">
-                <Link href="/login" className="btn btn-ghost gap-2">
-                    <UserCircleIcon className="w-5 h-5" />
-                    Login
-                </Link>
+                {!isAuthenticated && (
+                    <Link href="/login" className="btn btn-ghost gap-2">
+                        <UserCircleIcon className="w-5 h-5" />
+                        Login
+                    </Link>
+                )}
+
+                {isAuthenticated && (
+                    <div className="dropdown dropdown-end">
+                        <label tabIndex={0} className="btn btn-ghost gap-2 cursor-pointer">
+                            <UserCircleIcon className="w-6 h-6" />
+                            <span>{user?.username ?? "Account"}</span>
+                        </label>
+
+                        <ul
+                            tabIndex={0}
+                            className="dropdown-content menu bg-base-100 rounded-box shadow-lg w-48 mt-3"
+                        >
+                            <li>
+                                <Link href={`/u/${user?.username}`}>My Collections</Link>
+                            </li>
+                            <li>
+                                <Link href="/account">Account</Link>
+                            </li>
+
+                            <li>
+                                <button onClick={logout} className="text-red-500">
+                                    Logout
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                )}
             </div>
         </div>
     );
