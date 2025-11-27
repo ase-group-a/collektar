@@ -1,19 +1,23 @@
 package di.modules
 
-import controllers.BookController
+import controllers.BooksController
 import controllers.Controller
-import integration.google.*
+import integration.books.BooksClient
+import integration.books.BooksClientImpl
+import integration.books.BooksConfig
 import org.koin.dsl.module
-import service.BookService
+import org.koin.core.qualifier.named
+import service.BooksService
 import io.ktor.server.application.*
+import integration.books.GoogleBooksSearchResponse
 
-fun googleBooksModule(env: ApplicationEnvironment) = module {
+fun booksModule(env: ApplicationEnvironment) = module {
 
-    single { GoogleConfig.fromEnv(env) }
+    single { BooksConfig.fromEnv(env) }
 
     single<BooksClient> { BooksClientImpl(get(), get()) }
 
-    single { BookService(get()) }
+    single { BooksService(get()) }
 
-    single<Controller>(named("book")) { BookController(get()) }
+    single<Controller>(named("book")) { BooksController(get()) }
 }
