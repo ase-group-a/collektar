@@ -62,22 +62,39 @@ class AuthService(
         repository.revokeAllUserTokens(user.id)
         val tokenPair: TokenPair = tokenService.generateTokens(userId = user.id, email = user.email)
 
+        val userInfo = UserInfo(
+            email = user.email,
+            username = user.username,
+            displayName = user.displayName
+        )
+
         return AuthenticationResponse(
             accessToken = tokenPair.accessToken,
             expiresIn = tokenPair.accessTokenExpiresIn,
             refreshToken = tokenPair.refreshToken,
-            refreshTokenExpiresIn = tokenPair.refreshTokenExpiresIn
+            refreshTokenExpiresIn = tokenPair.refreshTokenExpiresIn,
+            user = userInfo
         )
     }
 
     override suspend fun refresh(request: RefreshTokenRequest): AuthenticationResponse {
         val tokenPair = tokenService.validateAndRefresh(request.refreshToken)
 
+        val user = repository.findByUserId(tokenPair.userId)
+            ?: throw AppError.Unauthorized.InvalidToken()
+
+        val userInfo = UserInfo(
+            email = user.email,
+            username = user.username,
+            displayName = user.displayName
+        )
+
         return AuthenticationResponse(
             accessToken = tokenPair.accessToken,
             expiresIn = tokenPair.accessTokenExpiresIn,
             refreshToken = tokenPair.refreshToken,
-            refreshTokenExpiresIn = tokenPair.refreshTokenExpiresIn
+            refreshTokenExpiresIn = tokenPair.refreshTokenExpiresIn,
+            user = userInfo
         )
     }
 

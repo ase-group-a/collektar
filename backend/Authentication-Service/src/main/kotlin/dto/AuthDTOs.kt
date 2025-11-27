@@ -40,6 +40,7 @@ data class AuthenticationResponse(
     val expiresIn: Long,
     val refreshToken: String,
     val refreshTokenExpiresIn: Long,
+    val user: UserInfo
 )
 
 @Serializable
