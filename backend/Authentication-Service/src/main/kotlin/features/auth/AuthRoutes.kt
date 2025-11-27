@@ -12,6 +12,11 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 fun Route.authRoutes(authService: IAuthService) {
+    val cookieName = "refresh_token"
+    val cookiePath = "/"
+    val sameSite = mapOf("SameSite" to "Lax")
+    val isProd = System.getenv("KTOR_ENVIRONMENT") == "production"
+
     post("/register") {
         val req = call.receive<RegisterRequest>()
         Validator.validateUsername(req.username)
@@ -24,16 +29,57 @@ fun Route.authRoutes(authService: IAuthService) {
 
     post("/login") {
         val req = call.receive<LoginRequest>()
-        val res = authService.login(req)
+
+        val res = try {
+            authService.login(req)
+        } catch (e: Exception) {
+            call.respond(HttpStatusCode.Unauthorized, mapOf("error" to (e.message ?: "Invalid credentials")))
+            return@post
+        }
+
+        if (res.refreshToken.isBlank() || res.accessToken.isBlank()) {
+            call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Auth service did not return tokens"))
+            return@post
+        }
+
+        call.response.cookies.append(
+            name = cookieName,
+            value = res.refreshToken,
+            maxAge = res.refreshTokenExpiresIn,
+            path = cookiePath,
+            httpOnly = true,
+            secure = isProd,
+            extensions = sameSite
+        )
+
         call.respond(HttpStatusCode.OK, res)
     }
 
     post("/refresh") {
-        val req = call.receive<RefreshTokenRequest>()
-        if (req.refreshToken.isBlank()) {
-            throw AppError.BadRequest.RefreshTokenMissing()
+        val existing = call.request.cookies[cookieName] ?: throw AppError.Unauthorized.MissingToken()
+
+        val res = try {
+            authService.refresh(RefreshTokenRequest(refreshToken = existing))
+        } catch (e: Exception) {
+            call.respond(HttpStatusCode.Unauthorized, mapOf("error" to (e.message ?: "Invalid refresh token")))
+            return@post
         }
-        val res = authService.refresh(req)
+
+        if (res.refreshToken.isBlank() || res.accessToken.isBlank()) {
+            call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Auth service did not return tokens on refresh"))
+            return@post
+        }
+
+        call.response.cookies.append(
+            name = cookieName,
+            value = res.refreshToken,
+            maxAge = res.refreshTokenExpiresIn,
+            path = cookiePath,
+            httpOnly = true,
+            secure = isProd,
+            extensions = sameSite
+        )
+
         call.respond(HttpStatusCode.OK, res)
     }
 
@@ -49,6 +95,19 @@ fun Route.authRoutes(authService: IAuthService) {
             throw AppError.Unauthorized.MissingToken()
         }
         authService.verify(token, call)
+        call.respond(HttpStatusCode.OK)
+    }
+
+    post("/logout") {
+        call.response.cookies.append(
+            name = cookieName,
+            value = "deleted",
+            maxAge = 0,
+            path = cookiePath,
+            httpOnly = true,
+            secure = isProd,
+            extensions = sameSite
+        )
         call.respond(HttpStatusCode.OK)
     }
 }
