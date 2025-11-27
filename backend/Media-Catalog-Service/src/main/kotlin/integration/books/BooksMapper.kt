@@ -3,7 +3,7 @@ package integration.books
 import domain.MediaItem
 import domain.MediaType
 
-object BookMapper {
+object BooksMapper {
     fun bookToMediaItem(book: BookItemDto): MediaItem {
         val info = book.volumeInfo
 
