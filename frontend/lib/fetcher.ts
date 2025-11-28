@@ -3,7 +3,7 @@ export const fetcher = async <T = any>(
     init?: RequestInit,
     accessToken?: string
 ): Promise<T> => {
-    const base = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+    const base = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost";
     const normalized = path.startsWith("/") ? path : `/${path}`;
     const url = `${base}${normalized}`;
 
