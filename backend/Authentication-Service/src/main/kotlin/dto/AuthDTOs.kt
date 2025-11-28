@@ -22,8 +22,6 @@ data class RegisterResponse(
     val accessToken: String,
     val tokenType: String = "Bearer",
     val expiresIn: Long,
-    val refreshToken: String,
-    val refreshTokenExpiresIn: Long,
     val user: UserInfo
 )
 
@@ -38,8 +36,6 @@ data class AuthenticationResponse(
     val accessToken: String,
     val tokenType: String = "Bearer",
     val expiresIn: Long,
-    val refreshToken: String,
-    val refreshTokenExpiresIn: Long,
     val user: UserInfo
 )
 
