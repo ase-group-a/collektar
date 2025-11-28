@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/AuthProvider";
 
-export default function LoginForm() {
+export default function LoginPage() {
     const { login } = useAuth();
     const router = useRouter();
     const [username, setUsername] = useState("");
@@ -16,9 +16,9 @@ export default function LoginForm() {
         setErr(null);
         try {
             await login(username, password);
-            router.push("/");
+            router.push("/u/" + username);
         } catch (error: any) {
-            setErr(error.message ?? "Login failed");
+            setErr(error.message);
         }
     };
 
@@ -27,6 +27,12 @@ export default function LoginForm() {
             <div className="flex items-center justify-center my-40">
             <fieldset className="fieldset rounded-box w-xs space-y-2">
                 <legend className="fieldset-legend text-3xl">Login</legend>
+
+                {err && (
+                    <div className="alert alert-error">
+                        <div>{err}</div>
+                    </div>
+                )}
 
                 <button
                     type="button"
@@ -49,7 +55,6 @@ export default function LoginForm() {
                     <div className="flex-grow h-px bg-primary/30"></div>
                 </div>
 
-
                 <div className="form-control">
                 <label className="label">Username</label>
                 <input className="input" value={username} onChange={e => setUsername(e.target.value)} placeholder="Username" />
@@ -67,7 +72,6 @@ export default function LoginForm() {
 
                 <button type="submit" className="btn btn-neutral ">Login</button>
 
-                {/* Sign up link */}
                 <p className="text-center text-sm mt-4">
                     Don’t have an account?{" "}
                     <a href="/register" className="link link-primary">
