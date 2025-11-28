@@ -41,7 +41,7 @@ export default function Header() {
                     <div className="dropdown dropdown-end">
                         <label tabIndex={0} className="btn btn-ghost gap-2 cursor-pointer">
                             <UserCircleIcon className="w-6 h-6" />
-                            <span>{user?.username ?? "Account"}</span>
+                            <span>{user?.display_name ?? "Account"}</span>
                         </label>
 
                         <ul
@@ -52,7 +52,7 @@ export default function Header() {
                                 <Link href={`/u/${user?.username}`}>My Collections</Link>
                             </li>
                             <li>
-                                <Link href="/account">Account</Link>
+                                <Link href="/settings/account">Account</Link>
                             </li>
 
                             <li>
