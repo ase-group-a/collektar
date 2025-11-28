@@ -17,7 +17,7 @@ class IGDBClientImpl(
             throw IllegalArgumentException("Limit must be between 1 and 500")
         }
 
-        val token = tokenProvider.getToken(config)
+        val token = tokenProvider.getToken()
 
         val response: HttpResponse = httpClient.post("${config.baseUrl}/games") {
             header("Authorization", "Bearer $token")

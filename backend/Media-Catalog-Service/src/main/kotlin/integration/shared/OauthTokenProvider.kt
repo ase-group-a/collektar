@@ -11,13 +11,15 @@ import kotlinx.serialization.json.Json
 
 class OauthTokenProvider(
     private val httpClient: HttpClient,
-    private val tokenCache: OauthTokenCache = OauthTokenCache()
+    private val tokenCache: OauthTokenCache,
+    private val config: OauthConfig,
+    private val oauthParameterType: OauthParameterType
 ) {
 
     private val mutex = Mutex()
 
-    private suspend fun fetchAccessToken(config: OauthConfig): OauthTokenResponse {
-        val response: HttpResponse = when (config.oauthParameterType) {
+    private suspend fun fetchAccessToken(): OauthTokenResponse {
+        val response: HttpResponse = when (oauthParameterType) {
             OauthParameterType.BODY_URLENCODED -> httpClient.post(config.tokenUrl) {
                 contentType(ContentType.Application.FormUrlEncoded)
                 setBody(
@@ -44,13 +46,13 @@ class OauthTokenProvider(
         return Json.decodeFromString(OauthTokenResponse.serializer(), bodyText)
     }
 
-    suspend fun getToken(config: OauthConfig): String {
-        tokenCache.getIfValid(config.tokenUrl)?.let { return it }
+    suspend fun getToken(): String {
+        tokenCache.getIfValid()?.let { return it }
 
         return mutex.withLock {
-            tokenCache.getIfValid(config.tokenUrl)?.let { return it }
-            val tokenResp = fetchAccessToken(config)
-            tokenCache.put(config.tokenUrl, tokenResp.accessToken, tokenResp.expiresIn)
+            tokenCache.getIfValid()?.let { return it }
+            val tokenResp = fetchAccessToken()
+            tokenCache.put(tokenResp.accessToken, tokenResp.expiresIn)
             tokenResp.accessToken
         }
     }

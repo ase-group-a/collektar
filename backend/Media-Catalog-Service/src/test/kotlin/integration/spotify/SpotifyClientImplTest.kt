@@ -31,7 +31,7 @@ class SpotifyClientImplTest {
     )
 
     private val mockTokenProvider = mockk<OauthTokenProvider>().apply {
-        coEvery { getToken(mockConfig) } returns "TEST_TOKEN"
+        coEvery { getToken() } returns "TEST_TOKEN"
     }
 
     @Test

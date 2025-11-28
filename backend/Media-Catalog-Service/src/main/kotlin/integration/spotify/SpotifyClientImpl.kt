@@ -15,7 +15,7 @@ class SpotifyClientImpl(
 ) : SpotifyClient {
 
     override suspend fun searchTracks(query: String?, limit: Int, offset: Int): SpotifyTracksSearchResponse {
-        val token = tokenProvider.getToken(config)
+        val token = tokenProvider.getToken()
 
         val response: HttpResponse = if (query.isNullOrBlank()) {
             val playlistId = config.defaultPlaylistId
