@@ -29,7 +29,6 @@ class TokenService(
         saveRefreshToken(refreshToken)
 
         return TokenPair(
-            userId = userId,
             accessToken = accessToken.token,
             refreshToken = refreshToken.token,
             accessTokenExpiresIn = accessTokenExpiresIn,
