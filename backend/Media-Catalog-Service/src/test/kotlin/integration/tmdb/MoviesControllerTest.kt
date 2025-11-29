@@ -1,118 +1,123 @@
-import controllers.MovieController
-import domain.MediaItem
-import domain.MediaType
-import domain.SearchResult
+package integration.tmdb
+
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.mock.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
-import io.ktor.server.application.*
-import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.routing.*
-import io.ktor.server.testing.*
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.mockk
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
-import service.MovieService
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import kotlin.test.assertFalse
 
-class MovieControllerTest {
-
-    private val movieService = mockk<MovieService>()
-    private val movieController = MovieController(movieService)
-
-    private fun Application.configureTestApp() {
-        install(ContentNegotiation) {
-            json(
-                Json {
-                    prettyPrint = true
-                    isLenient = true
-                    ignoreUnknownKeys = true
-                }
-            )
-        }
-        routing {
-            movieController.register(this)
-        }
-    }
+class TmdbClientImplTest {
 
     @Test
-    fun `GET movies returns results with valid query`() = testApplication {
-        application {
-            configureTestApp()
+    fun `searchMovies with null query calls popular endpoint without query param`() = runTest {
+        var capturedRequest: HttpRequestData? = null
+
+        val mockEngine = MockEngine { request ->
+            capturedRequest = request
+
+            respond(
+                content = """
+                    {
+                      "page": 1,
+                      "results": [],
+                      "total_results": 0,
+                      "total_pages": 0
+                    }
+                """.trimIndent(),
+                status = HttpStatusCode.OK,
+                headers = headersOf(HttpHeaders.ContentType, "application/json")
+            )
         }
 
-        val searchResult = SearchResult(
-            total = 10,
-            limit = 20,
-            offset = 0,
-            items = listOf(
-                MediaItem(
-                    id = "tmdb:movie:27205",
-                    title = "Inception",
-                    type = MediaType.MOVIE,
-                    imageUrl = "https://image.tmdb.org/t/p/w500/poster.jpg",
-                    description = "Dream heist movie",
-                    source = "tmdb"
+        val client = HttpClient(mockEngine) {
+            install(ContentNegotiation) {
+                json(
+                    Json {
+                        ignoreUnknownKeys = true
+                        isLenient = true
+                    }
                 )
+            }
+        }
+
+        val config = TmdbConfig(
+            baseUrl = "https://api.themoviedb.org/3",
+            bearerToken = "test-token"
+        )
+
+        val tmdbClient: TmdbClient = TmdbClientImpl(client, config)
+
+        // Act: call with null query to trigger /movie/popular branch
+        val result = tmdbClient.searchMovies(null, page = 1)
+
+        // Assert: response deserialized
+        assertEquals(1, result.page)
+        assertEquals(0, result.totalResults)
+        assertEquals(0, result.totalPages)
+        assertEquals(0, result.results.size)
+
+        // Assert: correct endpoint and no "query" parameter
+        val req = capturedRequest ?: error("No request captured")
+        assertEquals("/3/movie/popular", req.url.encodedPath)
+        assertFalse(req.url.parameters.contains("query"))
+        assertEquals("false", req.url.parameters["include_adult"]) // should also be absent here
+    }
+
+    @Test
+    fun `searchMovies with non-empty query calls search endpoint with query param`() = runTest {
+        var capturedRequest: HttpRequestData? = null
+
+        val mockEngine = MockEngine { request ->
+            capturedRequest = request
+
+            respond(
+                content = """
+                    {
+                      "page": 1,
+                      "results": [],
+                      "total_results": 0,
+                      "total_pages": 0
+                    }
+                """.trimIndent(),
+                status = HttpStatusCode.OK,
+                headers = headersOf(HttpHeaders.ContentType, "application/json")
             )
-        )
-
-        coEvery { movieService.searchMovies("inception", 20, 0) } returns searchResult
-
-        // Route is now just "/movies"
-        val response = client.get("/movies?q=inception")
-
-        assertEquals(HttpStatusCode.OK, response.status)
-        val body = response.bodyAsText()
-        assertTrue(body.contains("Inception"))
-        assertTrue(body.contains("tmdb:movie:27205"))
-        coVerify(exactly = 1) { movieService.searchMovies("inception", 20, 0) }
-    }
-
-    @Test
-    fun `GET movies without query uses popular fallback`() = testApplication {
-        application {
-            configureTestApp()
         }
 
-        val searchResult = SearchResult(
-            total = 0,
-            limit = 20,
-            offset = 0,
-            items = emptyList()
-        )
-
-        // Now we expect null query to be forwarded to the service
-        coEvery { movieService.searchMovies(null, 20, 0) } returns searchResult
-
-        val response = client.get("/movies")
-
-        assertEquals(HttpStatusCode.OK, response.status)
-        coVerify(exactly = 1) { movieService.searchMovies(null, 20, 0) }
-    }
-
-    @Test
-    fun `GET movies handles empty query string`() = testApplication {
-        application {
-            configureTestApp()
+        val client = HttpClient(mockEngine) {
+            install(ContentNegotiation) {
+                json(
+                    Json {
+                        ignoreUnknownKeys = true
+                        isLenient = true
+                    }
+                )
+            }
         }
 
-        val searchResult = SearchResult(
-            total = 0,
-            limit = 20,
-            offset = 0,
-            items = emptyList()
+        val config = TmdbConfig(
+            baseUrl = "https://api.themoviedb.org/3",
+            bearerToken = "test-token"
         )
 
-        coEvery { movieService.searchMovies("", 20, 0) } returns searchResult
+        val tmdbClient: TmdbClient = TmdbClientImpl(client, config)
 
-        val response = client.get("/movies?q=")
+        // Act: normal search
+        tmdbClient.searchMovies("inception", page = 2)
 
-        assertEquals(HttpStatusCode.OK, response.status)
-        coVerify(exactly = 1) { movieService.searchMovies("", 20, 0) }
+        // Assert: correct endpoint, page and query parameter
+        val req = capturedRequest ?: error("No request captured")
+        assertEquals("/3/search/movie", req.url.encodedPath)
+        assertEquals("inception", req.url.parameters["query"])
+        assertEquals("2", req.url.parameters["page"])
+        // include_adult should be false
+        assertEquals("false", req.url.parameters["include_adult"])
     }
 }
