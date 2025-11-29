@@ -5,18 +5,14 @@ import com.collektar.dto.RefreshTokenRequest
 import com.collektar.dto.RegisterRequest
 import com.collektar.features.auth.service.IAuthService
 import com.collektar.shared.errors.AppError
+import com.collektar.shared.security.cookies.CookieProvider
 import com.collektar.shared.validation.Validator
 import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Route.authRoutes(authService: IAuthService) {
-    val cookieName = "refresh_token"
-    val cookiePath = "/"
-    val sameSite = mapOf("SameSite" to "Lax")
-    val isProd = System.getenv("KTOR_ENVIRONMENT") == "production"
-
+fun Route.authRoutes(authService: IAuthService, cookieProvider: CookieProvider) {
     post("/register") {
         val req = call.receive<RegisterRequest>()
         Validator.validateUsername(req.username)
@@ -29,58 +25,21 @@ fun Route.authRoutes(authService: IAuthService) {
 
     post("/login") {
         val req = call.receive<LoginRequest>()
+        val res = authService.login(req)
 
-        val res = try {
-            authService.login(req)
-        } catch (e: Exception) {
-            call.respond(HttpStatusCode.Unauthorized, mapOf("error" to (e.message ?: "Invalid credentials")))
-            return@post
-        }
-
-        if (res.refreshToken.isBlank() || res.accessToken.isBlank()) {
-            call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Auth service did not return tokens"))
-            return@post
-        }
-
-        call.response.cookies.append(
-            name = cookieName,
-            value = res.refreshToken,
-            maxAge = res.refreshTokenExpiresIn,
-            path = cookiePath,
-            httpOnly = true,
-            secure = isProd,
-            extensions = sameSite
-        )
-
-        call.respond(HttpStatusCode.OK, res)
+        cookieProvider.set(call, "refresh_token", res.refreshToken, res.refreshTokenExpiresIn)
+        call.respond(HttpStatusCode.OK, mapOf("accessToken" to res.accessToken, "expiresIn" to res.expiresIn, "user" to res.user))
     }
 
     post("/refresh") {
-        val existing = call.request.cookies[cookieName] ?: throw AppError.Unauthorized.MissingToken()
-
-        val res = try {
-            authService.refresh(RefreshTokenRequest(refreshToken = existing))
-        } catch (e: Exception) {
-            call.respond(HttpStatusCode.Unauthorized, mapOf("error" to (e.message ?: "Invalid refresh token")))
-            return@post
+        val req = call.receive<RefreshTokenRequest>()
+        if (req.refreshToken.isBlank()) {
+            throw AppError.BadRequest.RefreshTokenMissing()
         }
+        val res = authService.refresh(req)
 
-        if (res.refreshToken.isBlank() || res.accessToken.isBlank()) {
-            call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Auth service did not return tokens on refresh"))
-            return@post
-        }
-
-        call.response.cookies.append(
-            name = cookieName,
-            value = res.refreshToken,
-            maxAge = res.refreshTokenExpiresIn,
-            path = cookiePath,
-            httpOnly = true,
-            secure = isProd,
-            extensions = sameSite
-        )
-
-        call.respond(HttpStatusCode.OK, res)
+        cookieProvider.set(call, "refresh_token", res.refreshToken, res.refreshTokenExpiresIn)
+        call.respond(HttpStatusCode.OK, mapOf("accessToken" to res.accessToken, "expiresIn" to res.expiresIn, "user" to res.user))
     }
 
     get("/verify") {
@@ -99,15 +58,7 @@ fun Route.authRoutes(authService: IAuthService) {
     }
 
     post("/logout") {
-        call.response.cookies.append(
-            name = cookieName,
-            value = "deleted",
-            maxAge = 0,
-            path = cookiePath,
-            httpOnly = true,
-            secure = isProd,
-            extensions = sameSite
-        )
+        cookieProvider.delete(call, "refresh_token")
         call.respond(HttpStatusCode.OK)
     }
 }
