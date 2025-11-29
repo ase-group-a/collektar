@@ -245,4 +245,45 @@ class TmdbClientImplTest {
                             assertTrue(exception.message?.contains("TMDB search failed") == true)
                             assertTrue(exception.message?.contains("404") == true)
                         }
+
+    @Test
+    fun `searchMovies uses popular endpoint when query is null`(): Unit = runBlocking {
+        var capturedPath: String? = null
+        var capturedQueryParam: String? = null
+        var capturedIncludeAdult: String? = null
+
+        val mockResponseJson = """
+            {
+                "page": 1,
+                "results": [],
+                "totalResults": 0,
+                "totalPages": 0
+            }
+        """.trimIndent()
+
+        val httpClient = mockHttpClient { request ->
+            capturedPath = request.url.encodedPath
+            capturedQueryParam = request.url.parameters["query"]
+            capturedIncludeAdult = request.url.parameters["include_adult"]
+
+            respond(
+                content = mockResponseJson,
+                status = HttpStatusCode.OK,
+                headers = headersOf(HttpHeaders.ContentType, "application/json")
+            )
+        }
+
+        val client = TmdbClientImpl(httpClient, mockConfig)
+        val result = client.searchMovies(null, 1)
+
+        // Response is deserialized
+        assertEquals(1, result.page)
+        assertEquals(0, result.totalResults)
+        assertEquals(0, result.results.size)
+
+        // We hit /movie/popular and no query/include_adult params are sent
+        assertEquals("/3/movie/popular", capturedPath)
+        assertEquals(null, capturedQueryParam)
+        assertEquals(null, capturedIncludeAdult)
+    }
 }
