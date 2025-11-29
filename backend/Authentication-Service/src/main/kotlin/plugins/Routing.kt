@@ -4,6 +4,7 @@ import com.collektar.dto.ErrorResponse
 import com.collektar.features.auth.authRoutes
 import com.collektar.features.auth.service.IAuthService
 import com.collektar.shared.errors.AppError
+import com.collektar.shared.security.cookies.CookieProvider
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.statuspages.*
@@ -13,6 +14,7 @@ import org.koin.ktor.ext.get
 
 fun Application.configureRouting() {
     val authService = get<IAuthService>()
+    val cookieProvider = get<CookieProvider>()
 
     install(StatusPages) {
         exception<AppError> { call, cause ->
@@ -38,6 +40,6 @@ fun Application.configureRouting() {
         get("/health") {
             call.respondText("OK", ContentType.Text.Plain, HttpStatusCode.OK)
         }
-        authRoutes(authService)
+        authRoutes(authService, cookieProvider)
     }
 }
