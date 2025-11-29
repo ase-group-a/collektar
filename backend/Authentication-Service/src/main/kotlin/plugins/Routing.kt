@@ -4,7 +4,7 @@ import com.collektar.dto.ErrorResponse
 import com.collektar.features.auth.authRoutes
 import com.collektar.features.auth.service.IAuthService
 import com.collektar.shared.errors.AppError
-import com.collektar.shared.security.cookies.CookieProvider
+import com.collektar.shared.security.cookies.ICookieProvider
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.statuspages.*
@@ -14,7 +14,7 @@ import org.koin.ktor.ext.get
 
 fun Application.configureRouting() {
     val authService = get<IAuthService>()
-    val cookieProvider = get<CookieProvider>()
+    val cookieProvider = get<ICookieProvider>()
 
     install(StatusPages) {
         exception<AppError> { call, cause ->

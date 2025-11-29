@@ -5,14 +5,14 @@ import com.collektar.dto.RefreshTokenRequest
 import com.collektar.dto.RegisterRequest
 import com.collektar.features.auth.service.IAuthService
 import com.collektar.shared.errors.AppError
-import com.collektar.shared.security.cookies.CookieProvider
+import com.collektar.shared.security.cookies.ICookieProvider
 import com.collektar.shared.validation.Validator
 import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Route.authRoutes(authService: IAuthService, cookieProvider: CookieProvider) {
+fun Route.authRoutes(authService: IAuthService, cookieProvider: ICookieProvider) {
     post("/register") {
         val req = call.receive<RegisterRequest>()
         Validator.validateUsername(req.username)

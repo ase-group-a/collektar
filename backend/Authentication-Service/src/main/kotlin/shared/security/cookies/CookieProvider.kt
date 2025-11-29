@@ -1,11 +1,13 @@
 package com.collektar.shared.security.cookies
 
+import com.collektar.config.AppConfig
 import io.ktor.server.application.*
 
-class CookieProvider(private val isProd: Boolean) {
+class CookieProvider(private val config: AppConfig): ICookieProvider {
     private val sameSite = mapOf("SameSite" to "Lax")
+    private val isProd = config.isProd
 
-    fun set(call: ApplicationCall, name: String, value: String, maxAge: Long, path: String = "/") {
+    override fun set(call: ApplicationCall, name: String, value: String, maxAge: Long, path: String) {
         call.response.cookies.append(
             name = name,
             value = value,
@@ -17,7 +19,7 @@ class CookieProvider(private val isProd: Boolean) {
         )
     }
 
-    fun delete(call: ApplicationCall, name: String, path: String = "/") {
+    override fun delete(call: ApplicationCall, name: String, path: String) {
         call.response.cookies.append(
             name = name,
             value = "deleted",
