@@ -8,13 +8,14 @@ import com.collektar.shared.security.tokenservice.ITokenService
 import com.collektar.shared.security.tokenservice.TokenPair
 import io.ktor.server.routing.*
 import java.util.*
+import kotlin.String
 
 class AuthService(
     private val repository: IAuthRepository,
     private val tokenService: ITokenService,
     private val passwordHasher: IPasswordHasher,
 ) : IAuthService {
-    override suspend fun register(request: RegisterRequest): RegisterResponse {
+    override suspend fun register(request: RegisterRequest): AuthenticationResponse {
         if (repository.usernameExists(request.username)) {
             throw AppError.Conflict.UsernameTaken(request.username)
         }
@@ -41,9 +42,11 @@ class AuthService(
             displayName = request.displayName
         )
 
-        return RegisterResponse(
+        return AuthenticationResponse(
             accessToken = tokenPair.accessToken,
             expiresIn = tokenPair.accessTokenExpiresIn,
+            refreshToken = tokenPair.refreshToken,
+            refreshTokenExpiresIn = tokenPair.refreshTokenExpiresIn,
             user = userInfo
         )
     }
@@ -69,6 +72,8 @@ class AuthService(
         return AuthenticationResponse(
             accessToken = tokenPair.accessToken,
             expiresIn = tokenPair.accessTokenExpiresIn,
+            refreshToken = tokenPair.refreshToken,
+            refreshTokenExpiresIn = tokenPair.refreshTokenExpiresIn,
             user = userInfo
         )
     }
@@ -90,6 +95,8 @@ class AuthService(
         return AuthenticationResponse(
             accessToken = tokenPair.accessToken,
             expiresIn = tokenPair.accessTokenExpiresIn,
+            refreshToken = tokenPair.refreshToken,
+            refreshTokenExpiresIn = tokenPair.refreshTokenExpiresIn,
             user = userInfo
         )
     }

@@ -18,14 +18,6 @@ data class UserInfo(
 )
 
 @Serializable
-data class RegisterResponse(
-    val accessToken: String,
-    val tokenType: String = "Bearer",
-    val expiresIn: Long,
-    val user: UserInfo
-)
-
-@Serializable
 data class LoginRequest(
     val username: String,
     val password: String
@@ -36,6 +28,8 @@ data class AuthenticationResponse(
     val accessToken: String,
     val tokenType: String = "Bearer",
     val expiresIn: Long,
+    val refreshToken: String,
+    val refreshTokenExpiresIn: Long,
     val user: UserInfo
 )
 
