@@ -268,12 +268,10 @@ class TmdbClientImplTest {
         val client = TmdbClientImpl(httpClient, mockConfig)
         val result = client.searchMovies(null, 1)
 
-        // Response is deserialized
         assertEquals(1, result.page)
         assertEquals(0, result.totalResults)
         assertEquals(0, result.results.size)
 
-        // We hit /movie/popular and no query/include_adult params are sent
         assertEquals("/3/movie/popular", capturedPath)
         assertEquals(null, capturedQueryParam)
         assertEquals(null, capturedIncludeAdult)

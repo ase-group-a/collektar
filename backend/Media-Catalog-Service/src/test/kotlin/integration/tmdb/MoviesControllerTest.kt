@@ -63,7 +63,6 @@ class MovieControllerTest {
 
         coEvery { movieService.searchMovies("inception", 20, 0) } returns searchResult
 
-        // Route is now just "/movies"
         val response = client.get("/movies?q=inception")
 
         assertEquals(HttpStatusCode.OK, response.status)
@@ -86,7 +85,6 @@ class MovieControllerTest {
             items = emptyList()
         )
 
-        // Now we expect null query to be forwarded to the service
         coEvery { movieService.searchMovies(null, 20, 0) } returns searchResult
 
         val response = client.get("/movies")
