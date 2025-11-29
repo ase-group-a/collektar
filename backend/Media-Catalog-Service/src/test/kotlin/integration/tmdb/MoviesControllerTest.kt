@@ -26,11 +26,13 @@ class MovieControllerTest {
 
     private fun Application.configureTestApp() {
         install(ContentNegotiation) {
-            json(Json {
-                prettyPrint = true
-                isLenient = true
-                ignoreUnknownKeys = true
-            })
+            json(
+                Json {
+                    prettyPrint = true
+                    isLenient = true
+                    ignoreUnknownKeys = true
+                }
+            )
         }
         routing {
             movieController.register(this)
@@ -38,7 +40,7 @@ class MovieControllerTest {
     }
 
     @Test
-    fun `GET search movies returns results with valid query`() = testApplication {
+    fun `GET movies returns results with valid query`() = testApplication {
         application {
             configureTestApp()
         }
@@ -61,7 +63,8 @@ class MovieControllerTest {
 
         coEvery { movieService.searchMovies("inception", 20, 0) } returns searchResult
 
-        val response = client.get("/movies/search/movies?q=inception")
+        // Route is now just "/movies"
+        val response = client.get("/movies?q=inception")
 
         assertEquals(HttpStatusCode.OK, response.status)
         val body = response.bodyAsText()
@@ -71,20 +74,29 @@ class MovieControllerTest {
     }
 
     @Test
-    fun `GET search movies returns BadRequest when query parameter is missing`() = testApplication {
+    fun `GET movies without query uses popular fallback`() = testApplication {
         application {
             configureTestApp()
         }
 
-        val response = client.get("/movies/search/movies")
+        val searchResult = SearchResult(
+            total = 0,
+            limit = 20,
+            offset = 0,
+            items = emptyList()
+        )
 
-        assertEquals(HttpStatusCode.BadRequest, response.status)
-        assertEquals("Missing query parameter 'q'", response.bodyAsText())
-        coVerify(exactly = 0) { movieService.searchMovies(any(), any(), any()) }
+        // Now we expect null query to be forwarded to the service
+        coEvery { movieService.searchMovies(null, 20, 0) } returns searchResult
+
+        val response = client.get("/movies")
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        coVerify(exactly = 1) { movieService.searchMovies(null, 20, 0) }
     }
 
     @Test
-    fun `GET search movies handles empty query string`() = testApplication {
+    fun `GET movies handles empty query string`() = testApplication {
         application {
             configureTestApp()
         }
@@ -98,10 +110,9 @@ class MovieControllerTest {
 
         coEvery { movieService.searchMovies("", 20, 0) } returns searchResult
 
-        val response = client.get("/movies/search/movies?q=")
+        val response = client.get("/movies?q=")
 
         assertEquals(HttpStatusCode.OK, response.status)
         coVerify(exactly = 1) { movieService.searchMovies("", 20, 0) }
     }
-
 }
