@@ -7,7 +7,7 @@ import io.ktor.server.application.ApplicationEnvironment
 data class IGDBConfig (
     override val clientId: String,
     override val clientSecret: String,
-    override val baseUrl: String,
+    val baseUrl: String,
     override val tokenUrl: String
 ) : OauthConfig {
     companion object {

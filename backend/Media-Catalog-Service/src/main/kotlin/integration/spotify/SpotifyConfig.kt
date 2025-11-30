@@ -7,7 +7,7 @@ import com.collektar.integration.shared.OauthConfig
 data class SpotifyConfig(
     override val clientId: String,
     override val clientSecret: String,
-    override val baseUrl: String,
+    val baseUrl: String,
     override val tokenUrl: String,
     val defaultPlaylistId: String,
 ) : OauthConfig {
