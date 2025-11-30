@@ -4,12 +4,14 @@ WORKDIR /app
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
-COPY . .
+COPY package.json pnpm-lock.yaml ./
 ENV CI=true
+RUN pnpm install --frozen-lockfile
+
+COPY . .
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
-RUN pnpm install --frozen-lockfile
 RUN pnpm build
 
 # ---- production stage ----
