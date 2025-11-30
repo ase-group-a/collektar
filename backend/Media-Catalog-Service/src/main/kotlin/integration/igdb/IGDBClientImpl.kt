@@ -12,9 +12,9 @@ class IGDBClientImpl(
     private val httpClient: HttpClient, private val config: IGDBConfig, private val tokenProvider: OauthTokenProvider
 ) : IGDBClient {
     override suspend fun searchGames(query: String?, limit: Int, offset: Int) : IGDBGamesResponse {
-        if (limit !in 1..500) {
+        require(limit in 1..500) {
             // 500 is the maximum allowed value of the IGDB API
-            throw IllegalArgumentException("Limit must be between 1 and 500")
+            "Limit must be between 1 and 500"
         }
 
         val token = tokenProvider.getToken()
