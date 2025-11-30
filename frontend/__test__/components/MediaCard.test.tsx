@@ -4,6 +4,7 @@ import MediaCard from "@/components/MediaCard";
 describe("MediaCard", () => {
     const title = "Test Media";
     const image = "/test.jpg";
+    const missingImageUrl = "/image_missing.png";
 
     it("renders grid layout correctly", () => {
         render(<MediaCard title={title} image={image} layout="grid" />);
@@ -32,5 +33,17 @@ describe("MediaCard", () => {
         const card = screen.getByText(title).closest(".card");
         expect(card).toBeTruthy();
         expect(card).toHaveClass("w-40");
+    });
+
+    it("null image url is replaced with placeholder image", () => {
+        render(<MediaCard title={title} image={null} />);
+        const image = screen.getByAltText(title);
+        expect(image).toHaveAttribute("src", missingImageUrl)
+    });
+
+    it("empty image url is replaced with placeholder image", () => {
+        render(<MediaCard title={title} image={""} />);
+        const image = screen.getByAltText(title);
+        expect(image).toHaveAttribute("src", missingImageUrl)
     });
 });

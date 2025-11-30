@@ -4,7 +4,7 @@ export interface MediaItem {
     id: string;
     title: string;
     type: MediaType | string;
-    imageUrl?: string | null;
+    image_url?: string | null;
     description?: string | null;
     source?: string | null;
 }

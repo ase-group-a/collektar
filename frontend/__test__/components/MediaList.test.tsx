@@ -4,8 +4,8 @@ import { MediaItem } from "@/types/media";
 
 describe("MediaList", () => {
     const items: MediaItem[] = [
-        { id: "1", title: "Media 1", type: "MUSIC", imageUrl: "/1.jpg" },
-        { id: "2", title: "Media 2", type: "MUSIC", imageUrl: "/2.jpg" },
+        { id: "1", title: "Media 1", type: "MUSIC", image_url: "/1.jpg" },
+        { id: "2", title: "Media 2", type: "MUSIC", image_url: "/2.jpg" },
     ];
 
     const renderList = (layout?: "grid" | "list") => {

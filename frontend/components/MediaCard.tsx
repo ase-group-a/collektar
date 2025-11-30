@@ -1,10 +1,14 @@
 interface MediaCardProps {
     title: string;
-    image: string;
+    image: string | null;
     layout?: "grid" | "list";
 }
 
 const MediaCard = ({ title, image, layout = "grid" }: MediaCardProps) => {
+    if (image === null || image === "") {
+        image = "/image_missing.png"
+    }
+    
     if (layout === "list") {
         return (
             <div className="card card-side bg-base-200 w-full border border-transparent hover:border-primary hover:shadow-md transition-all duration-200 items-center">

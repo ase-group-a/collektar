@@ -11,7 +11,9 @@ import io.ktor.server.plugins.swagger.*
 import io.ktor.server.routing.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.contentnegotiation.*
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonNamingStrategy
 
 fun Application.configureHTTP() {
     install(CORS) {
@@ -38,13 +40,22 @@ fun Application.configureHTTP() {
     }
 }
 
+@OptIn(ExperimentalSerializationApi::class)
 object HttpProvider {
 
     private val defaultConfig: HttpClientConfig<CIOEngineConfig>.() -> Unit = {
         install(ContentNegotiation) {
-            json(Json { ignoreUnknownKeys = true; isLenient = true })
+            json(
+                Json {
+                    ignoreUnknownKeys = true
+                    isLenient = true
+                    namingStrategy = JsonNamingStrategy.SnakeCase
+                }
+            )
         }
-        engine { requestTimeout = 60_000 }
+        engine {
+            requestTimeout = 60_000
+        }
     }
 
     // Client with default configuration
