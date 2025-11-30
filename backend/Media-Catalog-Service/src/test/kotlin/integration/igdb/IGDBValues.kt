@@ -28,8 +28,20 @@ const val EXAMPLE_GAME_NULL_JSON = """
     "name": "$GAME_NAME"
 }"""
 
+const val CLIENT_ID = "igdb_client_id"
+const val CLIENT_SECRET = "igdb_client_secret"
+const val TOKEN = "igdb_token"
+const val BASE_URL = "https://api.igdb.com/v4"
+const val GAMES_URL = "$BASE_URL/games"
+const val TOKEN_URL = "https://id.twitch.tv/oauth2/token"
+const val AUTH_HEADER_VALUE = "Bearer $TOKEN"
+const val QUERY = "Some search query"
+const val LIMIT = 5
+const val OFFSET = 0
+
 // Raw IGDB response with the following parameters:
 // fields id, name, summary, cover.image_id; limit 3; offset 1; search "Half-Life 2";
+const val EXAMPLE_IGDB_RESPONSE_COUNT = 3
 const val EXAMPLE_IGDB_RESPONSE_JSON = """
 [
     {
