@@ -1,9 +1,11 @@
 package com.collektar.shared.security.cookies
 
 import com.collektar.config.AppConfig
+import com.collektar.dto.RefreshTokenRequest
+import com.collektar.shared.errors.AppError
 import io.ktor.server.application.*
 
-class CookieProvider(private val config: AppConfig): ICookieProvider {
+class CookieProvider(config: AppConfig): ICookieProvider {
     private val sameSite = mapOf("SameSite" to "Lax")
     private val isProd = config.isProd
 
@@ -29,5 +31,9 @@ class CookieProvider(private val config: AppConfig): ICookieProvider {
             secure = isProd,
             extensions = sameSite
         )
+    }
+
+    override fun get(call: ApplicationCall, cookieName: String): String {
+        return call.request.cookies[cookieName] ?: throw AppError.Unauthorized.MissingToken()
     }
 }
