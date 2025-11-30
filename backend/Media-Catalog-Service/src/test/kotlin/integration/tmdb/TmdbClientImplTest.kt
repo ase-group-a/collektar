@@ -2,16 +2,11 @@ package integration.tmdb
 
 
 import exceptions.RateLimitException
-
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.mock.MockEngine
-import io.ktor.client.engine.mock.MockRequestHandler
-import io.ktor.client.engine.mock.respond
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.headersOf
-import io.ktor.serialization.kotlinx.json.json
+import io.ktor.client.*
+import io.ktor.client.engine.mock.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -242,4 +237,43 @@ class TmdbClientImplTest {
                             assertTrue(exception.message?.contains("TMDB search failed") == true)
                             assertTrue(exception.message?.contains("404") == true)
                         }
+
+    @Test
+    fun `searchMovies uses popular endpoint when query is null`(): Unit = runBlocking {
+        var capturedPath: String? = null
+        var capturedQueryParam: String? = null
+        var capturedIncludeAdult: String? = null
+
+        val mockResponseJson = """
+            {
+                "page": 1,
+                "results": [],
+                "totalResults": 0,
+                "totalPages": 0
+            }
+        """.trimIndent()
+
+        val httpClient = mockHttpClient { request ->
+            capturedPath = request.url.encodedPath
+            capturedQueryParam = request.url.parameters["query"]
+            capturedIncludeAdult = request.url.parameters["include_adult"]
+
+            respond(
+                content = mockResponseJson,
+                status = HttpStatusCode.OK,
+                headers = headersOf(HttpHeaders.ContentType, "application/json")
+            )
+        }
+
+        val client = TmdbClientImpl(httpClient, mockConfig)
+        val result = client.searchMovies(null, 1)
+
+        assertEquals(1, result.page)
+        assertEquals(0, result.totalResults)
+        assertEquals(0, result.results.size)
+
+        assertEquals("/3/movie/popular", capturedPath)
+        assertEquals(null, capturedQueryParam)
+        assertEquals(null, capturedIncludeAdult)
+    }
 }

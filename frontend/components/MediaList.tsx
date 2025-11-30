@@ -16,7 +16,7 @@ const MediaList = ({ items, layout = "grid" }: MediaListProps) => {
             }
         >
             {items.map((item) => (
-                <MediaCard key={item.id} title={item.title} image={item.imageUrl || ""} layout={layout} />
+                <MediaCard key={item.id} title={item.title} image={item.image_url || ""} layout={layout} />
             ))}
         </div>
     );
