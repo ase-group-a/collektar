@@ -10,12 +10,12 @@ class MusicService(
     suspend fun search(query: String?, limit: Int, offset: Int): SearchResult {
         val spotifyResult = spotifyClient.searchTracks(query, limit, offset)
 
-        val mediaItems = spotifyResult.tracks?.items?.map { track ->
+        val mediaItems = spotifyResult.tracks.items.map { track ->
             integration.spotify.SpotifyMapper.trackToMediaItem(track)
-        } ?: emptyList()
+        }
 
         return SearchResult(
-            total = spotifyResult.tracks?.total ?: 0,
+            total = spotifyResult.tracks.total,
             limit = limit,
             offset = offset,
             items = mediaItems
