@@ -7,5 +7,5 @@ fun appModules(env: ApplicationEnvironment) = listOf(
     coreModule,
     spotifyModule(env),
     tmdbModule(env),
-    IGDBModule(env)
+    igdbModule(env)
 )

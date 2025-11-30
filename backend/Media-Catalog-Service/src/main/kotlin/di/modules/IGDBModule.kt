@@ -21,7 +21,7 @@ const val IGDB_TOKEN_PROVIDER_NAME = "igdb_token_provider"
 
 const val IGDB_CONTROLLER_NAME = "games"
 
-fun IGDBModule(env: ApplicationEnvironment) = module {
+fun igdbModule(env: ApplicationEnvironment) = module {
     single(named(IGDB_CONFIG_NAME)) { IGDBConfig.fromEnv(env) } binds arrayOf(OauthConfig::class, IGDBConfig::class)
     single(named(IGDB_TOKEN_CACHE_NAME)) { OauthTokenCache() }
     single(named(IGDB_TOKEN_PROVIDER_NAME)) {
