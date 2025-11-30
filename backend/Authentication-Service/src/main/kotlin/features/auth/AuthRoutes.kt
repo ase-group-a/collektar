@@ -1,5 +1,6 @@
 package com.collektar.features.auth
 
+import com.collektar.dto.AccessTokenResponse
 import com.collektar.dto.LoginRequest
 import com.collektar.dto.RefreshTokenRequest
 import com.collektar.dto.RegisterRequest
@@ -28,18 +29,36 @@ fun Route.authRoutes(authService: IAuthService, cookieProvider: ICookieProvider)
         val res = authService.login(req)
 
         cookieProvider.set(call, "refresh_token", res.refreshToken, res.refreshTokenExpiresIn)
-        call.respond(HttpStatusCode.OK, mapOf("accessToken" to res.accessToken, "expiresIn" to res.expiresIn, "user" to res.user))
+        call.respond(
+            HttpStatusCode.OK,
+            AccessTokenResponse(
+                accessToken = res.accessToken,
+                tokenType = res.tokenType,
+                expiresIn = res.expiresIn,
+                user = res.user
+            )
+        )
     }
 
     post("/refresh") {
-        val req = call.receive<RefreshTokenRequest>()
+        val refreshToken = cookieProvider.get(call, "refresh_token")
+        val req = RefreshTokenRequest(refreshToken)
+
         if (req.refreshToken.isBlank()) {
             throw AppError.BadRequest.RefreshTokenMissing()
         }
         val res = authService.refresh(req)
 
         cookieProvider.set(call, "refresh_token", res.refreshToken, res.refreshTokenExpiresIn)
-        call.respond(HttpStatusCode.OK, mapOf("accessToken" to res.accessToken, "expiresIn" to res.expiresIn, "user" to res.user))
+        call.respond(
+            HttpStatusCode.OK,
+            AccessTokenResponse(
+                accessToken = res.accessToken,
+                tokenType = res.tokenType,
+                expiresIn = res.expiresIn,
+                user = res.user
+            )
+        )
     }
 
     get("/verify") {

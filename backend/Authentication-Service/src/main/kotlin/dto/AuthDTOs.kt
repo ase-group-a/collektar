@@ -34,6 +34,14 @@ data class AuthenticationResponse(
 )
 
 @Serializable
+data class AccessTokenResponse(
+    val accessToken: String,
+    val tokenType: String = "Bearer",
+    val expiresIn: Long,
+    val user: UserInfo
+)
+
+@Serializable
 data class RefreshTokenRequest(
     val refreshToken: String
 )
