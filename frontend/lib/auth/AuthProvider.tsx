@@ -30,6 +30,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         const tryRefresh = async () => {
             try {
+                const verifyRes = await fetch(`${API}/api/auth/verify`, {
+                    method: "GET",
+                    headers: { Authorization: `Bearer ${accessToken}` },
+                    credentials: "include",
+                });
+
+                if (verifyRes.ok) {
+                    return
+                }
+
+                if (verifyRes.status === 401) {
                 const res = await fetch(`${API}/api/auth/refresh`, {
                     method: "POST",
                     credentials: "include",
@@ -39,46 +50,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     return;
                 }
 
-                const data: any = await res.json().catch(() => ({}));
-
-                const accessToken = data?.access_token ?? data?.accessToken ?? null;
-                if (!accessToken) {
-                    return;
-                }
-
-                setAccessToken(accessToken);
-
-                if (data?.user) {
-                    setUser(data.user);
-                    return;
-                }
-
-                const verifyRes = await fetch(`${API}/api/auth/verify`, {
-                    method: "GET",
-                    headers: { Authorization: `Bearer ${accessToken}` },
-                    credentials: "include",
-                });
-
-                if (verifyRes.ok) {
-                    // try to read user JSON
-                    const userData = await verifyRes.json().catch(() => null);
-                    if (userData) {
-                        setUser(userData);
-                        return;
-                    }
-
-                    try {
-                        const payload = JSON.parse(atob(accessToken.split(".")[1]));
-                        const inferredUser = {
-                            username: payload.username ?? payload.userName ?? payload.sub ?? payload.email,
-                            email: payload.email,
-                            userId: payload.userId ?? payload.sub,
-                            display_name: payload.displayName ?? payload.display_name,
-                        } as any;
-                        setUser(inferredUser);
-                    } catch (e) {
-
-                    }
+                const data = await res.json();
+                setAccessToken(data.access_token);
+                setUser(data.user);
                 }
             } catch (e) {
                 console.warn("Auto refresh failed", e);
