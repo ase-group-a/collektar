@@ -1,5 +1,6 @@
 package com.collektar.integration.igdb
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -13,7 +14,8 @@ data class GameDto(
 @Serializable
 data class CoverDto(
     val id: Long,
-    val image_id: String
+    @SerialName("image_id")
+    val imageId: String
 )
 
 @Serializable

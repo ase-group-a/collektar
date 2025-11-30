@@ -24,7 +24,7 @@ class IGDBModelsTest {
         assertEquals(GAME_NAME, deserialized.name)
         assertEquals(GAME_SUMMARY, deserialized.summary)
         assertEquals(COVER_ID, deserialized.cover.id)
-        assertEquals(COVER_IMAGE_ID, deserialized.cover.image_id)
+        assertEquals(COVER_IMAGE_ID, deserialized.cover.imageId)
     }
 
     @Test
