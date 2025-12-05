@@ -2,14 +2,15 @@ package integration.spotify
 
 import io.ktor.server.application.*
 import com.collektar.config.ConfigUtils.getConfigValue
+import com.collektar.integration.shared.OauthConfig
 
 data class SpotifyConfig(
-    val clientId: String,
-    val clientSecret: String,
+    override val clientId: String,
+    override val clientSecret: String,
     val baseUrl: String,
-    val tokenUrl: String,
-    val defaultPlaylistId: String
-) {
+    override val tokenUrl: String,
+    val defaultPlaylistId: String,
+) : OauthConfig {
     companion object {
         fun fromEnv(env: ApplicationEnvironment): SpotifyConfig {
             return SpotifyConfig(

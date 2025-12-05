@@ -12,21 +12,38 @@ class TmdbClientImpl(
     private val config: TmdbConfig
 ) : TmdbClient {
 
-    override suspend fun searchMovies(query: String, page: Int): TmdbMovieSearchResponse {
-        return performSearch("/search/movie", query, page)
+    override suspend fun searchMovies(query: String?, page: Int): TmdbMovieSearchResponse {
+        return if (query.isNullOrBlank()) {
+            performRequest(
+                endpoint = "/movie/popular",
+                includeQuery = false,
+                query = null,
+                page = page
+            )
+        } else {
+            performRequest(
+                endpoint = "/search/movie",
+                includeQuery = true,
+                query = query,
+                page = page
+            )
+        }
     }
 
-    private suspend inline fun <reified T> performSearch(
+    private suspend inline fun <reified T> performRequest(
         endpoint: String,
-        query: String,
+        includeQuery: Boolean,
+        query: String?,
         page: Int
     ): T {
         val response: HttpResponse = httpClient.get("${config.baseUrl}$endpoint") {
             header(HttpHeaders.Authorization, "Bearer ${config.bearerToken}")
             url {
-                parameters.append("query", query)
+                if (includeQuery && query != null) {
+                    parameters.append("query", query)
+                    parameters.append("include_adult", "false")
+                }
                 parameters.append("page", page.toString())
-                parameters.append("include_adult", "false")
             }
         }
 
