@@ -8,4 +8,5 @@ interface IAuthService {
     suspend fun login(request: LoginRequest): AuthenticationResponse
     suspend fun refresh(request: RefreshTokenRequest): AuthenticationResponse
     suspend fun verify(token: String, routingCall: RoutingCall)
+    suspend fun logout(token: String)
 }

@@ -60,6 +60,7 @@ fun Route.authRoutes(authService: IAuthService, cookieProvider: ICookieProvider)
     }
 
     post("/logout") {
+        authService.logout(cookieProvider.get(call, "refresh_token"))
         cookieProvider.delete(call, "refresh_token")
         call.respond(HttpStatusCode.OK)
     }

@@ -112,4 +112,8 @@ class AuthService(
         routingCall.response.headers.append("X-User-Id", claims.userId.toString())
         routingCall.response.headers.append("X-User-Email", claims.email)
     }
+
+    override suspend fun logout(token: String) {
+        tokenService.revokeRefreshToken(token)
+    }
 }
