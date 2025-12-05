@@ -43,11 +43,13 @@ class AuthService(
         )
 
         return AuthenticationResponse(
-            accessToken = tokenPair.accessToken,
-            expiresIn = tokenPair.accessTokenExpiresIn,
             refreshToken = tokenPair.refreshToken,
             refreshTokenExpiresIn = tokenPair.refreshTokenExpiresIn,
-            user = userInfo
+            accessTokenResponse = AccessTokenResponse(
+                accessToken = tokenPair.accessToken,
+                expiresIn = tokenPair.accessTokenExpiresIn,
+                user = userInfo
+            )
         )
     }
 
@@ -70,11 +72,13 @@ class AuthService(
         )
 
         return AuthenticationResponse(
-            accessToken = tokenPair.accessToken,
-            expiresIn = tokenPair.accessTokenExpiresIn,
             refreshToken = tokenPair.refreshToken,
             refreshTokenExpiresIn = tokenPair.refreshTokenExpiresIn,
-            user = userInfo
+            accessTokenResponse = AccessTokenResponse(
+                accessToken = tokenPair.accessToken,
+                expiresIn = tokenPair.accessTokenExpiresIn,
+                user = userInfo
+            )
         )
     }
 
@@ -93,11 +97,13 @@ class AuthService(
         )
 
         return AuthenticationResponse(
-            accessToken = tokenPair.accessToken,
-            expiresIn = tokenPair.accessTokenExpiresIn,
             refreshToken = tokenPair.refreshToken,
             refreshTokenExpiresIn = tokenPair.refreshTokenExpiresIn,
-            user = userInfo
+            accessTokenResponse = AccessTokenResponse(
+                accessToken = tokenPair.accessToken,
+                expiresIn = tokenPair.accessTokenExpiresIn,
+                user = userInfo
+            )
         )
     }
 

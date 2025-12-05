@@ -1,6 +1,5 @@
 package com.collektar.features.auth
 
-import com.collektar.dto.AccessTokenResponse
 import com.collektar.dto.LoginRequest
 import com.collektar.dto.RefreshTokenRequest
 import com.collektar.dto.RegisterRequest
@@ -29,15 +28,7 @@ fun Route.authRoutes(authService: IAuthService, cookieProvider: ICookieProvider)
         val res = authService.login(req)
 
         cookieProvider.set(call, "refresh_token", res.refreshToken, res.refreshTokenExpiresIn)
-        call.respond(
-            HttpStatusCode.OK,
-            AccessTokenResponse(
-                accessToken = res.accessToken,
-                tokenType = res.tokenType,
-                expiresIn = res.expiresIn,
-                user = res.user
-            )
-        )
+        call.respond(HttpStatusCode.OK,res.accessTokenResponse)
     }
 
     post("/refresh") {
@@ -50,15 +41,7 @@ fun Route.authRoutes(authService: IAuthService, cookieProvider: ICookieProvider)
         val res = authService.refresh(req)
 
         cookieProvider.set(call, "refresh_token", res.refreshToken, res.refreshTokenExpiresIn)
-        call.respond(
-            HttpStatusCode.OK,
-            AccessTokenResponse(
-                accessToken = res.accessToken,
-                tokenType = res.tokenType,
-                expiresIn = res.expiresIn,
-                user = res.user
-            )
-        )
+        call.respond(HttpStatusCode.OK,res.accessTokenResponse)
     }
 
     get("/verify") {
