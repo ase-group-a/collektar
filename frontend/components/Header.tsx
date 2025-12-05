@@ -3,9 +3,20 @@
 import Link from "next/link";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
+import {router} from "next/client";
 
 export default function Header() {
     const { user, isAuthenticated, logout } = useAuth();
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+            await router.push("/")
+        } catch (err) {
+            console.error("Logout failed", err);
+        }
+    };
+
 
     return (
         <div className="navbar bg-base-200 shadow-md px-6 py-5 relative">
@@ -56,7 +67,7 @@ export default function Header() {
                             </li>
 
                             <li>
-                                <button onClick={logout} className="text-red-500">
+                                <button onClick={handleLogout} className="text-red-500">
                                     Logout
                                 </button>
                             </li>

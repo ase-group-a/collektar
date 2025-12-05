@@ -9,23 +9,22 @@ export const fetcher = async <T = any>(
 
     const headers = new Headers(init?.headers);
     headers.set("Content-Type", "application/json");
-    if (accessToken) {
-        headers.set("Authorization", `Bearer ${accessToken}`);
-    }
+    if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
 
-    const res = await fetch(url, {
-        ...init,
-        headers,
-        credentials: "include",
-    });
+    const res = await fetch(url, { ...init, headers, credentials: "include" });
 
     if (!res.ok) {
-        const error = new Error("An error occurred while fetching the data") as any;
+        let errorMessage = `HTTP error ${res.status}`;
         try {
-            error.info = await res.json();
+            const data = await res.json();
+            if (data?.message) {
+                errorMessage = data.message;
+            }
         } catch {
-            error.info = await res.text().catch(() => null);
+            const text = await res.text().catch(() => "");
+            if (text) errorMessage = text;
         }
+        const error = new Error(errorMessage) as any;
         error.status = res.status;
         throw error;
     }

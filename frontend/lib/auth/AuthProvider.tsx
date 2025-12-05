@@ -1,20 +1,14 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-
-type User = {
-    userId?: string;
-    email?: string;
-    username?: string;
-    display_name?: string;
-};
+import { authApi, User} from "@/lib/api/authApi";
 
 type AuthContextType = {
     accessToken: string | null;
     user: User | null;
     login: (username: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
-    register: (email: string, username: string, displayName: string, password: string) => Promise<void>;
+    register: (email: string, username: string, display_name: string, password: string) => Promise<void>;
     isAuthenticated: boolean;
 };
 
@@ -26,90 +20,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost";
-
-        const tryRefresh = async () => {
+        const initAuth = async () => {
             try {
-                const verifyRes = await fetch(`${API}/api/auth/verify`, {
-                    method: "GET",
-                    headers: { Authorization: `Bearer ${accessToken}` },
-                    credentials: "include",
-                });
-
-                if (verifyRes.ok) {
-                    return
+                if (!accessToken) {
+                    const data = await authApi.refresh();
+                    setAccessToken(data.access_token);
+                    setUser(data.user);
+                } else {
+                    await authApi.verify(accessToken);
                 }
-
-                if (verifyRes.status === 401) {
-                const res = await fetch(`${API}/api/auth/refresh`, {
-                    method: "POST",
-                    credentials: "include",
-                });
-
-                if (!res.ok) {
-                    return;
-                }
-
-                const data = await res.json();
-                setAccessToken(data.access_token);
-                setUser(data.user);
-                }
-            } catch (e) {
-                console.warn("Auto refresh failed", e);
+            } catch (err: any) {
+                console.warn("Auto refresh failed", err);
+                setAccessToken(null);
+                setUser(null);
             } finally {
                 setLoading(false);
             }
         };
-
-        tryRefresh();
+        initAuth();
     }, []);
 
     const login = async (username: string, password: string) => {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost"}/api/auth/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({ username, password }),
-        });
+        const data = await authApi.login(username, password);
+        setAccessToken(data.access_token);
+        setUser(data.user);
+    };
 
-        if (!res.ok) {
-            const data = await res.json().catch(() => ({}));
-            throw new Error(data?.error ?? "Login failed");
-        }
-
-        const data = await res.json();
+    const register = async (email: string, username: string, display_name: string, password: string) => {
+        const data = await authApi.register(email, username, display_name, password);
         setAccessToken(data.access_token);
         setUser(data.user);
     };
 
     const logout = async () => {
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost"}/api/auth/logout`, {
-            method: "POST",
-            credentials: "include"
-        });
-
         setAccessToken(null);
         setUser(null);
+        await authApi.logout();
     };
-
-    const register = async (email: string, username: string, display_name: string, password: string) => {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost"}/api/auth/register`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({ email, username, display_name, password }),
-        });
-
-        if (!res.ok) {
-            const data = await res.json().catch(() => ({}));
-            throw new Error(data?.message ?? "Registration failed");
-        }
-
-        const data = await res.json();
-        setAccessToken(data.access_token);
-        setUser(data.user);
-    };
-
 
     return (
         <AuthContext.Provider value={{ accessToken, user, login, logout, register, isAuthenticated: !!accessToken }}>
@@ -118,8 +65,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
 };
 
-export function useAuth() {
+export const useAuth = () => {
     const ctx = useContext(AuthContext);
     if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
     return ctx;
-}
+};
