@@ -54,4 +54,20 @@ class CookieProviderTest {
             cookieProvider.get(call, "TestCookie")
         }
     }
+
+    @Test
+    fun `delete appends deleted cookie`() {
+        cookieProvider.delete(call, "TestCookie", "/")
+
+        verify { call.response.cookies.append(
+            name = "TestCookie",
+            value = "deleted",
+            maxAge = 0,
+            path = "/",
+            httpOnly = true,
+            secure = any(),
+            extensions = any()
+        )}
+    }
+
 }

@@ -1,7 +1,6 @@
 package com.collektar.shared.security.cookies
 
 import com.collektar.config.AppConfig
-import com.collektar.dto.RefreshTokenRequest
 import com.collektar.shared.errors.AppError
 import io.ktor.server.application.*
 
