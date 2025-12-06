@@ -15,7 +15,7 @@ describe("fetcher", () => {
     });
 
     it("returns parsed JSON on success and sets headers", async () => {
-        const mockResponse = { ok: true, status: 200, json: async () => ({ hello: "world" }) };
+        const mockResponse = { ok: true, status: 200, headers: { get: jest.fn().mockReturnValue("123")}, json: async () => ({ hello: "world" }) };
         (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
 
         const result = await fetcher("/test", undefined, "my-token");
@@ -31,7 +31,13 @@ describe("fetcher", () => {
     });
 
     it("normalizes path without leading slash", async () => {
-        const mockResponse = { ok: true, status: 200, json: async () => ({ ok: true }) };
+        const mockResponse = {
+            ok: true,
+            status: 200,
+            headers: {
+                get: jest.fn().mockReturnValue("123"),
+            },
+            json: async () => ({ ok: true }) };
         (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
 
         await fetcher("no-leading-slash");
