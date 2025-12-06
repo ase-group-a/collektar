@@ -72,13 +72,13 @@ class AuthServiceTest {
 
         val result = authService.register(request)
 
-        assertEquals(tokenPair.accessToken, result.accessToken)
-        assertEquals(tokenPair.accessTokenExpiresIn, result.expiresIn)
+        assertEquals(tokenPair.accessToken, result.accessTokenResponse.accessToken)
+        assertEquals(tokenPair.accessTokenExpiresIn, result.accessTokenResponse.expiresIn)
         assertEquals(tokenPair.refreshToken, result.refreshToken)
         assertEquals(tokenPair.refreshTokenExpiresIn, result.refreshTokenExpiresIn)
-        assertEquals(request.username, result.user.username)
-        assertEquals(request.email, result.user.email)
-        assertEquals(request.displayName, result.user.displayName)
+        assertEquals(request.username, result.accessTokenResponse.user.username)
+        assertEquals(request.email, result.accessTokenResponse.user.email)
+        assertEquals(request.displayName, result.accessTokenResponse.user.displayName)
 
         coVerify(exactly = 1) { repository.usernameExists(request.username) }
         coVerify(exactly = 1) { repository.emailExists(request.email) }
@@ -161,8 +161,8 @@ class AuthServiceTest {
 
         val result = authService.login(request)
 
-        assertEquals(tokenPair.accessToken, result.accessToken)
-        assertEquals(tokenPair.accessTokenExpiresIn, result.expiresIn)
+        assertEquals(tokenPair.accessToken, result.accessTokenResponse.accessToken)
+        assertEquals(tokenPair.accessTokenExpiresIn, result.accessTokenResponse.expiresIn)
         assertEquals(tokenPair.refreshToken, result.refreshToken)
         assertEquals(tokenPair.refreshTokenExpiresIn, result.refreshTokenExpiresIn)
 
@@ -216,6 +216,8 @@ class AuthServiceTest {
     @Test
     fun shouldReturnTokensIfRefreshRequestIsValid() = runTest {
         val request = RefreshTokenRequest(refreshToken = "current_refresh_token")
+        val userId = UUID.randomUUID()
+
         val newTokenPair = TokenPair(
             accessToken = "new_access_token",
             accessTokenExpiresIn = 3600,
@@ -223,12 +225,27 @@ class AuthServiceTest {
             refreshTokenExpiresIn = 86400,
         )
 
+        val claims = TokenClaims(
+            userId = userId,
+            email = "user@mail.com"
+        )
+
+        val authModel = AuthModel(
+            id = userId,
+            username = "testuser",
+            email = "user@mail.com",
+            displayName = "Test User",
+            passwordHash = "irrelevant"
+        )
+
         coEvery { tokenService.validateAndRefresh(request.refreshToken) } returns newTokenPair
+        coEvery { tokenService.validateAccessToken(newTokenPair.accessToken) } returns claims
+        coEvery { repository.findByUserId(claims.userId) } returns authModel
 
         val result = authService.refresh(request)
 
-        assertEquals(newTokenPair.accessToken, result.accessToken)
-        assertEquals(newTokenPair.accessTokenExpiresIn, result.expiresIn)
+        assertEquals(newTokenPair.accessToken, result.accessTokenResponse.accessToken)
+        assertEquals(newTokenPair.accessTokenExpiresIn, result.accessTokenResponse.expiresIn)
         assertEquals(newTokenPair.refreshToken, result.refreshToken)
         assertEquals(newTokenPair.refreshTokenExpiresIn, result.refreshTokenExpiresIn)
 
@@ -253,4 +270,14 @@ class AuthServiceTest {
         coVerify(exactly = 1) { headers.append("X-User-Id", userId.toString()) }
         coVerify(exactly = 1) { headers.append("X-User-Email", email) }
     }
+
+    @Test
+    fun shouldCallTokenServiceRevokeRefreshTokenOnLogout() = runTest {
+        val refreshToken = "refresh_token"
+        coEvery { tokenService.revokeRefreshToken(refreshToken) } just runs
+        authService.logout(refreshToken)
+
+        coVerify(exactly = 1) { tokenService.revokeRefreshToken(refreshToken) }
+    }
+
 }

@@ -3,6 +3,7 @@ package com.collektar.features.auth
 import com.collektar.dto.*
 import com.collektar.features.auth.service.IAuthService
 import com.collektar.shared.errors.AppError
+import com.collektar.shared.security.cookies.ICookieProvider
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
@@ -22,10 +23,13 @@ import org.junit.jupiter.api.Test
 
 class AuthRoutesTest {
     private lateinit var authService: IAuthService
+    private lateinit var cookieProvider: ICookieProvider
+
 
     @BeforeEach
     fun setUp() {
         authService = mockk(relaxed = true)
+        cookieProvider = mockk(relaxed = true)
     }
 
     @AfterEach
@@ -54,15 +58,17 @@ class AuthRoutesTest {
             displayName = "New User",
             password = "SecurePass123!"
         )
-        val response = RegisterResponse(
-            accessToken = "access_token",
-            expiresIn = 3600,
+        val response = AuthenticationResponse(
             refreshToken = "refresh_token",
             refreshTokenExpiresIn = 86400,
-            user = UserInfo(
-                email = request.email,
-                username = request.username,
-                displayName = request.displayName
+            accessTokenResponse = AccessTokenResponse(
+                accessToken = "access_token",
+                expiresIn = 3600,
+                user = UserInfo(
+                    email = request.email,
+                    username = request.username,
+                    displayName = request.displayName
+                )
             )
         )
 
@@ -164,10 +170,17 @@ class AuthRoutesTest {
     @Test
     fun shouldReturnOKIfValidCredentials() = testApplication {
         val response = AuthenticationResponse(
-            accessToken = "access_token",
-            expiresIn = 3600,
             refreshToken = "refresh_token",
-            refreshTokenExpiresIn = 86400
+            refreshTokenExpiresIn = 86400,
+            accessTokenResponse = AccessTokenResponse(
+                accessToken = "access_token",
+                expiresIn = 3600,
+                user = UserInfo(
+                    email = "testuser@mail.com",
+                    username = "testuser",
+                    displayName = "Test User"
+                )
+            )
         )
 
         coEvery { authService.login(any()) } returns response
@@ -209,22 +222,26 @@ class AuthRoutesTest {
     @Test
     fun shouldReturnOKAndNewTokensIfValid() = testApplication {
         val response = AuthenticationResponse(
-            accessToken = "new_access_token",
-            expiresIn = 3600,
-            refreshToken = "new_refresh_token",
-            refreshTokenExpiresIn = 86400
+            refreshToken = "refresh_token",
+            refreshTokenExpiresIn = 86400,
+            accessTokenResponse = AccessTokenResponse(
+                accessToken = "access_token",
+                expiresIn = 3600,
+                user = UserInfo(
+                    email = "testuser@mail.com",
+                    username = "testuser",
+                    displayName = "Test User"
+                )
+            )
         )
 
         coEvery { authService.refresh(any()) } returns response
+        every { cookieProvider.get(any(), "refresh_token") } returns "valid_refresh_token"
 
         application { configureTestRouting() }
         val client = jsonClient()
 
-        val request = RefreshTokenRequest(refreshToken = "valid_refresh_token")
-
         val result = client.post("/refresh") {
-            contentType(ContentType.Application.Json)
-            setBody(request)
         }
 
         assertEquals(HttpStatusCode.OK, result.status)
@@ -250,15 +267,12 @@ class AuthRoutesTest {
     @Test
     fun shouldReturnUnauthorizedIfTokenInvalid() = testApplication {
         coEvery { authService.refresh(any()) } throws AppError.Unauthorized.InvalidToken()
+        every { cookieProvider.get(any(), "refresh_token") } returns "invalid_token"
 
         application { configureTestRouting() }
         val client = jsonClient()
 
-        val request = RefreshTokenRequest(refreshToken = "invalid_token")
-
         val result = client.post("/refresh") {
-            contentType(ContentType.Application.Json)
-            setBody(request)
         }
 
         assertEquals(HttpStatusCode.Unauthorized, result.status)
@@ -349,6 +363,28 @@ class AuthRoutesTest {
                 call.respond(HttpStatusCode.InternalServerError, ErrorResponse("Internal Server Error"))
             }
         }
-        routing { authRoutes(authService) }
+        routing { authRoutes(
+            authService,
+            cookieProvider
+        ) }
     }
+
+    @Test
+    fun shouldLogoutSuccessfully() = testApplication {
+        every { cookieProvider.get(any(), "refresh_token") } returns "refresh_token_value"
+        coEvery { authService.logout("refresh_token_value") } just runs
+        every { cookieProvider.delete(any(), "refresh_token") } just runs
+
+        application { configureTestRouting() }
+        val client = jsonClient()
+
+        val result = client.post("/logout")
+
+        assertEquals(HttpStatusCode.OK, result.status)
+
+        coVerify(exactly = 1) { authService.logout("refresh_token_value") }
+        verify(exactly = 1) { cookieProvider.get(any(), "refresh_token") }
+        verify(exactly = 1) { cookieProvider.delete(any(), "refresh_token") }
+    }
+
 }

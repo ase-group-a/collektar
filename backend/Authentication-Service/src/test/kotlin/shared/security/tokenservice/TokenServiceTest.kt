@@ -341,4 +341,18 @@ class TokenServiceTest {
             tokenService.validateAccessToken(token)
         }
     }
+
+    @Test
+    fun shouldHashTokenAndRevokeIt() = runTest {
+        val token = "refresh_token"
+        val tokenHash = "hashed_token"
+
+        every { tokenHasher.hash(token) } returns tokenHash
+        coEvery { repository.revokeRefreshToken(tokenHash) } just runs
+
+        tokenService.revokeRefreshToken(token)
+
+        verify(exactly = 1) { tokenHasher.hash(token) }
+        coVerify(exactly = 1) { repository.revokeRefreshToken(tokenHash) }
+    }
 }

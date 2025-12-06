@@ -6,4 +6,5 @@ interface ITokenService {
     suspend fun generateTokens(userId: UUID, email: String): TokenPair
     suspend fun validateAndRefresh(token: String): TokenPair
     suspend fun validateAccessToken(token: String): TokenClaims
+    suspend fun revokeRefreshToken(token: String)
 }

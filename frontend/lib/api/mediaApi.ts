@@ -7,6 +7,6 @@ export const searchMedia = async (
     limit = 10,
     offset = 0
 ): Promise<SearchResult<MediaItem>> => {
-    const path = `/${type}?q=${encodeURIComponent(query)}&limit=${limit}&offset=${offset}`;
+    const path = `/api/media/${type}?q=${encodeURIComponent(query)}&limit=${limit}&offset=${offset}`;
     return fetcher<SearchResult<MediaItem>>(path);
 };
