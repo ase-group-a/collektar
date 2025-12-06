@@ -368,4 +368,23 @@ class AuthRoutesTest {
             cookieProvider
         ) }
     }
+
+    @Test
+    fun shouldLogoutSuccessfully() = testApplication {
+        every { cookieProvider.get(any(), "refresh_token") } returns "refresh_token_value"
+        coEvery { authService.logout("refresh_token_value") } just runs
+        every { cookieProvider.delete(any(), "refresh_token") } just runs
+
+        application { configureTestRouting() }
+        val client = jsonClient()
+
+        val result = client.post("/logout")
+
+        assertEquals(HttpStatusCode.OK, result.status)
+
+        coVerify(exactly = 1) { authService.logout("refresh_token_value") }
+        verify(exactly = 1) { cookieProvider.get(any(), "refresh_token") }
+        verify(exactly = 1) { cookieProvider.delete(any(), "refresh_token") }
+    }
+
 }

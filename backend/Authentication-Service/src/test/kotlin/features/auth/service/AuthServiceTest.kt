@@ -270,4 +270,14 @@ class AuthServiceTest {
         coVerify(exactly = 1) { headers.append("X-User-Id", userId.toString()) }
         coVerify(exactly = 1) { headers.append("X-User-Email", email) }
     }
+
+    @Test
+    fun shouldCallTokenServiceRevokeRefreshTokenOnLogout() = runTest {
+        val refreshToken = "refresh_token"
+        coEvery { tokenService.revokeRefreshToken(refreshToken) } just runs
+        authService.logout(refreshToken)
+
+        coVerify(exactly = 1) { tokenService.revokeRefreshToken(refreshToken) }
+    }
+
 }
