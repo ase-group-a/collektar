@@ -39,13 +39,7 @@ export default function LoginPage() {
                     className="btn btn-outline w-full flex items-center gap-2"
                     // TODO onClick={handleGoogleLogin}
                 >
-                    <svg width="20" height="20" viewBox="0 0 533.5 544.3">
-                        <path fill="#4285F4" d="M533.5 278.4c0-17.4-1.6-34.1-4.7-50.3H272.1v95.2h147.7c-6.4 34.7-25.9 64-55.1 83.4v68h88.8c52.1-48 82-118.8 82-196.3z"/>
-                        <path fill="#34A853" d="M272.1 544.3c74.4 0 136.9-24.5 182.5-66.7l-88.8-68c-24.7 16.6-56.4 26.3-93.7 26.3-72.1 0-133.1-48.7-155-114.1h-90.3v71.5c45.3 89.8 138.5 150.9 245.3 150.9z"/>
-                        <path fill="#FBBC04" d="M117.1 321.8a162 162 0 010-103.6V146.7h-90.3a272.2 272.2 0 000 250.9l90.3-75.8z"/>
-                        <path fill="#EA4335" d="M272.1 107.7c40.5 0 76.8 13.9 105.5 41.1l78.6-78.6C409 25.4 346.5 0 272.1 0 165.3 0 72.1 61.1 26.8 150.9l90.3 71.5c21.9-65.3 82.9-114.7 155-114.7z"/>
-                    </svg>
-
+                    <img src="/google-logo.svg" alt="Google logo" width={20} height={20} className="inline-block mr-2" />
                     Login with Google
                 </button>
 
