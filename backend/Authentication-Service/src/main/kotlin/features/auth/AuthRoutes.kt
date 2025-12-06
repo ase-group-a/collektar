@@ -20,7 +20,8 @@ fun Route.authRoutes(authService: IAuthService, cookieProvider: ICookieProvider)
         Validator.validateDisplayName(req.displayName)
         Validator.validatePassword(req.password)
         val res = authService.register(req)
-        call.respond(HttpStatusCode.Created, res)
+        cookieProvider.set(call, "refresh_token", res.refreshToken, res.refreshTokenExpiresIn)
+        call.respond(HttpStatusCode.Created, res.accessTokenResponse)
     }
 
     post("/login") {
