@@ -40,11 +40,20 @@ export default function RegisterPage() {
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!validate()) {
+            return;
+        }
+
+        setLoading(true);
+        setErr(null);
+
         try {
             await register(email, username, displayName, password);
             router.push("/u/" + username);
         } catch (error: any) {
-            setErr(error.message);
+            setErr(error?.message ?? "Registration failed");
+        } finally {
+            setLoading(false);
         }
     };
 

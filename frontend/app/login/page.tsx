@@ -64,7 +64,7 @@ export default function LoginPage() {
                     </label>
                 </div>
 
-                <button type="submit" className="btn btn-neutral ">Login</button>
+                <button type="submit" data-testid="submit-login" className="btn btn-neutral ">Login</button>
 
                 <p className="text-center text-sm mt-4">
                     Don’t have an account?{" "}
