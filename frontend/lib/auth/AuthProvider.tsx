@@ -22,13 +22,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     useEffect(() => {
         const initAuth = async () => {
             try {
-                if (!accessToken) {
-                    const data = await authApi.refresh();
-                    setAccessToken(data.access_token);
-                    setUser(data.user);
-                } else {
-                    await authApi.verify(accessToken);
-                }
+            const data = await authApi.refresh();
+            setAccessToken(data.access_token);
+            setUser(data.user);
             } catch (err: any) {
                 console.warn("Auto refresh failed", err);
                 setAccessToken(null);

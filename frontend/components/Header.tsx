@@ -3,15 +3,16 @@
 import Link from "next/link";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
-import {router} from "next/client";
+import { useRouter } from "next/navigation";
 
 export default function Header() {
     const { user, isAuthenticated, logout } = useAuth();
+    const router = useRouter();
 
     const handleLogout = async () => {
         try {
             await logout();
-            await router.push("/")
+            router.push("/login");
         } catch (err) {
             console.error("Logout failed", err);
         }

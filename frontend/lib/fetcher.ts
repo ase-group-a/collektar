@@ -29,5 +29,10 @@ export const fetcher = async <T = any>(
         throw error;
     }
 
+    const contentLength = res.headers.get("content-length");
+    if (res.status === 204 || contentLength === "0") {
+        return {} as T;
+    }
+
     return res.json();
 };
