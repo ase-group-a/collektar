@@ -1,6 +1,7 @@
 package com.collektar.plugins
 
 
+import com.collektar.config.AppConfig
 import com.collektar.config.JWTConfig
 import com.collektar.config.OpaqueTokenConfig
 import com.collektar.config.TokenHasherConfig
@@ -9,6 +10,8 @@ import com.collektar.features.auth.repository.IAuthRepository
 import com.collektar.features.auth.service.AuthService
 import com.collektar.features.auth.service.IAuthService
 import com.collektar.shared.database.DatabaseFactory
+import com.collektar.shared.security.cookies.CookieProvider
+import com.collektar.shared.security.cookies.ICookieProvider
 import com.collektar.shared.security.jwt.IJWTService
 import com.collektar.shared.security.jwt.JWTService
 import com.collektar.shared.security.opaquetokengeneration.IOpaqueTokenGenerator
@@ -32,11 +35,13 @@ fun Application.configureFrameworks() {
         val tokenHasherConfig = TokenHasherConfig.fromEnv()
         val opaqueTokenConfig = OpaqueTokenConfig()
         val database = DatabaseFactory.create()
+        val appConfig = AppConfig.fromEnv()
         modules(module {
             single { jwtConfig }
             single { tokenHasherConfig }
             single { opaqueTokenConfig }
             single { database }
+            single { appConfig }
             single<IJWTService> { JWTService(get()) }
             single<IPasswordHasher> { BCryptHasher() }
             single<IRefreshTokenHasher> { HmacTokenHasher(get()) }
@@ -44,6 +49,7 @@ fun Application.configureFrameworks() {
             single<IAuthRepository> { AuthRepository(get()) }
             single<ITokenService> { TokenService(get(), get(), get(), get()) }
             single<IAuthService> { AuthService(get(), get(), get()) }
+            single<ICookieProvider> { CookieProvider(get()) }
         })
     }
 }

@@ -74,6 +74,11 @@ class TokenService(
         )
     }
 
+    override suspend fun revokeRefreshToken(token: String) {
+        val tokenHash = tokenHasher.hash(token)
+        repository.revokeRefreshToken(tokenHash)
+    }
+
     private suspend fun saveRefreshToken(token: RefreshToken) {
         val tokenHash = tokenHasher.hash(token.token)
 

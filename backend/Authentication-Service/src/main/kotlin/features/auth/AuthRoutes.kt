@@ -5,13 +5,14 @@ import com.collektar.dto.RefreshTokenRequest
 import com.collektar.dto.RegisterRequest
 import com.collektar.features.auth.service.IAuthService
 import com.collektar.shared.errors.AppError
+import com.collektar.shared.security.cookies.ICookieProvider
 import com.collektar.shared.validation.Validator
 import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Route.authRoutes(authService: IAuthService) {
+fun Route.authRoutes(authService: IAuthService, cookieProvider: ICookieProvider) {
     post("/register") {
         val req = call.receive<RegisterRequest>()
         Validator.validateUsername(req.username)
@@ -19,22 +20,29 @@ fun Route.authRoutes(authService: IAuthService) {
         Validator.validateDisplayName(req.displayName)
         Validator.validatePassword(req.password)
         val res = authService.register(req)
-        call.respond(HttpStatusCode.Created, res)
+        cookieProvider.set(call, "refresh_token", res.refreshToken, res.refreshTokenExpiresIn)
+        call.respond(HttpStatusCode.Created, res.accessTokenResponse)
     }
 
     post("/login") {
         val req = call.receive<LoginRequest>()
         val res = authService.login(req)
-        call.respond(HttpStatusCode.OK, res)
+
+        cookieProvider.set(call, "refresh_token", res.refreshToken, res.refreshTokenExpiresIn)
+        call.respond(HttpStatusCode.OK,res.accessTokenResponse)
     }
 
     post("/refresh") {
-        val req = call.receive<RefreshTokenRequest>()
+        val refreshToken = cookieProvider.get(call, "refresh_token")
+        val req = RefreshTokenRequest(refreshToken)
+
         if (req.refreshToken.isBlank()) {
             throw AppError.BadRequest.RefreshTokenMissing()
         }
         val res = authService.refresh(req)
-        call.respond(HttpStatusCode.OK, res)
+
+        cookieProvider.set(call, "refresh_token", res.refreshToken, res.refreshTokenExpiresIn)
+        call.respond(HttpStatusCode.OK,res.accessTokenResponse)
     }
 
     get("/verify") {
@@ -49,6 +57,12 @@ fun Route.authRoutes(authService: IAuthService) {
             throw AppError.Unauthorized.MissingToken()
         }
         authService.verify(token, call)
+        call.respond(HttpStatusCode.OK)
+    }
+
+    post("/logout") {
+        authService.logout(cookieProvider.get(call, "refresh_token"))
+        cookieProvider.delete(call, "refresh_token")
         call.respond(HttpStatusCode.OK)
     }
 }
