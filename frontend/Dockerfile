@@ -21,6 +21,9 @@ ENV NODE_ENV=production
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
+RUN useradd --user-group --create-home --shell /bin/bash appuser
+USER appuser
+
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/package.json ./package.json
