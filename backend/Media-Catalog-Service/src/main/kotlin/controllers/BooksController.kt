@@ -11,8 +11,7 @@ class BooksController (
     override fun register(routing: Routing) {
         routing.mediaRoute("books") {
             get {
-                //val q = call.queryParam("q")
-                val q = call.queryParam("q") ?: "bestseller"
+                val q = call.queryParam("q")
                 val limit = call.queryParamInt("limit", 20)
                 val offset = call.queryParamInt("offset", 0)
 
