@@ -14,9 +14,6 @@ entryPoints:
 providers:
   docker:
     exposedByDefault: false
-    network:
-      - collektar-network
-      #- other server networks
   file:
     directory: "/etc/traefik/dynamic"
     watch: true

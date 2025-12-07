@@ -1,9 +1,8 @@
----
 networks:
   #
   # Definition of the shared network
   #
-  collektar-network:
+  web:
     driver: bridge
 services:
   #
@@ -28,7 +27,7 @@ services:
       auth-db:
         condition: service_healthy
     networks:
-      - collektar-network
+      - web
     volumes:
       - ./secrets/jwt_private.pem:/run/secrets/jwt_private.pem:ro
       - ./config/jwt_public.pem:/run/config/jwt_public.pem:ro
@@ -71,7 +70,7 @@ services:
       collection-db:
         condition: service_healthy
     networks:
-      - collektar-network
+      - web
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -102,7 +101,7 @@ services:
     env_file:
       - .env
     networks:
-      - collektar-network
+      - web
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -133,7 +132,7 @@ services:
     volumes:
       - /data/auth-db:/var/lib/postgresql
     networks:
-      - collektar-network
+      - web
     ports:
       - "5432:5432" #map to host to access db from dbclients
     healthcheck:
@@ -156,7 +155,7 @@ services:
     volumes:
       - ./data/collection-db:/var/lib/postgresql
     networks:
-      - collektar-network
+      - web
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${COLLECTION_DB_USER} -d ${COLLECTION_DB_NAME}"]
       interval: 10s
@@ -181,7 +180,7 @@ services:
     environment:
       - NODE_ENV=production
     networks:
-      - collektar-network
+      - web
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:3000/ || exit 1"]
       interval: 30s

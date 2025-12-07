@@ -15,7 +15,7 @@ services:
       - ./backend/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
       - ./backend/traefik/dynamic:/etc/traefik/dynamic:ro
     networks:
-      - collektar-network
+      - web
     extra_hosts:
       - "host.docker.internal:host-gateway"
     labels:
