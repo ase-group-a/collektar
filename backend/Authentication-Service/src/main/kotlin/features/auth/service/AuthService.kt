@@ -8,13 +8,14 @@ import com.collektar.shared.security.tokenservice.ITokenService
 import com.collektar.shared.security.tokenservice.TokenPair
 import io.ktor.server.routing.*
 import java.util.*
+import kotlin.String
 
 class AuthService(
     private val repository: IAuthRepository,
     private val tokenService: ITokenService,
     private val passwordHasher: IPasswordHasher,
 ) : IAuthService {
-    override suspend fun register(request: RegisterRequest): RegisterResponse {
+    override suspend fun register(request: RegisterRequest): AuthenticationResponse {
         if (repository.usernameExists(request.username)) {
             throw AppError.Conflict.UsernameTaken(request.username)
         }
@@ -41,12 +42,14 @@ class AuthService(
             displayName = request.displayName
         )
 
-        return RegisterResponse(
-            accessToken = tokenPair.accessToken,
-            expiresIn = tokenPair.accessTokenExpiresIn,
+        return AuthenticationResponse(
             refreshToken = tokenPair.refreshToken,
             refreshTokenExpiresIn = tokenPair.refreshTokenExpiresIn,
-            user = userInfo
+            accessTokenResponse = AccessTokenResponse(
+                accessToken = tokenPair.accessToken,
+                expiresIn = tokenPair.accessTokenExpiresIn,
+                user = userInfo
+            )
         )
     }
 
@@ -62,22 +65,45 @@ class AuthService(
         repository.revokeAllUserTokens(user.id)
         val tokenPair: TokenPair = tokenService.generateTokens(userId = user.id, email = user.email)
 
+        val userInfo = UserInfo(
+            email = user.email,
+            username = user.username,
+            displayName = user.displayName
+        )
+
         return AuthenticationResponse(
-            accessToken = tokenPair.accessToken,
-            expiresIn = tokenPair.accessTokenExpiresIn,
             refreshToken = tokenPair.refreshToken,
-            refreshTokenExpiresIn = tokenPair.refreshTokenExpiresIn
+            refreshTokenExpiresIn = tokenPair.refreshTokenExpiresIn,
+            accessTokenResponse = AccessTokenResponse(
+                accessToken = tokenPair.accessToken,
+                expiresIn = tokenPair.accessTokenExpiresIn,
+                user = userInfo
+            )
         )
     }
 
     override suspend fun refresh(request: RefreshTokenRequest): AuthenticationResponse {
         val tokenPair = tokenService.validateAndRefresh(request.refreshToken)
+        val claims = tokenService.validateAccessToken(tokenPair.accessToken)
+
+        val user = repository.findByUserId(
+            userId = claims.userId
+        ) ?: throw AppError.Unauthorized.InvalidCredentials()
+
+        val userInfo = UserInfo(
+            email = user.email,
+            username = user.username,
+            displayName = user.displayName
+        )
 
         return AuthenticationResponse(
-            accessToken = tokenPair.accessToken,
-            expiresIn = tokenPair.accessTokenExpiresIn,
             refreshToken = tokenPair.refreshToken,
-            refreshTokenExpiresIn = tokenPair.refreshTokenExpiresIn
+            refreshTokenExpiresIn = tokenPair.refreshTokenExpiresIn,
+            accessTokenResponse = AccessTokenResponse(
+                accessToken = tokenPair.accessToken,
+                expiresIn = tokenPair.accessTokenExpiresIn,
+                user = userInfo
+            )
         )
     }
 
@@ -85,5 +111,9 @@ class AuthService(
         val claims = tokenService.validateAccessToken(token)
         routingCall.response.headers.append("X-User-Id", claims.userId.toString())
         routingCall.response.headers.append("X-User-Email", claims.email)
+    }
+
+    override suspend fun logout(token: String) {
+        tokenService.revokeRefreshToken(token)
     }
 }
