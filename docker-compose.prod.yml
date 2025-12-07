@@ -4,3 +4,10 @@ networks:
   #
   web:
     external: true
+
+services:
+  #
+  # Override definition of traefik service as it runs separately on the server
+  #
+  traefik:
+    scale: 0
