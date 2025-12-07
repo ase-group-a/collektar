@@ -19,5 +19,5 @@ fun booksModule(env: ApplicationEnvironment) = module {
 
     single { BooksService(get()) }
 
-    single<Controller>(named("book")) { BooksController(get()) }
+    single<Controller>(named("books")) { BooksController(get()) }
 }
