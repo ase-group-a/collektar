@@ -190,9 +190,7 @@ EXTERNAL_API_KEY=super-secret-api-key
 # ... add other required variables
 ```
 
-
-
-#### 3. Start Services with production overrides
+#### 2. Start Services with production overrides
 ```bash
 docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
