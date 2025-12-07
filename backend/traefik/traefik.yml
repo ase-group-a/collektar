@@ -6,16 +6,29 @@ api:
 entryPoints:
   web:
     address: ":80"
+  #websecure:
+    #address: ":443"
   traefik:
     address: ":8080"
 
 providers:
   docker:
     exposedByDefault: false
-    network: media-network
+    network:
+      - collektar-network
+      #- other server networks
   file:
     directory: "/etc/traefik/dynamic"
     watch: true
+
+#certificatesResolvers:
+  #le:
+    #acme:
+      #email: mail@localhost.com
+      #storage: /letsencrypt/acme.json
+      #dnsChallenge:
+        #provider: cloudflare
+        #delayBeforeCheck: 0
 
 log:
   level: INFO
