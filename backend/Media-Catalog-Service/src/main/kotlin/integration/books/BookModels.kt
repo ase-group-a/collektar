@@ -12,7 +12,7 @@ data class GoogleBooksSearchResponse(
 @Serializable
 data class BookItemDto(
     val id: String,
-    val volumeInfo: VolumeInfoDto
+    val volumeInfo: VolumeInfoDto? = null
 )
 
 @Serializable
