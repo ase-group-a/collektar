@@ -31,6 +31,32 @@ services:
       - "traefik.http.routers.dashboard.rule=Host(`traefik.${DOMAIN}`)"
       - "traefik.http.routers.dashboard.service=api@internal"
       - "traefik.http.routers.dashboard.entrypoints=web"
+  #
+  # Messaging
+  #
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports:
+      - "5672:5672"
+      - "15672:15672"  # Dashboard
+    volumes:
+      - ./data/rabbitmq:/var/lib/rabbitmq
+    networks:
+      - web
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+  #
+  # Authentication- and User-Service
+  #
   auth-service:
     build:
       context: ./backend/Authentication-Service/
@@ -154,6 +180,9 @@ services:
       - "8080"
     env_file:
       - ".env"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     networks:
       - web
     healthcheck:
