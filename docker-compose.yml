@@ -1,3 +1,4 @@
+---
 networks:
   #
   # Definition of the shared network
@@ -141,6 +142,27 @@ services:
       - "traefik.http.middlewares.media-stripprefix.stripprefix.prefixes=/api/media"
       - "traefik.http.routers.media.middlewares=media-stripprefix"
   #
+  # Service to send out emails
+  #
+  email-service:
+    build:
+      context: ./backend/Email-Service/
+      dockerfile: Dockerfile
+    container_name: email-service
+    restart: unless-stopped
+    expose:
+      - "8080"
+    env_file:
+      - ".env"
+    networks:
+      - web
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+  #
   # Postgres DB to store user data
   #
   auth-db:
@@ -156,7 +178,7 @@ services:
     networks:
       - web
     ports:
-      - "5432:5432" #map to host to access db from dbclients
+      - "5432:5432"  # map to host to access db from dbclients
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${AUTH_DB_USER} -d ${AUTH_DB_NAME}"]
       interval: 10s
