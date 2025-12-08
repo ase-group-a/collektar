@@ -124,6 +124,9 @@ services:
       - .env
     networks:
       - media-network
+    depends_on:
+      image-cache-redis:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
