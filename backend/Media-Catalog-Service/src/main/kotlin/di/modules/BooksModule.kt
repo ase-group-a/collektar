@@ -11,13 +11,21 @@ import service.BooksService
 import io.ktor.server.application.*
 import integration.books.GoogleBooksSearchResponse
 
+const val BOOKS_CONFIG_NAME = "books_config"
+const val BOOKS_CONTROLLER_NAME = "books"
+
 fun booksModule(env: ApplicationEnvironment) = module {
 
-    single { BooksConfig.fromEnv(env) }
+    single(named(BOOKS_CONFIG_NAME)) { BooksConfig.fromEnv(env) }
 
-    single<BooksClient> { BooksClientImpl(get(), get()) }
+    single<BooksClient> {
+        BooksClientImpl(
+            get(),
+            get(named(BOOKS_CONFIG_NAME))
+        )
+    }
 
     single { BooksService(get()) }
 
-    single<Controller>(named("books")) { BooksController(get()) }
+    single<Controller>(named(BOOKS_CONTROLLER_NAME)) { BooksController(get()) }
 }
