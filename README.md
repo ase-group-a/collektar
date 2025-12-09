@@ -55,10 +55,9 @@ collektar/
 │   ├── Media-Catalog-Service/    
 │   └── traefik/                  
 ├── frontend/                     # next.js frontend application
-│   └── ...                      
-├── traefik/                      # traefik reverse proxy config
-│   └── dynamic/                              
+│   └── ...                                                  
 ├── docker-compose.yml            
+├── docker-compose.prod.yml       # adds overrides to compose for production     
 ├── Makefile                      # setup script
 └── README.md                     # this file
 ```
@@ -107,13 +106,10 @@ EXTERNAL_API_KEY=super-secret-api-key
 # ... add other required variables
 ```
 
-#### 4. Start Backend Services
+#### 4. Start Services
 ```bash
 docker-compose up -d
 ```
-
-> [!NOTE]
-> Frontend service will be added to Docker Compose shortly. For now, run it separately (see [Frontend Development](#frontend--nextjs)).
 
 #### 5. Verify Services
 
@@ -126,7 +122,10 @@ You should see all services in a healthy state.
 
 ---
 
-## Frontend / Next.js
+
+> [!NOTE]
+> To run frontend with live development, run it separately:
+
 
 If **pnpm** is not installed:
 ```bash
@@ -166,3 +165,32 @@ pnpm test
 **[⬆ back to top](#collektar)**
 
 </div>
+
+## 🌐 Production
+Follow these steps to run production:
+
+#### It needs to be ensured that a traefik instance equivalent to the one in development is already running.
+
+#### And an external network "web" exists (use ```docker network ls``` to see existing networks). Create network using:
+```bash
+docker network create web
+```
+
+Then continue with the following steps:
+
+#### 1. Configure Environment Variables
+```bash
+cp .env.production .env
+```
+
+Edit the `.env` file and fill in the required values that are missing from the template:
+```bash
+# Example environment variables
+EXTERNAL_API_KEY=super-secret-api-key
+# ... add other required variables
+```
+
+#### 2. Start Services with production overrides
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+```

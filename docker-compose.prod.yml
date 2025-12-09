@@ -1,0 +1,13 @@
+networks:
+  #
+  # Override definition of the shared network to use pre-existing network on server
+  #
+  web:
+    external: true
+
+services:
+  #
+  # Override definition of traefik service as it runs separately on the server
+  #
+  traefik:
+    scale: 0
