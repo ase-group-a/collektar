@@ -1,9 +1,8 @@
----
 networks:
   #
   # Definition of the shared network
   #
-  media-network:
+  web:
     driver: bridge
 services:
   #
@@ -22,7 +21,7 @@ services:
       - ./backend/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
       - ./backend/traefik/dynamic:/etc/traefik/dynamic:ro
     networks:
-      - media-network
+      - web
     extra_hosts:
       - "host.docker.internal:host-gateway"
     labels:
@@ -53,7 +52,7 @@ services:
       auth-db:
         condition: service_healthy
     networks:
-      - media-network
+      - web
     volumes:
       - ./secrets/jwt_private.pem:/run/secrets/jwt_private.pem:ro
       - ./config/jwt_public.pem:/run/config/jwt_public.pem:ro
@@ -68,7 +67,9 @@ services:
       - "traefik.enable=true"
       # HTTP Router
       - "traefik.http.routers.auth.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/auth`)"
-      - "traefik.http.routers.auth.entrypoints=web"
+      - "traefik.http.routers.auth.entrypoints=${TRAEFIK_ENTRYPOINT}"
+      - "traefik.http.routers.auth.tls=${TRAEFIK_TLS_ENABLED}"
+      - "traefik.http.routers.auth.tls.certresolver=${TRAEFIK_CERTRESOLVER:-}"
       - "traefik.http.routers.auth.service=auth-service"
       # Service definition
       - "traefik.http.services.auth-service.loadbalancer.server.port=8080"
@@ -94,7 +95,7 @@ services:
       collection-db:
         condition: service_healthy
     networks:
-      - media-network
+      - web
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -104,7 +105,9 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.collection.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/collection`)"
-      - "traefik.http.routers.collection.entrypoints=web"
+      - "traefik.http.routers.collection.entrypoints=${TRAEFIK_ENTRYPOINT}"
+      - "traefik.http.routers.collection.tls=${TRAEFIK_TLS_ENABLED}"
+      - "traefik.http.routers.collection.tls.certresolver=${TRAEFIK_CERTRESOLVER:-}"
       - "traefik.http.routers.collection.service=collection-service"
       - "traefik.http.services.collection-service.loadbalancer.server.port=8080"
       - "traefik.http.middlewares.collection-stripprefix.stripprefix.prefixes=/api/collection"
@@ -125,7 +128,7 @@ services:
     environment:
       - REDIS_IMAGE_CACHE_URL=redis://defaul:${IMAGE_CACHE_REDIS_PASSWORD}@image-cache-redis:6379
     networks:
-      - media-network
+      - web
     depends_on:
       image-cache-redis:
         condition: service_healthy
@@ -138,7 +141,9 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.media.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/media`)"
-      - "traefik.http.routers.media.entrypoints=web"
+      - "traefik.http.routers.media.entrypoints=${TRAEFIK_ENTRYPOINT}"
+      - "traefik.http.routers.media.tls=${TRAEFIK_TLS_ENABLED}"
+      - "traefik.http.routers.media.tls.certresolver=${TRAEFIK_CERTRESOLVER:-}"
       - "traefik.http.routers.media.service=media-catalog-service"
       - "traefik.http.services.media-catalog-service.loadbalancer.server.port=8080"
       - "traefik.http.middlewares.media-stripprefix.stripprefix.prefixes=/api/media"
@@ -157,7 +162,7 @@ services:
     volumes:
       - /data/auth-db:/var/lib/postgresql
     networks:
-      - media-network
+      - web
     ports:
       - "5432:5432" #map to host to access db from dbclients
     healthcheck:
@@ -180,7 +185,7 @@ services:
     volumes:
       - ./data/collection-db:/var/lib/postgresql
     networks:
-      - media-network
+      - web
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${COLLECTION_DB_USER} -d ${COLLECTION_DB_NAME}"]
       interval: 10s
@@ -199,7 +204,7 @@ services:
     volumes:
       - ./data/image-cache-redis:/data
     networks:
-      - media-network
+      - web
     env_file:
       - .env
     command: /bin/sh -c 'redis-server --save 20 1 --requirepass "$IMAGE_CACHE_REDIS_PASSWORD"'
@@ -227,7 +232,7 @@ services:
     environment:
       - NODE_ENV=production
     networks:
-      - media-network
+      - web
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:3000/ || exit 1"]
       interval: 30s
@@ -237,6 +242,8 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.front.rule=Host(`${DOMAIN}`)"
-      - "traefik.http.routers.front.entrypoints=web"
+      - "traefik.http.routers.front.entrypoints=${TRAEFIK_ENTRYPOINT}"
+      - "traefik.http.routers.front.tls=${TRAEFIK_TLS_ENABLED}"
+      - "traefik.http.routers.front.tls.certresolver=${TRAEFIK_CERTRESOLVER:-}"
       - "traefik.http.routers.front.service=frontend-service"
       - "traefik.http.services.frontend-service.loadbalancer.server.port=3000"
