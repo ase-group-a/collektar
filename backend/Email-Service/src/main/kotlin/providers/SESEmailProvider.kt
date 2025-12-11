@@ -60,18 +60,22 @@ class SESEmailProvider(
         subject: String,
         htmlBody: String
     ) = MimeMessage(session).apply {
+        setSubject(subject, "UTF-8")
         setFrom(InternetAddress(config.fromEmail, config.fromName))
         setRecipients(
             Message.RecipientType.TO,
             InternetAddress.parse(to)
         )
-        setSubject(subject, "UTF-8")
+
         val multipart = MimeMultipart("alternative")
-        val htmlPart = MimeBodyPart().apply {
-            setContent(htmlBody, "text/html; charset=UTF-8")
-        }
+        val htmlPart = createBodyPart(htmlBody)
+
         multipart.addBodyPart(htmlPart)
         setContent(multipart)
         sentDate = Date()
+    }
+
+    private fun createBodyPart(htmlBody: String) = MimeBodyPart().apply {
+        setContent(htmlBody, "text/html; charset=UTF-8")
     }
 }
