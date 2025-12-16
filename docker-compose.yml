@@ -178,6 +178,8 @@ services:
       - ./data/collection-db:/var/lib/postgresql
     networks:
       - web
+    ports:
+      - "5433:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${COLLECTION_DB_USER} -d ${COLLECTION_DB_NAME}"]
       interval: 10s
