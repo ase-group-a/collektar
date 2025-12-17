@@ -22,15 +22,20 @@ object Tables {
 
     object CollectionItems : Table("collection_items") {
         val id = uuid("id").uniqueIndex()
-        val collectionId = reference("collection_id", Collections.id, onDelete = ReferenceOption.CASCADE)
+        val collectionId = reference("collection_id", Collections.id, onDelete = org.jetbrains.exposed.sql.ReferenceOption.CASCADE)
         val itemId = varchar("item_id", length = 255)
+        val title = varchar("title", 512).nullable()
+        val imageUrl = varchar("image_url", 1024).nullable()
+        val description = text("description").nullable()
+        val itemSource = varchar("source", 255).nullable()
         val createdAt = long("created_at").clientDefault { System.currentTimeMillis() }
 
         override val primaryKey = PrimaryKey(id, name = "PK_CollectionItems_Id")
 
         init {
-            index(true, collectionId, itemId)
+            index(true, collectionId, itemId) // unique per collection + item
             index(false, collectionId)
         }
     }
+
 }
