@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class CollectionType {
-    GAMES, FILMS, SHOWS, BOOKS, MUSIC, BOARDGAMES;
+    GAMES, MOVIES, SHOWS, BOOKS, MUSIC, BOARDGAMES;
 
     companion object {
         fun fromString(s: String): CollectionType? = try {
