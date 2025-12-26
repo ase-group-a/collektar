@@ -53,7 +53,7 @@ class MovieControllerTest {
                 MediaItem(
                     id = "tmdb:movie:27205",
                     title = "Inception",
-                    type = MediaType.MOVIE,
+                    type = MediaType.MOVIES,
                     imageUrl = "https://image.tmdb.org/t/p/w500/poster.jpg",
                     description = "Dream heist movie",
                     source = "tmdb"
