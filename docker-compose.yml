@@ -101,7 +101,7 @@ services:
       start_period: 10s
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.collection.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/collection`)"
+      - "traefik.http.routers.collection.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/collection`) && !Method(`OPTIONS`)"
       - "traefik.http.routers.collection.entrypoints=${TRAEFIK_ENTRYPOINT}"
       - "traefik.http.routers.collection.tls=${TRAEFIK_TLS_ENABLED}"
       - "traefik.http.routers.collection.tls.certresolver=${TRAEFIK_CERTRESOLVER:-}"
@@ -109,6 +109,13 @@ services:
       - "traefik.http.services.collection-service.loadbalancer.server.port=8080"
       - "traefik.http.middlewares.collection-stripprefix.stripprefix.prefixes=/api/collection"
       - "traefik.http.routers.collection.middlewares=auth-forward@file,collection-stripprefix"
+
+      - "traefik.http.routers.collection-options.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/collection`) && Method(`OPTIONS`)"
+      - "traefik.http.routers.collection-options.entrypoints=${TRAEFIK_ENTRYPOINT}"
+      - "traefik.http.routers.collection-options.tls=${TRAEFIK_TLS_ENABLED}"
+      - "traefik.http.routers.collection-options.tls.certresolver=${TRAEFIK_CERTRESOLVER:-}"
+      - "traefik.http.routers.collection-options.service=collection-service"
+
   #
   # Service to interface and handle external APIs
   #
