@@ -1,11 +1,6 @@
 package com.collektar.features.collection
 
-import com.collektar.dto.AddCollectionItemRequest
-import com.collektar.dto.CollectionInfo
-import com.collektar.dto.CollectionItemInfo
-import com.collektar.dto.ErrorResponse
-import com.collektar.dto.SetCollectionVisibilityRequest
-import com.collektar.features.collection.model.CollectionType
+import com.collektar.dto.*
 import com.collektar.features.collection.service.CollectionService
 import com.collektar.shared.security.UserContext
 import io.ktor.http.*
@@ -15,103 +10,113 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import java.util.*
 
-object CollectionRoutes {
+private const val USER_HEADER = "X-User-Id"
 
-    private val service = CollectionService()
-    private const val USER_HEADER = "X-User-Id"
+fun Route.collectionRoutes(collectionService: CollectionService) {
 
-    fun register(route: Route) {
-        route.route("/collections") {
+    get("/collections") {
+        val userId = requireUserId(call) ?: return@get
+        collectionService.ensureDefaults(userId)
+        call.respond(HttpStatusCode.OK, collectionService.listCollections(userId))
+    }
 
-            get {
-                val userId = requireUserId(call) ?: return@get
-                service.ensureDefaults(userId)
-                val cols: List<CollectionInfo> = service.listCollections(userId)
-                call.respond(HttpStatusCode.OK, cols)
-            }
+    post("/collections") {
+        val userId = requireUserId(call) ?: return@post
+        val payload = call.receive<CreateCollectionRequest>()
+        val newId = collectionService.createCollection(userId, payload.type)
+        call.respond(HttpStatusCode.Created, mapOf("id" to newId.toString()))
+    }
 
-            patch("{type}/visibility") {
-                val userId = requireUserId(call) ?: return@patch
-                val type = requireCollectionType(call) ?: return@patch
-                val payload = call.receive<SetCollectionVisibilityRequest>()
-                try {
-                    service.setVisibility(userId, type, payload.hidden)
-                    call.respond(HttpStatusCode.OK, mapOf("hidden" to payload.hidden))
-                } catch (e: NoSuchElementException) {
-                    call.respond(HttpStatusCode.NotFound, ErrorResponse(e.message ?: "Not found"))
-                }
-            }
+    delete("/collections/{id}") {
+        val userId = requireUserId(call) ?: return@delete
+        val id = call.parameters["id"]
+            ?: return@delete call.respond(
+                HttpStatusCode.BadRequest,
+                ErrorResponse("Missing collection id")
+            )
 
-            post("{type}/items") {
-                val userId = requireUserId(call) ?: return@post
-                val type = requireCollectionType(call) ?: return@post
-                val payload = call.receive<AddCollectionItemRequest>()
-                try {
-                    val item: CollectionItemInfo = service.addItem(
-                        userId,
-                        type,
-                        payload.itemId,
-                        payload.title,
-                        payload.imageUrl,
-                        payload.description,
-                        payload.source
-                    )
-                    call.respond(HttpStatusCode.Created, item)
-                } catch (e: NoSuchElementException) {
-                    call.respond(HttpStatusCode.NotFound, ErrorResponse(e.message ?: "Not found"))
-                } catch (e: IllegalArgumentException) {
-                    call.respond(HttpStatusCode.BadRequest, ErrorResponse(e.message ?: "Bad request"))
-                }
-            }
-
-            get("{type}/items") {
-                val userId = requireUserId(call) ?: return@get
-                val type = requireCollectionType(call) ?: return@get
-                try {
-                    val items: List<CollectionItemInfo> = service.listItems(userId, type)
-                    call.respond(HttpStatusCode.OK, items)
-                } catch (e: NoSuchElementException) {
-                    call.respond(HttpStatusCode.NotFound, ErrorResponse(e.message ?: "Not found"))
-                }
-            }
-
-            delete("{type}/items/{itemId}") {
-                val userId = requireUserId(call) ?: return@delete
-                val type = requireCollectionType(call) ?: return@delete
-                val itemId = call.parameters["itemId"] ?: run {
-                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing itemId"))
-                    return@delete
-                }
-                try {
-                    service.removeItem(userId, type, itemId)
-                    call.respond(HttpStatusCode.OK, mapOf("removed" to true))
-                } catch (e: NoSuchElementException) {
-                    call.respond(HttpStatusCode.NotFound, ErrorResponse(e.message ?: "Not found"))
-                }
-            }
+        val deleted = collectionService.deleteCollection(userId, id)
+        if (deleted) {
+            call.respond(HttpStatusCode.OK, mapOf("deleted" to true))
+        } else {
+            call.respond(
+                HttpStatusCode.NotFound,
+                ErrorResponse("Collection not found")
+            )
         }
     }
 
-    private suspend fun requireUserId(call: ApplicationCall): UUID? {
-        val userId = UserContext.userIdFromHeader(call, USER_HEADER)
-        if (userId == null) {
-            call.respond(HttpStatusCode.Unauthorized, ErrorResponse("Missing or invalid $USER_HEADER"))
-            return null
-        }
-        return userId
+    patch("/collections/{type}/visibility") {
+        val userId = requireUserId(call) ?: return@patch
+        val type = call.parameters["type"]
+            ?: return@patch call.respond(
+                HttpStatusCode.BadRequest,
+                ErrorResponse("Missing collection type")
+            )
+
+        val payload = call.receive<SetCollectionVisibilityRequest>()
+        collectionService.setVisibility(userId, type, payload.hidden)
+        call.respond(HttpStatusCode.OK, mapOf("hidden" to payload.hidden))
     }
 
-    private suspend fun requireCollectionType(call: ApplicationCall): CollectionType? {
-        val typeStr = call.parameters["type"] ?: run {
-            call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing collection type"))
-            return null
-        }
+    post("/collections/{type}/items") {
+        val userId = requireUserId(call) ?: return@post
+        val type = call.parameters["type"]
+            ?: return@post call.respond(
+                HttpStatusCode.BadRequest,
+                ErrorResponse("Missing collection type")
+            )
 
-        val type = CollectionType.fromString(typeStr)
-        if (type == null) {
-            call.respond(HttpStatusCode.BadRequest, ErrorResponse("Unknown collection type"))
-            return null
-        }
-        return type
+        val payload = call.receive<AddCollectionItemRequest>()
+        val item = collectionService.addItem(
+            userId,
+            type,
+            payload.itemId,
+            payload.title,
+            payload.imageUrl,
+            payload.description,
+            payload.source
+        )
+        call.respond(HttpStatusCode.Created, item)
     }
+
+    get("/collections/{type}/items") {
+        val userId = requireUserId(call) ?: return@get
+        val type = call.parameters["type"]
+            ?: return@get call.respond(
+                HttpStatusCode.BadRequest,
+                ErrorResponse("Missing collection type")
+            )
+
+        call.respond(HttpStatusCode.OK, collectionService.listItems(userId, type))
+    }
+
+    delete("/collections/{type}/items/{itemId}") {
+        val userId = requireUserId(call) ?: return@delete
+        val type = call.parameters["type"]
+            ?: return@delete call.respond(
+                HttpStatusCode.BadRequest,
+                ErrorResponse("Missing collection type")
+            )
+        val itemId = call.parameters["itemId"]
+            ?: return@delete call.respond(
+                HttpStatusCode.BadRequest,
+                ErrorResponse("Missing itemId")
+            )
+
+        collectionService.removeItem(userId, type, itemId)
+        call.respond(HttpStatusCode.OK, mapOf("removed" to true))
+    }
+}
+
+private suspend fun requireUserId(call: ApplicationCall): UUID? {
+    val userId = UserContext.userIdFromHeader(call, USER_HEADER)
+    if (userId == null) {
+        call.respond(
+            HttpStatusCode.Unauthorized,
+            ErrorResponse("Missing or invalid $USER_HEADER")
+        )
+        return null
+    }
+    return userId
 }
