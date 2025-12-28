@@ -42,7 +42,7 @@ export default function Header() {
                     {isAuthenticated && (
                         <>
                             <li>
-                                <span className="mx-2 h-6"></span>
+                                <span className="mx-2"></span>
                             </li>
                             <li><Link href={`/u/${user?.username}`}>My Collections</Link></li>
                         </>
