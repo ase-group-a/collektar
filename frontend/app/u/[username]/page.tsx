@@ -183,7 +183,7 @@ export default function UserPage() {
                         {addError && <p className="text-sm text-error">{addError}</p>}
 
                         <div className="flex gap-2 mt-2">
-                            <button className={`btn btn-primary btn-sm ${saving ? "loading" : ""}`} onClick={handleSaveAdd} disabled={saving}>
+                            <button className={`btn btn-sm ${saving ? "loading" : ""}`} onClick={handleSaveAdd} disabled={saving}>
                                 Save
                             </button>
                             <button className="btn btn-ghost btn-sm" onClick={handleCancelAdd} disabled={saving}>
