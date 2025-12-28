@@ -36,6 +36,6 @@ data class SetCollectionVisibilityRequest(
 )
 
 @Serializable
-data class CreatedCollectionItemResponse(
-    val id: String
+data class CreateCollectionRequest(
+    val type: String
 )

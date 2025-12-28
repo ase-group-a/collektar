@@ -9,7 +9,7 @@ object Tables {
     object Collections : Table("collections") {
         val id = uuid("id").uniqueIndex()
         val userId = uuid("user_id").index()
-        val type = enumerationByName("type", 50, CollectionType::class)
+        val type = varchar("type", 255)
         val hidden = bool("hidden").default(false)
         val createdAt = long("created_at").clientDefault { System.currentTimeMillis() }
 
