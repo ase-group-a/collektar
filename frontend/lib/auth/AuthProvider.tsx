@@ -1,7 +1,8 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { authApi, User} from "@/lib/api/authApi";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { authApi, User } from "@/lib/api/authApi";
+import { setAccessToken as setGlobalAccessToken } from "@/lib/auth/AuthToken";
 
 type AuthContextType = {
     accessToken: string | null;
@@ -15,47 +16,69 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [accessToken, setAccessToken] = useState<string | null>(null);
+    const [accessToken, setAccessTokenState] = useState<string | null>(null);
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        let mounted = true;
         const initAuth = async () => {
             try {
-            const data = await authApi.refresh();
-            setAccessToken(data.access_token);
-            setUser(data.user);
+                const data = await authApi.refresh();
+                setGlobalAccessToken(data.access_token);
+                if (mounted) setAccessTokenState(data.access_token);
+                if (mounted) setUser(data.user);
             } catch (err: any) {
                 console.warn("Auto refresh failed", err);
-                setAccessToken(null);
-                setUser(null);
+                setGlobalAccessToken(null);
+                if (mounted) {
+                    setAccessTokenState(null);
+                    setUser(null);
+                }
             } finally {
-                setLoading(false);
+                if (mounted) setLoading(false);
             }
         };
         initAuth();
+        return () => { mounted = false; };
     }, []);
 
-    const login = async (username: string, password: string) => {
+    const login = useCallback(async (username: string, password: string) => {
         const data = await authApi.login(username, password);
-        setAccessToken(data.access_token);
+        setGlobalAccessToken(data.access_token);
+        setAccessTokenState(data.access_token);
         setUser(data.user);
-    };
+    }, []);
 
-    const register = async (email: string, username: string, display_name: string, password: string) => {
+    const register = useCallback(async (email: string, username: string, display_name: string, password: string) => {
         const data = await authApi.register(email, username, display_name, password);
-        setAccessToken(data.access_token);
+        setGlobalAccessToken(data.access_token);
+        setAccessTokenState(data.access_token);
         setUser(data.user);
-    };
+    }, []);
 
-    const logout = async () => {
-        setAccessToken(null);
+    const logout = useCallback(async () => {
+        setGlobalAccessToken(null);
+        setAccessTokenState(null);
         setUser(null);
-        await authApi.logout();
-    };
+        try {
+            await authApi.logout();
+        } catch (err) {
+            console.warn("Logout API failed", err);
+        }
+    }, []);
 
     return (
-        <AuthContext.Provider value={{ accessToken, user, login, logout, register, isAuthenticated: !!accessToken }}>
+        <AuthContext.Provider
+            value={{
+                accessToken,
+                user,
+                login,
+                logout,
+                register,
+                isAuthenticated: !!accessToken,
+            }}
+        >
             {!loading && children}
         </AuthContext.Provider>
     );
