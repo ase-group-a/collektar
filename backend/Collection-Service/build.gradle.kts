@@ -22,17 +22,6 @@ application {
     mainClass = "io.ktor.server.netty.EngineMain"
 }
 
-sourceSets {
-    main {
-        kotlin.srcDirs("src/main/kotlin")
-        resources.srcDirs("src/main/resources")
-    }
-    test {
-        kotlin.srcDir("test/kotlin")
-        resources.srcDir("test/resources")
-    }
-}
-
 dependencies {
     implementation("io.ktor:ktor-server-cors")
     implementation("io.ktor:ktor-server-core")
@@ -104,3 +93,4 @@ sonar {
         )
     }
 }
+
