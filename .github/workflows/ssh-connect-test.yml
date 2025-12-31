@@ -2,7 +2,6 @@ name: "Dev - SSH connect test"
 on:
   push:
     branches:
-      - ci/github-action-auto-deploy
   workflow_dispatch:
 
 jobs:
