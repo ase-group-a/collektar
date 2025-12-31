@@ -1,4 +1,4 @@
-name: Deploy dev/main
+name: Deploy dev/master
 
 on:
   push:
@@ -38,6 +38,7 @@ jobs:
           case "$BRANCH" in
             dev) REPO_DIR="/srv/docker/collektar/dev" ;;
             main|master) REPO_DIR="/srv/docker/collektar/master" ;;
+            ci/github-action-auto-deploy) REPO_DIR="/srv/docker/collektar/dev" ;; # TEST
             *) echo "No deploy target for branch '$BRANCH'"; exit 78 ;;
           esac
 
