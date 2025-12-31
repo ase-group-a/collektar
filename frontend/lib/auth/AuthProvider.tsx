@@ -29,7 +29,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 if (mounted) setAccessTokenState(data.access_token);
                 if (mounted) setUser(data.user);
             } catch (err: any) {
-                console.warn("Auto refresh failed", err);
                 setGlobalAccessToken(null);
                 if (mounted) {
                     setAccessTokenState(null);
