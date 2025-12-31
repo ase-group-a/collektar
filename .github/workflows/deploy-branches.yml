@@ -5,6 +5,7 @@ on:
     branches:
       - dev
       - master
+      - ci/github-action-auto-deploy
   workflow_dispatch:
 
 jobs:
