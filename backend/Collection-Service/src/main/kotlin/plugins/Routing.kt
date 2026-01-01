@@ -8,12 +8,13 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 fun Application.configureRouting() {
+    val collectionService = CollectionService()
 
     routing {
         get("/health") {
             call.respondText("OK", ContentType.Text.Plain, HttpStatusCode.OK)
         }
 
-        collectionRoutes(CollectionService())
+        collectionRoutes(collectionService)
     }
 }
