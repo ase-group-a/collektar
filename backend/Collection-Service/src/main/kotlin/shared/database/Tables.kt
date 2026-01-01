@@ -33,7 +33,6 @@ object Tables {
         override val primaryKey = PrimaryKey(id, name = "PK_CollectionItems_Id")
 
         init {
-            index(true, collectionId, itemId) // unique per collection + item
             index(false, collectionId)
         }
     }

@@ -25,7 +25,7 @@ class CollectionService(
     fun addItem(
         userId: UUID,
         type: String,
-        itemId: String,
+        itemId: String?,
         title: String?,
         imageUrl: String?,
         description: String?,
@@ -33,10 +33,13 @@ class CollectionService(
     ): CollectionItemInfo {
         val collectionId = repository.findCollectionId(userId, type)
             ?: throw NoSuchElementException("Collection not found")
-        val newId = repository.addItemToCollection(collectionId, itemId, title, imageUrl, description, source)
+
+        val normalizedItemId = itemId?.takeIf { it.isNotBlank() } ?: "custom:${UUID.randomUUID()}"
+        val newId = repository.addItemToCollection(collectionId, normalizedItemId, title, imageUrl, description, source)
+
         return CollectionItemInfo(
             id = newId.toString(),
-            itemId = itemId,
+            itemId = normalizedItemId,
             title = title,
             imageUrl = imageUrl,
             description = description,
