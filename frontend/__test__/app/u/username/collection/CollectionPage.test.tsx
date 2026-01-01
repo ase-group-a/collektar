@@ -25,19 +25,6 @@ import { getCollectionItems, addItemToCollection } from "@/lib/api/collectionApi
 import { useParams } from "next/navigation";
 
 describe("CollectionPage", () => {
-    const originalLocation = window.location;
-
-    beforeAll(() => {
-        delete (window as any).location;
-        // @ts-ignore
-        window.location = { reload: jest.fn() };
-    });
-
-    afterAll(() => {
-        // @ts-ignore
-        window.location = originalLocation;
-    });
-
     beforeEach(() => {
         jest.resetAllMocks();
         (useParams as jest.Mock).mockReturnValue({
