@@ -1,7 +1,8 @@
+import { getAccessToken} from "@/lib/auth/AuthToken";
+
 export const fetcher = async <T = any>(
     path: string,
     init?: RequestInit,
-    accessToken?: string
 ): Promise<T> => {
     const base = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost";
     const normalized = path.startsWith("/") ? path : `/${path}`;
@@ -9,7 +10,9 @@ export const fetcher = async <T = any>(
 
     const headers = new Headers(init?.headers);
     headers.set("Content-Type", "application/json");
-    if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
+
+    const token = getAccessToken();
+    if (token) headers.set("Authorization", `Bearer ${token}`);
 
     const res = await fetch(url, { ...init, headers, credentials: "include" });
 

@@ -10,7 +10,7 @@ object BooksMapper {
         return MediaItem(
             id = "google:book:${book.id}",
             title = info?.title ?: "Unknown title",
-            type = MediaType.BOOK,
+            type = MediaType.BOOKS,
             imageUrl = info?.imageLinks?.thumbnail,
             description = info?.authors?.joinToString(", ") ?: "Unknown author",
             source = "google_books"

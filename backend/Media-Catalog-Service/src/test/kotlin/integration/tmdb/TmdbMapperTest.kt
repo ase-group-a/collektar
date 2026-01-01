@@ -20,7 +20,7 @@ class TmdbMapperTest {
 
         assertEquals("tmdb:movie:42", result.id)
         assertEquals("The Answer", result.title)
-        assertEquals(MediaType.MOVIE, result.type)
+        assertEquals(MediaType.MOVIES, result.type)
         assertEquals("https://image.tmdb.org/t/p/w500/poster.png", result.imageUrl)
         assertEquals("Life, the universe and everything", result.description)
         assertEquals("tmdb", result.source)

@@ -11,7 +11,7 @@ object TmdbMapper {
             return MediaItem(
                 id = "tmdb:movie:${movie.id}",
                 title = movie.title,
-                type = MediaType.MOVIE,
+                type = MediaType.MOVIES,
                 imageUrl = movie.posterPath?.let { "$IMAGE_BASE_URL$it" },
                 description = movie.overview,
                 source = "tmdb"
