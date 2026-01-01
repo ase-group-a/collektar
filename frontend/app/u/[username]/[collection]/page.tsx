@@ -79,6 +79,7 @@ export default function CollectionPage() {
             setError(e?.message ?? "Failed to add item");
         } finally {
             setSaving(false);
+            window.location.reload();
         }
     };
 

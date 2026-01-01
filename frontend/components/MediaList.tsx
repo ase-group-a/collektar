@@ -18,17 +18,21 @@ const MediaList = ({ items, userItems, layout = "grid" }: MediaListProps) => {
             }
         >
             {items.map((item) => {
-                const addedToCollection = userItems?.some(
-                    (userItem) => userItem.item_id === item.id
+                const userItem = userItems?.find(
+                    (ui) => ui.item_id === item.id || ui.item_id === null
                 );
+
+                const addedToCollection = !!userItem;
+
                 return (
                     <MediaCard
-                        key={item.id}
+                        key={userItem?.id ?? item.id}
                         item={{ ...item, addedToCollection }}
                         layout={layout}
                     />
                 );
             })}
+
         </div>
     );
 };
