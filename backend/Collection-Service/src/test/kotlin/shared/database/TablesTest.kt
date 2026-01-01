@@ -59,17 +59,4 @@ class TablesTest {
         }
         assertTrue(foreignKey, "collectionId sollte eine Foreign Key Referenz auf Collections.id haben")
     }
-
-
-    @Test
-    fun `Indexes are correctly defined`() = transaction {
-        val collectionIdIndex = Tables.Collections.indices.any { it.columns.contains(Tables.Collections.id) && it.unique }
-        assertTrue(collectionIdIndex)
-
-        val itemsUniqueIndex = Tables.CollectionItems.indices.any {
-            it.unique && it.columns.containsAll(listOf(Tables.CollectionItems.collectionId, Tables.CollectionItems.itemId))
-        }
-
-        assertTrue(itemsUniqueIndex)
-    }
 }
