@@ -3,6 +3,7 @@ package services
 import integration.tmdb.TmdbClient
 import integration.tmdb.TmdbMovieDto
 import integration.tmdb.TmdbMovieSearchResponse
+import integration.tmdb.TmdbShowSearchResponse
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import service.MovieService
@@ -11,19 +12,32 @@ import kotlin.test.assertNull
 
 class TmdbServiceTest {
 
-    private class FakeTmdbClient(var nextResponse: TmdbMovieSearchResponse) : TmdbClient {
+    private class FakeTmdbClient(
+        var nextMovieResponse: TmdbMovieSearchResponse
+    ) : TmdbClient {
 
         var receivedQuery: String? = null
         var receivedPage: Int? = null
         var callCount: Int = 0
 
-        override suspend fun searchMovies(query: String?, page: Int): TmdbMovieSearchResponse {
+        override suspend fun searchMovies(
+            query: String?,
+            page: Int
+        ): TmdbMovieSearchResponse {
             receivedQuery = query
             receivedPage = page
             callCount++
-            return nextResponse
+            return nextMovieResponse
+        }
+
+        override suspend fun searchShows(
+            query: String?,
+            page: Int
+        ): TmdbShowSearchResponse {
+            error("searchShows should not be called in MovieService tests")
         }
     }
+
 
     @Test
     fun `searchMovies forwards correct query and page for first page`() = runTest {
