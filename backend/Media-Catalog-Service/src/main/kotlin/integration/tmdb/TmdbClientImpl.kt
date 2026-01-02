@@ -70,7 +70,7 @@ class TmdbClientImpl(
                 val retryAfter = response.headers["Retry-After"]?.toLongOrNull() ?: 1L
                 throw RateLimitException("TMDB rate limited", retryAfter)
             }
-            throw RuntimeException("TMDB request failed: ${response.status} - $text")
+            throw RuntimeException("TMDB search failed: ${response.status} - $text")
         }
 
         return response.body()
