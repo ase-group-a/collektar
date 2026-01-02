@@ -29,6 +29,45 @@ class TmdbClientImplTest {
     )
 
     @Test
+    fun `searchShows returns results on successful response`() = runBlocking {
+        val json = """
+            {
+                "page": 1,
+                "results": [
+                    {
+                        "id": 1399,
+                        "name": "Game of Thrones",
+                        "overview": "Winter is coming"
+                    }
+                ],
+                "totalResults": 1,
+                "totalPages": 1
+            }
+        """.trimIndent()
+
+        val client = TmdbClientImpl(
+            mockHttpClient {
+                respond(json, HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))
+            },
+            mockConfig
+        )
+
+        val result = client.searchShows("game", 1)
+
+        assertEquals(1, result.page)
+        assertEquals(1, result.results.size)
+        assertEquals(1399, result.results.first().id)
+        assertEquals("Game of Thrones", result.results.first().name)
+    }
+
+
+
+
+
+
+
+
+    @Test
     fun `searchMovies returns results on successful response`(): Unit = runBlocking {
         val mockResponseJson = """
                 {
