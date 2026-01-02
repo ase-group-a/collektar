@@ -36,4 +36,5 @@ dependencies {
     implementation("com.sun.mail:jakarta.mail:2.0.2")
     implementation("io.insert-koin:koin-ktor:$koin_version")
     implementation("io.insert-koin:koin-logger-slf4j:$koin_version")
+    testImplementation("io.mockk:mockk:1.14.5")
 }
