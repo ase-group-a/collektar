@@ -20,14 +20,18 @@ class SESEmailProvider(
         subject: String,
         htmlBody: String
     ) : Result<Unit> = withContext(Dispatchers.IO) {
-        val message = createMessage(
-            session=session,
-            to=to,
-            subject=subject,
-            htmlBody=htmlBody
-        )
-        Transport.send(message)
-        Result.success(Unit)
+        try {
+            val message = createMessage(
+                session = session,
+                to = to,
+                subject = subject,
+                htmlBody = htmlBody
+            )
+            Transport.send(message)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     private fun createSession(config: EmailProviderConfig): Session {
