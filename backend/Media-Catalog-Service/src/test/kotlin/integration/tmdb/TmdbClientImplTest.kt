@@ -16,7 +16,6 @@ import kotlin.test.assertFailsWith
 
 class TmdbClientImplTest {
 
-
     private fun mockHttpClient(handler: MockRequestHandler): HttpClient {
         return HttpClient(MockEngine { request -> handler(request) }) {
             install(ContentNegotiation) { json() }
@@ -60,10 +59,137 @@ class TmdbClientImplTest {
         assertEquals("Game of Thrones", result.results.first().name)
     }
 
+    @Test
+    fun `searchShows uses popular endpoint when query is null`() = runBlocking {
+        var capturedPath: String? = null
 
+        val mockResponseJson = """
+        {
+            "page": 1,
+            "results": [],
+            "totalResults": 0,
+            "totalPages": 0
+        }
+    """.trimIndent()
 
+        val httpClient = mockHttpClient { request ->
+            capturedPath = request.url.encodedPath
+            respond(
+                content = mockResponseJson,
+                status = HttpStatusCode.OK,
+                headers = headersOf(HttpHeaders.ContentType, "application/json")
+            )
+        }
 
+        val client = TmdbClientImpl(httpClient, mockConfig)
+        client.searchShows(null, 1)
 
+        assertEquals("/3/tv/popular", capturedPath)
+    }
+    @Test
+    fun `searchShows sends correct query parameters`(): Unit = runBlocking {
+        val mockResponseJson = """
+        {
+            "page": 1,
+            "results": [],
+            "totalResults": 0,
+            "totalPages": 0
+        }
+    """.trimIndent()
+
+        val httpClient = mockHttpClient { request ->
+            assertEquals("breaking bad", request.url.parameters["query"])
+            assertEquals("false", request.url.parameters["include_adult"])
+            assertEquals("2", request.url.parameters["page"])
+
+            respond(
+                content = mockResponseJson,
+                status = HttpStatusCode.OK,
+                headers = headersOf(HttpHeaders.ContentType, "application/json")
+            )
+        }
+
+        val client = TmdbClientImpl(httpClient, mockConfig)
+        client.searchShows("breaking bad", 2)
+    }
+
+    @Test
+    fun `searchShows throws RateLimitException on 429`() = runBlocking {
+        val mockEngine = MockEngine {
+            respond(
+                content = "Rate limit exceeded",
+                status = HttpStatusCode.TooManyRequests,
+                headers = headersOf("Retry-After", "30")
+            )
+        }
+
+        val httpClient = HttpClient(mockEngine) {
+            install(ContentNegotiation) {
+                json(Json { ignoreUnknownKeys = true })
+            }
+        }
+
+        val client = TmdbClientImpl(httpClient, mockConfig)
+
+        val exception = assertFailsWith<RateLimitException> {
+            client.searchShows("test", 1)
+        }
+
+        assertEquals("TMDB rate limited", exception.message)
+        assertEquals(30, exception.retryAfterSeconds)
+    }
+
+    @Test
+    fun `searchShows throws RuntimeException on 401 Unauthorized`() = runBlocking {
+        val mockEngine = MockEngine {
+            respond(
+                content = """{"status_message":"Invalid API key"}""",
+                status = HttpStatusCode.Unauthorized,
+                headers = headersOf(HttpHeaders.ContentType, "application/json")
+            )
+        }
+
+        val httpClient = HttpClient(mockEngine) {
+            install(ContentNegotiation) {
+                json(Json { ignoreUnknownKeys = true })
+            }
+        }
+
+        val client = TmdbClientImpl(httpClient, mockConfig)
+
+        val exception = assertFailsWith<RuntimeException> {
+            client.searchShows("test", 1)
+        }
+
+        assertTrue(exception.message!!.contains("TMDB search failed"))
+        assertTrue(exception.message!!.contains("401"))
+    }
+
+    @Test
+    fun `searchShows throws RuntimeException on 404 Not Found`() = runBlocking {
+        val mockEngine = MockEngine {
+            respond(
+                content = "Not found",
+                status = HttpStatusCode.NotFound,
+                headers = headersOf(HttpHeaders.ContentType, "text/plain")
+            )
+        }
+
+        val httpClient = HttpClient(mockEngine) {
+            install(ContentNegotiation) {
+                json(Json { ignoreUnknownKeys = true })
+            }
+        }
+
+        val client = TmdbClientImpl(httpClient, mockConfig)
+
+        val exception = assertFailsWith<RuntimeException> {
+            client.searchShows("test", 1)
+        }
+
+        assertTrue(exception.message!!.contains("TMDB search failed"))
+        assertTrue(exception.message!!.contains("404"))
+    }
 
 
 
