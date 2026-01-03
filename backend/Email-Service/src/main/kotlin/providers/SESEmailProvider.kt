@@ -6,6 +6,7 @@ import com.collektar.providers.mail.IMailTransport
 import com.collektar.providers.mail.JakartaMailSession
 import com.collektar.providers.mail.JakartaMailTransport
 import jakarta.mail.*
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.*
@@ -13,13 +14,14 @@ import java.util.*
 class SESEmailProvider(
     private val config: EmailProviderConfig,
     private val mailSession: IMailSession = createDefaultSession(config),
-    private val mailTransport: IMailTransport = JakartaMailTransport()
+    private val mailTransport: IMailTransport = JakartaMailTransport(),
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : IEmailProvider {
     override suspend fun sendEmail(
         to: String,
         subject: String,
         htmlBody: String
-    ) : Result<Unit> = withContext(Dispatchers.IO) {
+    ) : Result<Unit> = withContext(dispatcher) {
         try {
             val message = mailSession.createMessage()
             message.setSubject(subject, "UTF-8")
