@@ -6,6 +6,9 @@ import com.collektar.builder.IEmailBuilder
 import com.collektar.config.*
 import com.collektar.consumer.EmailConsumer
 import com.collektar.consumer.IEmailConsumer
+import com.collektar.consumer.connectionfactory.IRabbitMQConnectionFactory
+import com.collektar.consumer.connectionfactory.RabbitMQConnectionFactory
+import com.collektar.consumer.connectionmanager.IRabbitMQConnectionManager
 import com.collektar.consumer.connectionmanager.RabbitMQConnectionManager
 import com.collektar.consumer.processor.EmailMessageProcessor
 import com.collektar.consumer.processor.IEmailMessageProcessor
@@ -33,7 +36,8 @@ fun Application.configureFrameworks() {
             single<IEmailTemplateLoader> { EmailTemplateLoader(get()) }
             single<IEmailBuilder> { EmailBuilder(get(), get()) }
             single<IEmailSender> { EmailSender(get()) }
-            single { RabbitMQConnectionManager(get()) }
+            single<IRabbitMQConnectionFactory> { RabbitMQConnectionFactory(get()) }
+            single<IRabbitMQConnectionManager> { RabbitMQConnectionManager(get(), get()) }
             single<IEmailMessageProcessor> { EmailMessageProcessor(get(), get()) }
             single<IEmailConsumer> { EmailConsumer(get(), get(), get()) }
         })
