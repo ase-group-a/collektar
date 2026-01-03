@@ -38,6 +38,6 @@ fun spotifyModule(env: ApplicationEnvironment) = module {
             get(named(SPOTIFY_CONFIG_NAME)),
             get(named(SPOTIFY_TOKEN_PROVIDER_NAME)))
     }
-    single { MusicService(get()) }
+    single { MusicService(get(), get()) }
     single<Controller>(named(SPOTIFY_CONTROLLER_NAME)) { MusicController(get()) }
 }
