@@ -10,10 +10,11 @@ interface ImageCacheClient {
     suspend fun getImage(imageSource: ImageSource, imageId: String): ByteArray
 
     /**
-     * Prefetches images for storage in the cache, allowing for clients to load images faster
+     * Returns an image url that can be that can be sent to the client and uniquely identifies the image and source for
+     * retrieving it at a later point
      * @param imageSource The source of the image
      * @param imageIdentifier The id or url of the image, depending on the source of the image
-     * @return The URL generated for the image, that can be sent to the client
+     * @return The URL generated for the image
      */
-    suspend fun prefetchImage(imageSource: ImageSource, imageIdentifier: String): String
+    fun getImageUrl(imageSource: ImageSource, imageIdentifier: String): String
 }

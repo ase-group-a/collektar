@@ -13,7 +13,7 @@ class ImageCacheClientImpl(
         TODO("Not yet implemented")
     }
 
-    override suspend fun prefetchImage(
+    override fun getImageUrl(
         imageSource: ImageSource,
         imageIdentifier: String
     ): String {
