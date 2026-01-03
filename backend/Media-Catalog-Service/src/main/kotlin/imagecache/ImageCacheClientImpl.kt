@@ -17,6 +17,15 @@ class ImageCacheClientImpl(
         imageSource: ImageSource,
         imageIdentifier: String
     ): String {
-        TODO("Not yet implemented")
+        return "${
+            config.urlPrefix
+        }?source=${
+            imageSource.toString().lowercase()
+        }&id=${
+            ImageUrlParser.extractImageId(
+                imageSource,
+                imageIdentifier
+            )
+        }"
     }
 }

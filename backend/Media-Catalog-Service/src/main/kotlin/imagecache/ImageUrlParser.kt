@@ -3,6 +3,16 @@ package com.collektar.imagecache
 import io.ktor.http.*
 
 object ImageUrlParser {
+    fun extractImageId(imageSource: ImageSource, imageIdentifier: String): String {
+        return when (imageSource) {
+            ImageSource.SPOTIFY -> extractSpotifyImageId(imageIdentifier)
+            ImageSource.TMBD -> extractTMDBImageId(imageIdentifier)
+            ImageSource.GOOGLE_BOOKS -> extractGoogleBooksImageId(imageIdentifier)
+            ImageSource.IGDB -> imageIdentifier // IGDB image identifiers need no further data extraction, as the
+                                                // original value from the API only contains the image id.
+        }
+    }
+    
     fun extractSpotifyImageId(url: String): String {
         val parsedUrl = Url(url)
 
