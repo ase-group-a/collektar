@@ -1,6 +1,5 @@
 package integration.tmdb
 
-
 import domain.MediaItem
 import domain.MediaType
 
@@ -15,4 +14,14 @@ object TmdbMapper {
                 source = "tmdb"
             )
         }
+
+    fun showToMediaItem(show: TmdbShowDto, imageIdentifierMapper: (String) -> String): MediaItem =
+        MediaItem(
+            id = "tmdb:show:${show.id}",
+            title = show.name,
+            type = MediaType.SHOW,
+            imageUrl = if (show.posterPath != null) imageIdentifierMapper(show.posterPath) else null,
+            description = show.overview,
+            source = "tmdb"
+        )
 }
