@@ -14,7 +14,7 @@ const val IMAGE_CACHE_CONTROLLER_NAME = "images"
 
 fun imageCacheModule(env: ApplicationEnvironment) = module {
     single { ImageCacheConfig.fromEnv(env) }
-    single<ImageCacheClient> { ImageCacheClientImpl(get(), get()) }
+    single<ImageCacheClient> { ImageCacheClientImpl(get(), get(), get()) }
     single<ImageCacheService> { ImageCacheService(get()) }
     single<Controller>(named(IMAGE_CACHE_CONTROLLER_NAME)) { ImageCacheController(get()) }
 }
