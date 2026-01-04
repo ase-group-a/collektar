@@ -1,6 +1,6 @@
 package com.collektar
 
-import com.collektar.consumer.IEmailConsumer
+import com.collektar.consumer.IConsumer
 import com.collektar.plugins.configureHTTP
 import com.collektar.plugins.configureMonitoring
 import com.collektar.plugins.configureRouting
@@ -20,9 +20,9 @@ fun Application.module() {
     configureRouting()
     configureFrameworks()
 
-    val emailConsumer by inject<IEmailConsumer>()
+    val emailConsumer by inject<IConsumer>()
     emailConsumer.start()
     monitor.subscribe(ApplicationStopped) {
-        emailConsumer.stop()
+        emailConsumer.close()
     }
 }
