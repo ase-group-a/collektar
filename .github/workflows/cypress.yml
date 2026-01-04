@@ -42,6 +42,10 @@ jobs:
           node-version: 24
           cache: 'pnpm'
           cache-dependency-path: pnpm-lock.yaml
+      - name: Run pnpm install
+        run: pnpm install
+      - name: Install cypress
+        run: pnpm cypress install
       - name: Run Cypress E2E Tests
         uses: cypress-io/github-action@v6
         with:
