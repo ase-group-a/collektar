@@ -1,8 +1,10 @@
 package services
 
+import com.collektar.imagecache.ImageCacheClient
 import integration.tmdb.TmdbClient
 import integration.tmdb.TmdbMovieDto
 import integration.tmdb.TmdbMovieSearchResponse
+import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import service.MovieService
@@ -11,6 +13,8 @@ import kotlin.test.assertNull
 
 class TmdbServiceTest {
 
+    private val imageCacheClient = mockk<ImageCacheClient>()
+    
     private class FakeTmdbClient(var nextResponse: TmdbMovieSearchResponse) : TmdbClient {
 
         var receivedQuery: String? = null
@@ -39,7 +43,7 @@ class TmdbServiceTest {
             totalPages = 1
         )
         val fakeTmdbClient = FakeTmdbClient(tmdbResponse)
-        val service = MovieService(fakeTmdbClient)
+        val service = MovieService(fakeTmdbClient, imageCacheClient)
 
         val limit = 20
         val offset = 0
@@ -60,7 +64,7 @@ class TmdbServiceTest {
             totalPages = 0
         )
         val fakeTmdbClient = FakeTmdbClient(tmdbResponse)
-        val service = MovieService(fakeTmdbClient)
+        val service = MovieService(fakeTmdbClient, imageCacheClient)
 
         val limit = 20
         val offset = 0

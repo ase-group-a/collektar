@@ -5,6 +5,9 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
+const val IMAGE_URL = "poster.png"
+const val URL_MAPPER_POSTFIX = "mapped"
+
 class TmdbMapperTest {
 
     @Test
@@ -13,15 +16,15 @@ class TmdbMapperTest {
             id = 42,
             title = "The Answer",
             overview = "Life, the universe and everything",
-            posterPath = "/poster.png"
+            posterPath = IMAGE_URL
         )
 
-        val result = TmdbMapper.movieToMediaItem(dto)
+        val result = TmdbMapper.movieToMediaItem(dto, imageIdentifierMapper = { imageIdentifier -> "$imageIdentifier$URL_MAPPER_POSTFIX" })
 
         assertEquals("tmdb:movie:42", result.id)
         assertEquals("The Answer", result.title)
         assertEquals(MediaType.MOVIE, result.type)
-        assertEquals("https://image.tmdb.org/t/p/w500/poster.png", result.imageUrl)
+        assertEquals("$IMAGE_URL$URL_MAPPER_POSTFIX", result.imageUrl)
         assertEquals("Life, the universe and everything", result.description)
         assertEquals("tmdb", result.source)
     }
@@ -35,7 +38,7 @@ class TmdbMapperTest {
             posterPath = null
         )
 
-        val result = TmdbMapper.movieToMediaItem(dto)
+        val result = TmdbMapper.movieToMediaItem(dto, { imageIdentifier -> "$imageIdentifier$URL_MAPPER_POSTFIX" })
 
         assertEquals("tmdb:movie:1", result.id)
         assertNull(result.imageUrl)
