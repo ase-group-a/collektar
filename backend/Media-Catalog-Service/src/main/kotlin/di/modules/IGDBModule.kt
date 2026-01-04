@@ -39,6 +39,6 @@ fun igdbModule(env: ApplicationEnvironment) = module {
             get(named(IGDB_TOKEN_PROVIDER_NAME))
         )
     }
-    single { GamesService(get()) }
+    single { GamesService(get(), get()) }
     single<Controller>(named(IGDB_CONTROLLER_NAME)) { GamesController(get()) }
 }

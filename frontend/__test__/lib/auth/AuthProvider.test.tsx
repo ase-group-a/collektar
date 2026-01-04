@@ -13,6 +13,10 @@ jest.mock("@/lib/api/authApi", () => ({
     },
 }));
 
+jest.mock("@/lib/auth/AuthToken", () => ({
+    setAccessToken: jest.fn(),
+}));
+
 const TestConsumer: React.FC = () => {
     const { accessToken, user, login, logout, register, isAuthenticated } = useAuth();
 
@@ -29,7 +33,8 @@ const TestConsumer: React.FC = () => {
     );
 };
 
-const renderAuth = (refreshReturn?: any) => {
+const renderAuth = async (refreshReturn?: any) => {
+    // If refreshReturn is undefined, we leave the refresh mock unconfigured
     if (refreshReturn !== undefined) {
         (mockedAuthApi.refresh as jest.Mock).mockResolvedValueOnce(refreshReturn);
     }
@@ -38,6 +43,10 @@ const renderAuth = (refreshReturn?: any) => {
             <TestConsumer />
         </AuthProvider>
     );
+
+    await waitFor(() => {
+        expect(screen.getByTestId("auth-status")).toBeInTheDocument();
+    });
 };
 
 const testAuthAction = async (
@@ -83,15 +92,12 @@ describe("AuthProvider", () => {
     });
 
     it("performs auto-refresh on mount and sets accessToken + user when refresh succeeds", async () => {
-        renderAuth({
+        await renderAuth({
             access_token: "access-from-refresh",
             user: { username: "ref-user", email: "r@x" },
         });
 
-        await waitFor(() => {
-            expect(screen.getByTestId("auth-status").textContent).toContain("true");
-        });
-
+        expect(screen.getByTestId("auth-status").textContent).toContain("true");
         expect(screen.getByTestId("access-token")).toHaveTextContent("access-from-refresh");
         expect(screen.getByTestId("username")).toHaveTextContent("ref-user");
         expect(mockedAuthApi.refresh).toHaveBeenCalledTimes(1);
@@ -107,9 +113,10 @@ describe("AuthProvider", () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByTestId("auth-status").textContent).toContain("false");
+            expect(screen.getByTestId("auth-status")).toBeInTheDocument();
         });
 
+        expect(screen.getByTestId("auth-status").textContent).toContain("false");
         expect(screen.getByTestId("access-token")).toHaveTextContent("no-token");
         expect(screen.getByTestId("username")).toHaveTextContent("no-user");
         expect(mockedAuthApi.refresh).toHaveBeenCalledTimes(1);

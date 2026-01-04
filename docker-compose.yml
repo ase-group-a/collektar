@@ -7,7 +7,7 @@ networks:
     driver: bridge
 services:
   #
-  # Authentication- and User-Service
+  # Reverse Proxy / API-Gateway
   #
   traefik:
     image: traefik:v3
@@ -126,7 +126,7 @@ services:
       start_period: 10s
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.${PROJECT}-collection.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/collection`)"
+      - "traefik.http.routers.${PROJECT}-collection.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/collection`) && !Method(`OPTIONS`)"
       - "traefik.http.routers.${PROJECT}-collection.entrypoints=${TRAEFIK_ENTRYPOINT}"
       - "traefik.http.routers.${PROJECT}-collection.tls=${TRAEFIK_TLS_ENABLED}"
       - "traefik.http.routers.${PROJECT}-collection.tls.certresolver=${TRAEFIK_CERTRESOLVER:-}"
@@ -134,6 +134,12 @@ services:
       - "traefik.http.services.${PROJECT}-collection-service.loadbalancer.server.port=8080"
       - "traefik.http.middlewares.${PROJECT}-collection-stripprefix.stripprefix.prefixes=/api/collection"
       - "traefik.http.routers.${PROJECT}-collection.middlewares=auth-forward@file,${PROJECT}-collection-stripprefix"
+
+      - "traefik.http.routers.${PROJECT}-collection-options.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/collection`) && Method(`OPTIONS`)"
+      - "traefik.http.routers.${PROJECT}-collection-options.entrypoints=${TRAEFIK_ENTRYPOINT}"
+      - "traefik.http.routers.${PROJECT}-collection-options.tls=${TRAEFIK_TLS_ENABLED}"
+      - "traefik.http.routers.${PROJECT}-collection-options.tls.certresolver=${TRAEFIK_CERTRESOLVER:-}"
+      - "traefik.http.routers.${PROJECT}-collection-options.service=${PROJECT}-collection-service"
   #
   # Service to interface and handle external APIs
   #
@@ -146,8 +152,13 @@ services:
       - "8080"
     env_file:
       - .env
+    environment:
+      - IMAGE_CACHE_REDIS_URL=redis://default:${IMAGE_CACHE_REDIS_PASSWORD}@image-cache-redis:6379
     networks:
       - web
+    depends_on:
+      image-cache-redis:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -224,6 +235,25 @@ services:
       - web
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${COLLECTION_DB_USER} -d ${COLLECTION_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+  #
+  # Redis for image caching
+  #
+  image-cache-redis:
+    image: redis:8.4
+    restart: unless-stopped
+    volumes:
+      - ./data/image-cache-redis:/data
+    networks:
+      - web
+    env_file:
+      - .env
+    command: /bin/sh -c 'redis-server --save 20 1 --requirepass "$IMAGE_CACHE_REDIS_PASSWORD"'
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli -a ${IMAGE_CACHE_REDIS_PASSWORD} ping | grep PONG" ]
       interval: 10s
       timeout: 5s
       retries: 5
