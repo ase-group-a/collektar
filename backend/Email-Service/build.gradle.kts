@@ -46,6 +46,7 @@ sonar {
     properties {
         property("sonar.projectKey", "collektar_Email-Service")
         property("sonar.organization", "ase-group-a")
+        property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml")
         property(
             "sonar.exclusions",
             listOf(
