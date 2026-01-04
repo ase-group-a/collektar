@@ -8,6 +8,8 @@ plugins {
     kotlin("jvm") version "2.2.21"
     id("io.ktor.plugin") version "3.3.2"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.2.20"
+    id("org.sonarqube") version "7.0.1.6134"
+    id("jacoco")
 }
 
 group = "com.collektar"
@@ -30,6 +32,7 @@ dependencies {
     implementation("io.ktor:ktor-server-config-yaml")
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+    testImplementation("io.kotest:kotest-runner-junit5:6.0.4")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktor_version")
     implementation("com.rabbitmq:amqp-client:5.28.0")
@@ -37,4 +40,29 @@ dependencies {
     implementation("io.insert-koin:koin-ktor:$koin_version")
     implementation("io.insert-koin:koin-logger-slf4j:$koin_version")
     testImplementation("io.mockk:mockk:1.14.5")
+}
+
+sonar {
+    properties {
+        property("sonar.projectKey", "collektar_Email-Service")
+        property("sonar.organization", "ase-group-a")
+        property("sonar.exclusions", "\"src/main/kotlin/plugins/**/*\"")
+    }
+}
+
+tasks.test {
+    useJUnitPlatform()
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.14"
 }
