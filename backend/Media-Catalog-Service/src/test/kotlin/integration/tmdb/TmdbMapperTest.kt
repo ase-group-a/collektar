@@ -53,12 +53,12 @@ class TmdbMapperTest {
             posterPath = "/poster.jpg"
         )
 
-        val result = TmdbMapper.showToMediaItem(dto)
+        val result = TmdbMapper.showToMediaItem(dto, { imageIdentifier -> "$imageIdentifier$URL_MAPPER_POSTFIX" })
 
         assertEquals("tmdb:show:1399", result.id)
         assertEquals("Game of Thrones", result.title)
         assertEquals(MediaType.SHOW, result.type)
-        assertEquals("https://image.tmdb.org/t/p/w500/poster.jpg", result.imageUrl)
+        assertEquals("${dto.posterPath}$URL_MAPPER_POSTFIX", result.imageUrl)
         assertEquals("Winter is coming", result.description)
         assertEquals("tmdb", result.source)
     }
@@ -72,7 +72,7 @@ class TmdbMapperTest {
             posterPath = null
         )
 
-        val result = TmdbMapper.showToMediaItem(dto)
+        val result = TmdbMapper.showToMediaItem(dto, { imageIdentifier -> "$imageIdentifier$URL_MAPPER_POSTFIX" })
 
         assertEquals("tmdb:show:1", result.id)
         assertNull(result.imageUrl)

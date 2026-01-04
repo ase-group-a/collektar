@@ -1,12 +1,14 @@
 package services
 
 import com.collektar.imagecache.ImageCacheClient
+import com.collektar.imagecache.ImageSource
 import integration.tmdb.TmdbClient
 import integration.tmdb.TmdbMovieDto
 import integration.tmdb.TmdbMovieSearchResponse
 import io.mockk.mockk
 import domain.MediaType
 import integration.tmdb.*
+import io.mockk.every
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import service.MovieService
@@ -18,7 +20,6 @@ class TmdbServiceTest {
 
     private val imageCacheClient = mockk<ImageCacheClient>()
     
-    private class FakeTmdbClient(var nextResponse: TmdbMovieSearchResponse) : TmdbClient {
     private class FakeTmdbClient(
         var nextMovieResponse: TmdbMovieSearchResponse? = null,
         var nextShowResponse: TmdbShowSearchResponse? = null
@@ -61,11 +62,9 @@ class TmdbServiceTest {
             totalResults = 1,
             totalPages = 1
         )
-        val fakeTmdbClient = FakeTmdbClient(tmdbResponse)
-        val service = MovieService(fakeTmdbClient, imageCacheClient)
 
         val fakeClient = FakeTmdbClient(nextMovieResponse = tmdbResponse)
-        val service = MovieService(fakeClient)
+        val service = MovieService(fakeClient, imageCacheClient)
 
         service.searchMovies("inception", limit = 20, offset = 0)
 
@@ -82,11 +81,9 @@ class TmdbServiceTest {
             totalResults = 0,
             totalPages = 0
         )
-        val fakeTmdbClient = FakeTmdbClient(tmdbResponse)
-        val service = MovieService(fakeTmdbClient, imageCacheClient)
 
         val fakeClient = FakeTmdbClient(nextMovieResponse = tmdbResponse)
-        val service = MovieService(fakeClient)
+        val service = MovieService(fakeClient, imageCacheClient)
 
         service.searchMovies(null, limit = 20, offset = 0)
 
@@ -105,7 +102,7 @@ class TmdbServiceTest {
         )
 
         val fakeClient = FakeTmdbClient(nextShowResponse = tmdbResponse)
-        val service = ShowService(fakeClient)
+        val service = ShowService(fakeClient, imageCacheClient)
 
         service.searchShows("got", limit = 10, offset = 10)
 
@@ -124,7 +121,7 @@ class TmdbServiceTest {
         )
 
         val fakeClient = FakeTmdbClient(nextShowResponse = tmdbResponse)
-        val service = ShowService(fakeClient)
+        val service = ShowService(fakeClient, imageCacheClient)
 
         service.searchShows(null, limit = 20, offset = 0)
 
@@ -149,8 +146,10 @@ class TmdbServiceTest {
             totalPages = 1
         )
 
+        every { imageCacheClient.getImageUrl(ImageSource.TMBD, tmdbResponse.results.first().posterPath!!) } returns "${tmdbResponse.results.first().posterPath!!}_mock"
+        
         val fakeClient = FakeTmdbClient(nextShowResponse = tmdbResponse)
-        val service = ShowService(fakeClient)
+        val service = ShowService(fakeClient, imageCacheClient)
 
         val result = service.searchShows("got", limit = 20, offset = 0)
 
@@ -160,7 +159,7 @@ class TmdbServiceTest {
         assertEquals("tmdb:show:1399", item.id)
         assertEquals("Game of Thrones", item.title)
         assertEquals(MediaType.SHOW, item.type)
-        assertEquals("https://image.tmdb.org/t/p/w500/poster.jpg", item.imageUrl)
+        assertEquals("${tmdbResponse.results.first().posterPath!!}_mock", item.imageUrl)
         assertEquals("Winter is coming", item.description)
         assertEquals("tmdb", item.source)
     }
@@ -175,7 +174,7 @@ class TmdbServiceTest {
         )
 
         val fakeClient = FakeTmdbClient(nextShowResponse = tmdbResponse)
-        val service = ShowService(fakeClient)
+        val service = ShowService(fakeClient, imageCacheClient)
 
         val result = service.searchShows("test", limit = 10, offset = 20)
 
