@@ -5,6 +5,7 @@ val prometheus_version: String by project
 val mockk_version: String by project
 val junit_platform_launcher_version: String by project
 val jedis_version: String by project
+val junit_pioneer_version: String by project
 
 plugins {
     kotlin("jvm") version "2.2.20"
@@ -47,7 +48,7 @@ dependencies {
 
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5:$kotlin_version")
-
+    testImplementation("org.junit-pioneer:junit-pioneer:$junit_pioneer_version")
     testImplementation("io.mockk:mockk:$mockk_version")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
     testImplementation("io.ktor:ktor-client-mock")
@@ -58,6 +59,13 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
     finalizedBy(tasks.jacocoTestReport)
+    
+    // Allow reflection access to JVM internals.
+    // This is used to set environment variable during config utils testing.
+    jvmArgs(
+        "--add-opens", "java.base/java.util=ALL-UNNAMED",
+        "--add-opens", "java.base/java.lang=ALL-UNNAMED"
+        )
 }
 
 tasks.jacocoTestReport {
