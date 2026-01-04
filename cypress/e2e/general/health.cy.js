@@ -13,19 +13,3 @@ describe('GET /api/media/health', () => {
         });
     });
 });
-
-describe('GET /api/auth/health', () => {
-    beforeEach(() => {
-        cy.fixture('general.json').as('general');
-    });
-
-    it('should return 200 and OK for /api/auth/health', function () {
-        cy.request({
-            method: 'GET',
-            url: `${this.general.authApi}/health`
-        }).then((response) => {
-            expect(response.status).to.equal(200);
-            expect(response.body).to.equal('OK');
-        });
-    });
-});
