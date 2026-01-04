@@ -1,6 +1,5 @@
 name: Cypress E2E Testing
 on:
-  workflow_dispatch:
   pull_request:
     types: [ opened, synchronize, reopened ]
 jobs:
@@ -56,6 +55,8 @@ jobs:
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMIT_INFO_MESSAGE: ${{github.event.pull_request.title}}
+          COMMIT_INFO_SHA: ${{github.event.pull_request.head.sha}}
       - name: Stop Services
         run: docker compose down --rmi 'all'
       - name: Cleanup .env
