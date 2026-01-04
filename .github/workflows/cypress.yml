@@ -50,6 +50,10 @@ jobs:
         uses: cypress-io/github-action@v6
         with:
           browser: chrome
+          record: true
+        env:
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Stop Services
         run: docker compose down --rmi 'all'
       - name: Cleanup .env
