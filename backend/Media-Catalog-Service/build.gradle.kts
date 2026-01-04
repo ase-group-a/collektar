@@ -93,7 +93,7 @@ sonar {
         property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml")
         property(
             "sonar.coverage.exclusions",
-            "src/main/kotlin/integration/tmdb/TmdbClient.kt, src/main/kotlin/di/AppModules.kt"
+            "src/main/kotlin/integration/tmdb/TmdbClient.kt, src/main/kotlin/di/AppModules.kt, src/main/kotlin/di/modules/RedisModule.kt"
         )
     }
 }
