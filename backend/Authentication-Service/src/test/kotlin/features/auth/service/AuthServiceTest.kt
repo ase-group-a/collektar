@@ -5,6 +5,7 @@ import com.collektar.dto.RefreshTokenRequest
 import com.collektar.dto.RegisterRequest
 import com.collektar.features.auth.repository.AuthModel
 import com.collektar.features.auth.repository.IAuthRepository
+import com.collektar.shared.email.IEmailService
 import com.collektar.shared.errors.AppError
 import com.collektar.shared.security.passwordhasher.IPasswordHasher
 import com.collektar.shared.security.tokenservice.ITokenService
@@ -25,14 +26,16 @@ class AuthServiceTest {
     private lateinit var repository: IAuthRepository
     private lateinit var tokenService: ITokenService
     private lateinit var passwordHasher: IPasswordHasher
-    private lateinit var authService: AuthService
+    private lateinit var emailService: IEmailService
+    private lateinit var authService: IAuthService
 
     @BeforeEach
     fun setup() {
         repository = mockk()
         tokenService = mockk()
         passwordHasher = mockk()
-        authService = AuthService(repository, tokenService, passwordHasher)
+        emailService = mockk()
+        authService = AuthService(repository, tokenService, passwordHasher, emailService)
     }
 
     @AfterEach
