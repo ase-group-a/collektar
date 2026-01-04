@@ -10,7 +10,7 @@ class EmailMessageProcessor(
     private val emailBuilder: IEmailBuilder,
     private val emailSender: IEmailSender,
     private val json: Json = Json { ignoreUnknownKeys = false; classDiscriminator = "message_type" }
-) : IEmailMessageProcessor {
+) : IMessageProcessor {
     override suspend fun process(messageBody: ByteArray): ProcessingResult {
         try {
             val messageJson = String(messageBody, StandardCharsets.UTF_8)

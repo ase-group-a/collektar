@@ -1,5 +1,5 @@
 package com.collektar.consumer.processor
 
-interface IEmailMessageProcessor {
+interface IMessageProcessor {
     suspend fun process(messageBody: ByteArray): ProcessingResult
 }
