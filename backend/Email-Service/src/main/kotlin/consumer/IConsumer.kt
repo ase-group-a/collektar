@@ -1,6 +1,6 @@
 package com.collektar.consumer
 
-interface IEmailConsumer {
+interface IConsumer {
     fun start()
-    fun stop()
+    fun close()
 }
