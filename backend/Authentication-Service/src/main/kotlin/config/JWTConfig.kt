@@ -12,7 +12,7 @@ data class JWTConfig(
     val realm: String,
     val accessTokenValidityMS: Long = 3600000,
     val refreshTokenValidityMS: Long = 3600000,
-) : BaseConfig() {
+) {
     companion object {
         fun fromEnv(): JWTConfig {
             return JWTConfig(
@@ -24,6 +24,10 @@ data class JWTConfig(
                 accessTokenValidityMS = env("JWT_ACCESS_TOKEN_VALIDITY").toLong(),
                 refreshTokenValidityMS = env("JWT_REFRESH_TOKEN_VALIDITY").toLong(),
             )
+        }
+
+        private fun env(name: String): String {
+            return System.getenv(name) ?: error("Missing environment variable: $name")
         }
     }
 }

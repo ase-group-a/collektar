@@ -47,7 +47,6 @@ dependencies {
     implementation("org.mindrot:jbcrypt:0.4")
     implementation("io.ktor:ktor-serialization-gson:3.3.1")
     implementation("io.ktor:ktor-client-content-negotiation:3.3.1")
-    implementation("com.rabbitmq:amqp-client:5.28.0")
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
     testImplementation("io.mockk:mockk:1.14.5")

@@ -2,19 +2,18 @@ package com.collektar.features.auth.service
 
 import com.collektar.dto.*
 import com.collektar.features.auth.repository.IAuthRepository
-import com.collektar.shared.email.IEmailService
 import com.collektar.shared.errors.AppError
 import com.collektar.shared.security.passwordhasher.IPasswordHasher
 import com.collektar.shared.security.tokenservice.ITokenService
 import com.collektar.shared.security.tokenservice.TokenPair
 import io.ktor.server.routing.*
 import java.util.*
+import kotlin.String
 
 class AuthService(
     private val repository: IAuthRepository,
     private val tokenService: ITokenService,
     private val passwordHasher: IPasswordHasher,
-    private val emailService: IEmailService
 ) : IAuthService {
     override suspend fun register(request: RegisterRequest): AuthenticationResponse {
         if (repository.usernameExists(request.username)) {
@@ -40,11 +39,6 @@ class AuthService(
         val userInfo = UserInfo(
             email = request.email,
             username = request.username,
-            displayName = request.displayName
-        )
-
-        emailService.sendWelcomeEmail(
-            to = request.email,
             displayName = request.displayName
         )
 
