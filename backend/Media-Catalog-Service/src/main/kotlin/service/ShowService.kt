@@ -6,18 +6,18 @@ import domain.SearchResult
 import integration.tmdb.TmdbClient
 import integration.tmdb.TmdbMapper
 
-class MovieService(
+class ShowService(
     private val tmdbClient: TmdbClient,
     private val imageCacheClient: ImageCacheClient
 ) {
 
-    suspend fun searchMovies(query: String?, limit: Int, offset: Int): SearchResult {
+    suspend fun searchShows(query: String?, limit: Int, offset: Int): SearchResult {
         val page = (offset / limit) + 1
 
-        val tmdbResult = tmdbClient.searchMovies(query, page)
+        val tmdbResult = tmdbClient.searchShows(query, page)
 
-        val items = tmdbResult.results.map { movie ->
-            TmdbMapper.movieToMediaItem(movie, imageIdentifierMapper = { imageIdentifier ->
+        val items = tmdbResult.results.map {
+            TmdbMapper.showToMediaItem(it, imageIdentifierMapper = { imageIdentifier ->
                 imageCacheClient.getImageUrl(
                     ImageSource.TMBD, imageIdentifier
                 )

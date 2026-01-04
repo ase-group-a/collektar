@@ -1,16 +1,10 @@
 package integration.books
 
-import exceptions.RateLimitException
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import integration.books.GoogleBooksSearchResponse
-import integration.books.BooksConfig
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.serializer
 
 
 class BooksClientImpl(
