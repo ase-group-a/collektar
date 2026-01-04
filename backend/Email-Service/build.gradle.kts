@@ -46,7 +46,16 @@ sonar {
     properties {
         property("sonar.projectKey", "collektar_Email-Service")
         property("sonar.organization", "ase-group-a")
-        property("sonar.exclusions", "\"src/main/kotlin/plugins/**/*\"")
+        property(
+            "sonar.exclusions",
+            listOf(
+                "src/main/kotlin/plugins/**/*",
+                "src/main/kotlin/Application.kt",
+                "**/config/**",
+                "**/*\$\$inlined*.*",
+                "**/*\$*\$*.class"
+            ).joinToString(",")
+        )
     }
 }
 
