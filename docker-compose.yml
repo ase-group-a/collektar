@@ -37,7 +37,6 @@ services:
     build:
       context: ./backend/Authentication-Service/
       dockerfile: Dockerfile
-    container_name: auth-service
     restart: unless-stopped
     expose:
       - "8080"
@@ -66,16 +65,16 @@ services:
     labels:
       - "traefik.enable=true"
       # HTTP Router
-      - "traefik.http.routers.auth.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/auth`)"
-      - "traefik.http.routers.auth.entrypoints=${TRAEFIK_ENTRYPOINT}"
-      - "traefik.http.routers.auth.tls=${TRAEFIK_TLS_ENABLED}"
-      - "traefik.http.routers.auth.tls.certresolver=${TRAEFIK_CERTRESOLVER:-}"
-      - "traefik.http.routers.auth.service=auth-service"
+      - "traefik.http.routers.${PROJECT}-auth.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/auth`)"
+      - "traefik.http.routers.${PROJECT}-auth.entrypoints=${TRAEFIK_ENTRYPOINT}"
+      - "traefik.http.routers.${PROJECT}-auth.tls=${TRAEFIK_TLS_ENABLED}"
+      - "traefik.http.routers.${PROJECT}-auth.tls.certresolver=${TRAEFIK_CERTRESOLVER:-}"
+      - "traefik.http.routers.${PROJECT}-auth.service=${PROJECT}-auth-service"
       # Service definition
-      - "traefik.http.services.auth-service.loadbalancer.server.port=8080"
+      - "traefik.http.services.${PROJECT}-auth-service.loadbalancer.server.port=8080"
       # Middleware to strip /api/auth prefix
-      - "traefik.http.middlewares.auth-stripprefix.stripprefix.prefixes=/api/auth"
-      - "traefik.http.routers.auth.middlewares=auth-stripprefix"
+      - "traefik.http.middlewares.${PROJECT}-auth-stripprefix.stripprefix.prefixes=/api/auth"
+      - "traefik.http.routers.${PROJECT}-auth.middlewares=${PROJECT}-auth-stripprefix"
   #
   # Service to manage user collections
   #
@@ -83,7 +82,6 @@ services:
     build:
       context: ./backend/Collection-Service/
       dockerfile: Dockerfile
-    container_name: collection-service
     restart: unless-stopped
     expose:
       - "8080"
@@ -104,14 +102,14 @@ services:
       start_period: 10s
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.collection.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/collection`)"
-      - "traefik.http.routers.collection.entrypoints=${TRAEFIK_ENTRYPOINT}"
-      - "traefik.http.routers.collection.tls=${TRAEFIK_TLS_ENABLED}"
-      - "traefik.http.routers.collection.tls.certresolver=${TRAEFIK_CERTRESOLVER:-}"
-      - "traefik.http.routers.collection.service=collection-service"
-      - "traefik.http.services.collection-service.loadbalancer.server.port=8080"
-      - "traefik.http.middlewares.collection-stripprefix.stripprefix.prefixes=/api/collection"
-      - "traefik.http.routers.collection.middlewares=auth-forward@file,collection-stripprefix"
+      - "traefik.http.routers.${PROJECT}-collection.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/collection`)"
+      - "traefik.http.routers.${PROJECT}-collection.entrypoints=${TRAEFIK_ENTRYPOINT}"
+      - "traefik.http.routers.${PROJECT}-collection.tls=${TRAEFIK_TLS_ENABLED}"
+      - "traefik.http.routers.${PROJECT}-collection.tls.certresolver=${TRAEFIK_CERTRESOLVER:-}"
+      - "traefik.http.routers.${PROJECT}-collection.service=${PROJECT}-collection-service"
+      - "traefik.http.services.${PROJECT}-collection-service.loadbalancer.server.port=8080"
+      - "traefik.http.middlewares.${PROJECT}-collection-stripprefix.stripprefix.prefixes=/api/collection"
+      - "traefik.http.routers.${PROJECT}-collection.middlewares=auth-forward@file,${PROJECT}-collection-stripprefix"
   #
   # Service to interface and handle external APIs
   #
@@ -119,7 +117,6 @@ services:
     build:
       context: ./backend/Media-Catalog-Service/
       dockerfile: Dockerfile
-    container_name: media-catalog-service
     restart: unless-stopped
     expose:
       - "8080"
@@ -140,31 +137,28 @@ services:
       start_period: 10s
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.media.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/media`)"
-      - "traefik.http.routers.media.entrypoints=${TRAEFIK_ENTRYPOINT}"
-      - "traefik.http.routers.media.tls=${TRAEFIK_TLS_ENABLED}"
-      - "traefik.http.routers.media.tls.certresolver=${TRAEFIK_CERTRESOLVER:-}"
-      - "traefik.http.routers.media.service=media-catalog-service"
-      - "traefik.http.services.media-catalog-service.loadbalancer.server.port=8080"
-      - "traefik.http.middlewares.media-stripprefix.stripprefix.prefixes=/api/media"
-      - "traefik.http.routers.media.middlewares=media-stripprefix"
+      - "traefik.http.routers.${PROJECT}-media.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/media`)"
+      - "traefik.http.routers.${PROJECT}-media.entrypoints=${TRAEFIK_ENTRYPOINT}"
+      - "traefik.http.routers.${PROJECT}-media.tls=${TRAEFIK_TLS_ENABLED}"
+      - "traefik.http.routers.${PROJECT}-media.tls.certresolver=${TRAEFIK_CERTRESOLVER:-}"
+      - "traefik.http.routers.${PROJECT}-media.service=${PROJECT}-media-catalog-service"
+      - "traefik.http.services.${PROJECT}-media-catalog-service.loadbalancer.server.port=8080"
+      - "traefik.http.middlewares.${PROJECT}-media-stripprefix.stripprefix.prefixes=/api/media"
+      - "traefik.http.routers.${PROJECT}-media.middlewares=${PROJECT}-media-stripprefix"
   #
   # Postgres DB to store user data
   #
   auth-db:
     image: postgres:18
-    container_name: auth-db
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${AUTH_DB_NAME}
       POSTGRES_USER: ${AUTH_DB_USER}
       POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
     volumes:
-      - /data/auth-db:/var/lib/postgresql
+      - ./data/auth-db:/var/lib/postgresql
     networks:
       - web
-    ports:
-      - "5432:5432" #map to host to access db from dbclients
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${AUTH_DB_USER} -d ${AUTH_DB_NAME}"]
       interval: 10s
@@ -176,7 +170,6 @@ services:
   #
   collection-db:
     image: postgres:18
-    container_name: collection-db
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${COLLECTION_DB_NAME}
@@ -223,7 +216,6 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-    container_name: frontend
     restart: unless-stopped
     expose:
       - "3000"
@@ -241,9 +233,9 @@ services:
       start_period: 10s
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.front.rule=Host(`${DOMAIN}`)"
-      - "traefik.http.routers.front.entrypoints=${TRAEFIK_ENTRYPOINT}"
-      - "traefik.http.routers.front.tls=${TRAEFIK_TLS_ENABLED}"
-      - "traefik.http.routers.front.tls.certresolver=${TRAEFIK_CERTRESOLVER:-}"
-      - "traefik.http.routers.front.service=frontend-service"
-      - "traefik.http.services.frontend-service.loadbalancer.server.port=3000"
+      - "traefik.http.routers.${PROJECT}-front.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.${PROJECT}-front.entrypoints=${TRAEFIK_ENTRYPOINT}"
+      - "traefik.http.routers.${PROJECT}-front.tls=${TRAEFIK_TLS_ENABLED}"
+      - "traefik.http.routers.${PROJECT}-front.tls.certresolver=${TRAEFIK_CERTRESOLVER:-}"
+      - "traefik.http.routers.${PROJECT}-front.service=${PROJECT}-frontend-service"
+      - "traefik.http.services.${PROJECT}-frontend-service.loadbalancer.server.port=3000"
