@@ -52,7 +52,8 @@ Collektar is a modern and microservices-based platform for managing and organizi
 collektar/
 ├── backend/                      # backend microservices
 │   ├── Authentication-Service/   
-│   ├── Collection-Service/       
+│   ├── Collection-Service/
+│   ├── Email-Service/   
 │   ├── Media-Catalog-Service/    
 │   └── traefik/                  
 ├── frontend/                     # next.js frontend application
