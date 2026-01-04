@@ -13,6 +13,7 @@ Collektar is a modern and microservices-based platform for managing and organizi
 | **Authentication Service** | [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=collektar_Authentication-Service&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=collektar_Authentication-Service) |
 | **Media Catalog Service** | [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=collektar_Media-Catalog-Service&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=collektar_Media-Catalog-Service) |
 | **Collection Service** | [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=collektar_Collection-Service&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=collektar_Collection-Service) |
+| **Email Service** | [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=collektar_Collection-Service&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=collektar_Email-Service) |
 | **Frontend** | [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=collektar_frontend&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=collektar_frontend) |
 
 ---
