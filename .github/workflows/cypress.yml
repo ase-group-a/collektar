@@ -46,6 +46,8 @@ jobs:
         run: pnpm install
       - name: Install cypress
         run: pnpm cypress install
+      - name: Wait for all Services to finish initialization
+        run: sleep 10
       - name: Run Cypress E2E Tests
         uses: cypress-io/github-action@v6
         with:
