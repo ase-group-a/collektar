@@ -40,4 +40,38 @@ class TmdbMapperTest {
         assertEquals("tmdb:movie:1", result.id)
         assertNull(result.imageUrl)
     }
+
+    @Test
+    fun `showToMediaItem maps all fields including image url`() {
+        val dto = TmdbShowDto(
+            id = 1399,
+            name = "Game of Thrones",
+            overview = "Winter is coming",
+            posterPath = "/poster.jpg"
+        )
+
+        val result = TmdbMapper.showToMediaItem(dto)
+
+        assertEquals("tmdb:show:1399", result.id)
+        assertEquals("Game of Thrones", result.title)
+        assertEquals(MediaType.SHOW, result.type)
+        assertEquals("https://image.tmdb.org/t/p/w500/poster.jpg", result.imageUrl)
+        assertEquals("Winter is coming", result.description)
+        assertEquals("tmdb", result.source)
+    }
+
+    @Test
+    fun `showToMediaItem sets imageUrl to null when posterPath is null`() {
+        val dto = TmdbShowDto(
+            id = 1,
+            name = "No Poster Show",
+            overview = null,
+            posterPath = null
+        )
+
+        val result = TmdbMapper.showToMediaItem(dto)
+
+        assertEquals("tmdb:show:1", result.id)
+        assertNull(result.imageUrl)
+    }
 }

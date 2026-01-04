@@ -12,8 +12,8 @@ class TmdbClientImpl(
     private val config: TmdbConfig
 ) : TmdbClient {
 
-    override suspend fun searchMovies(query: String?, page: Int): TmdbMovieSearchResponse {
-        return if (query.isNullOrBlank()) {
+    override suspend fun searchMovies(query: String?, page: Int): TmdbMovieSearchResponse =
+        if (query.isNullOrBlank()) {
             performRequest(
                 endpoint = "/movie/popular",
                 includeQuery = false,
@@ -28,7 +28,23 @@ class TmdbClientImpl(
                 page = page
             )
         }
-    }
+
+    override suspend fun searchShows(query: String?, page: Int): TmdbShowSearchResponse =
+        if (query.isNullOrBlank()) {
+            performRequest(
+                endpoint = "/tv/popular",
+                includeQuery = false,
+                query = null,
+                page = page
+            )
+        } else {
+            performRequest(
+                endpoint = "/search/tv",
+                includeQuery = true,
+                query = query,
+                page = page
+            )
+        }
 
     private suspend inline fun <reified T> performRequest(
         endpoint: String,
