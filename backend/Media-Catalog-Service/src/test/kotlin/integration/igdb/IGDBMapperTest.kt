@@ -32,7 +32,7 @@ class IGDBMapperTest {
         assertNotNull(mappedItem.imageUrl)
         assertEquals(mappedId, mappedItem.id)
         assertEquals(GAME_NAME, mappedItem.title)
-        assertEquals(MediaType.GAME, mappedItem.type)
+        assertEquals(MediaType.GAMES, mappedItem.type)
         assertEquals(mappedCoverUrl, mappedItem.imageUrl)
         assertEquals(GAME_SUMMARY, mappedItem.description)
         assertEquals(IGDBMapper.IGDB_SOURCE_ID, mappedItem.source)

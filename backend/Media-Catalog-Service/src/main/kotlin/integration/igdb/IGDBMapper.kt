@@ -12,7 +12,7 @@ object IGDBMapper {
         return MediaItem(
             id = "${IGDB_SOURCE_ID}:${game.id}",
             title = game.name,
-            type = MediaType.GAME,
+            type = MediaType.GAMES,
             imageUrl = if (game.cover != null) imageIdentifierMapper(game.cover.imageId) else null,
             description = game.summary,
             source = IGDB_SOURCE_ID

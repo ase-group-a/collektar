@@ -63,7 +63,7 @@ class GamesServiceTest {
         val item = res.items.first()
         assertEquals("$IGDB_SOURCE_NAME:$GAME_ID", item.id )
         assertEquals(GAME_NAME,item.title)
-        assertEquals(MediaType.GAME, item.type)
+        assertEquals(MediaType.GAMES, item.type)
         assertNotNull(item.imageUrl)
         assertEquals(COVER_IMAGE_ID_MAPPED,item.imageUrl)
         assertEquals(GAME_SUMMARY, item.description)

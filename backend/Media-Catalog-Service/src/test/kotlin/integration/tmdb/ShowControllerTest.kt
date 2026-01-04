@@ -54,7 +54,7 @@ class ShowControllerTest {
                 MediaItem(
                     id = "tmdb:show:1399",
                     title = "Game of Thrones",
-                    type = MediaType.SHOW,
+                    type = MediaType.SHOWS,
                     imageUrl = "https://image.tmdb.org/t/p/w500/poster.jpg",
                     description = "Winter is coming",
                     source = "tmdb"

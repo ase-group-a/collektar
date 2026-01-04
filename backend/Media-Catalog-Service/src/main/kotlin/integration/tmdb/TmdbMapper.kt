@@ -8,7 +8,7 @@ object TmdbMapper {
             return MediaItem(
                 id = "tmdb:movie:${movie.id}",
                 title = movie.title,
-                type = MediaType.MOVIE,
+                type = MediaType.MOVIES,
                 imageUrl = if (movie.posterPath != null) imageIdentifierMapper(movie.posterPath) else null,
                 description = movie.overview,
                 source = "tmdb"
@@ -19,7 +19,7 @@ object TmdbMapper {
         MediaItem(
             id = "tmdb:show:${show.id}",
             title = show.name,
-            type = MediaType.SHOW,
+            type = MediaType.SHOWS,
             imageUrl = if (show.posterPath != null) imageIdentifierMapper(show.posterPath) else null,
             description = show.overview,
             source = "tmdb"

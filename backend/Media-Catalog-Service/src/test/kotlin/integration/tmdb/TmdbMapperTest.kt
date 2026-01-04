@@ -23,7 +23,7 @@ class TmdbMapperTest {
 
         assertEquals("tmdb:movie:42", result.id)
         assertEquals("The Answer", result.title)
-        assertEquals(MediaType.MOVIE, result.type)
+        assertEquals(MediaType.MOVIES, result.type)
         assertEquals("$IMAGE_URL$URL_MAPPER_POSTFIX", result.imageUrl)
         assertEquals("Life, the universe and everything", result.description)
         assertEquals("tmdb", result.source)
@@ -57,7 +57,7 @@ class TmdbMapperTest {
 
         assertEquals("tmdb:show:1399", result.id)
         assertEquals("Game of Thrones", result.title)
-        assertEquals(MediaType.SHOW, result.type)
+        assertEquals(MediaType.SHOWS, result.type)
         assertEquals("${dto.posterPath}$URL_MAPPER_POSTFIX", result.imageUrl)
         assertEquals("Winter is coming", result.description)
         assertEquals("tmdb", result.source)

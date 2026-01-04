@@ -158,7 +158,7 @@ class TmdbServiceTest {
         val item = result.items.first()
         assertEquals("tmdb:show:1399", item.id)
         assertEquals("Game of Thrones", item.title)
-        assertEquals(MediaType.SHOW, item.type)
+        assertEquals(MediaType.SHOWS, item.type)
         assertEquals("${tmdbResponse.results.first().posterPath!!}_mock", item.imageUrl)
         assertEquals("Winter is coming", item.description)
         assertEquals("tmdb", item.source)

@@ -26,7 +26,7 @@ class BooksMapperTest {
 
         assertEquals("google:book:testID", mapped.id)
         assertEquals("My Book", mapped.title)
-        assertEquals(MediaType.BOOK, mapped.type)
+        assertEquals(MediaType.BOOKS, mapped.type)
         assertEquals("Author Test1, Author Test2", mapped.description)
         assertEquals("http://image.url:$URL_MAPPER_POSTFIX", mapped.imageUrl)
         assertEquals("google_books", mapped.source)
@@ -43,7 +43,7 @@ class BooksMapperTest {
 
         assertEquals("google:book:noID", mapped.id)
         assertEquals("Unknown title", mapped.title)
-        assertEquals(MediaType.BOOK, mapped.type)
+        assertEquals(MediaType.BOOKS, mapped.type)
         assertEquals("Unknown author", mapped.description)
         assertNull(mapped.imageUrl)
     }
