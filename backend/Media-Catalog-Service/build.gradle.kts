@@ -71,7 +71,8 @@ tasks.jacocoTestReport {
             classDirectories.files.map {
                 fileTree(it) {
                     exclude("**/integration/tmdb/TmdbClient.*",
-                        "**/di/AppModules.*"
+                        "**/di/AppModules.*",
+                        "**/di/modules/RedisModule.*"
                     )
                 }
             }
