@@ -16,6 +16,12 @@ class RabbitMQConnection(
     fun channel(): Channel {
         channel?.takeIf { it.isOpen }?.let { return it }
 
+        runCatching { channel?.close() }
+        runCatching { connection?.close() }
+
+        channel = null
+        connection = null
+
         factory.apply {
             host = config.host
             port = config.port
