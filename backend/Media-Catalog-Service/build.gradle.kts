@@ -4,6 +4,7 @@ val logback_version: String by project
 val prometheus_version: String by project
 val mockk_version: String by project
 val junit_platform_launcher_version: String by project
+val jedis_version: String by project
 
 plugins {
     kotlin("jvm") version "2.2.20"
@@ -42,7 +43,7 @@ dependencies {
     implementation("io.ktor:ktor-client-cio")
     implementation("io.ktor:ktor-client-content-negotiation")
     implementation("io.ktor:ktor-client-logging")
-    implementation("redis.clients:jedis:7.2.0")
+    implementation("redis.clients:jedis:$jedis_version")
 
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5:$kotlin_version")

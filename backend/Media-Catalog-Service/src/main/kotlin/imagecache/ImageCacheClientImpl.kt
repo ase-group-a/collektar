@@ -43,18 +43,16 @@ class ImageCacheClientImpl(
         imageSource: ImageSource,
         imageId: String
     ): ByteArray {
-        if (redis == null) {
-            throw IllegalStateException("Redis connection is unavailable, unable to serve images.")
-        }
+        checkNotNull(redis) { "Redis connection is unavailable, unable to serve images." }
         
         val imageKey = "$imageSource:$imageId".toByteArray()
         
         // Get image from Redis cache
-        var image = redis!!.get(imageKey)
+        var image = redis!![imageKey]
         if (image == null) {
             // Image does not exist in the cache, retrieve it from the external service
             image = getImageFromService(imageSource, imageId)
-            redis!!.set(imageKey, image)
+            redis!![imageKey] = image
         }
         
         return image
