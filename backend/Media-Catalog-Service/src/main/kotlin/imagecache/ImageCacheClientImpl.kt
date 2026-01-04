@@ -52,7 +52,7 @@ class ImageCacheClientImpl(
         if (image == null) {
             // Image does not exist in the cache, retrieve it from the external service
             image = getImageFromService(imageSource, imageId)
-            redis!![imageKey] = image
+            redis!!.setex(imageKey, config.cacheTTL, image)
         }
         
         return image
