@@ -19,7 +19,7 @@ object TmdbMapper {
         MediaItem(
             id = "tmdb:show:${show.id}",
             title = show.name,
-            type = MediaType.SHOW,
+            type = MediaType.SHOWS,
             imageUrl = if (show.posterPath != null) imageIdentifierMapper(show.posterPath) else null,
             description = show.overview,
             source = "tmdb"
