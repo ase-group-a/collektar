@@ -1,18 +1,25 @@
 package service
 
+import com.collektar.imagecache.ImageCacheClient
+import com.collektar.imagecache.ImageSource
 import domain.MediaType
 import io.mockk.coEvery
 import io.mockk.mockk
 import integration.spotify.*
+import io.mockk.every
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+const val COVER_IMAGE_URL = "https://img/1.jpg"
+const val COVER_IMAGE_URL_MAPPED = "https://img/2.jpg:mapped"
+
 class MusicServiceTest {
 
     private val spotifyClient = mockk<SpotifyClient>()
-    private val musicService = MusicService(spotifyClient)
-
+    private val imageCacheClient = mockk<ImageCacheClient>()
+    private val musicService = MusicService(spotifyClient, imageCacheClient)
+    
     @Test
     fun `search maps spotify tracks to media items`() = runTest {
         val track = TrackDto(
@@ -22,7 +29,7 @@ class MusicServiceTest {
             album = AlbumDto(
                 id = "album1",
                 name = "album1",
-                images = listOf(ImageDto(height = 100, url = "https://img/1.jpg", width = 100))
+                images = listOf(ImageDto(height = 100, url = COVER_IMAGE_URL, width = 100))
             )
         )
 
@@ -31,6 +38,7 @@ class MusicServiceTest {
         )
 
         coEvery { spotifyClient.searchTracks("query", 20, 0) } returns spotifyResponse
+        every { imageCacheClient.getImageUrl(ImageSource.SPOTIFY, COVER_IMAGE_URL) } returns COVER_IMAGE_URL_MAPPED
 
         val result = musicService.search("query", limit = 20, offset = 0)
 
@@ -43,7 +51,7 @@ class MusicServiceTest {
         assertEquals("spotify:track:track1", item.id)
         assertEquals("track1", item.title)
         assertEquals(MediaType.MUSIC, item.type)
-        assertEquals("https://img/1.jpg", item.imageUrl)
+        assertEquals(COVER_IMAGE_URL_MAPPED, item.imageUrl)
         assertEquals("artist1", item.description)
         assertEquals("spotify", item.source)
     }

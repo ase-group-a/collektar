@@ -1,5 +1,6 @@
 package di.modules
 
+import com.collektar.imagecache.ImageCacheClient
 import com.collektar.integration.shared.OauthTokenCache
 import com.collektar.integration.shared.OauthTokenProvider
 import controllers.Controller
@@ -19,6 +20,7 @@ import org.koin.core.context.GlobalContext
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.core.qualifier.named
+import org.koin.dsl.module
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
@@ -32,6 +34,8 @@ const val SPOTIFY_DEFAULT_PLAYLIST_ID = "PlaylistId"
 
 class SpotifyModuleTest {
 
+    private val imageCacheClient = mockk<ImageCacheClient>()
+    
     @BeforeEach
     fun setUp() {
         try {
@@ -62,7 +66,15 @@ class SpotifyModuleTest {
         every { env.config } returns mapConfig
 
         startKoin {
-            modules(listOf(coreModule, spotifyModule(env)))
+            modules(
+                listOf(
+                    coreModule,
+                    module {
+                        single { imageCacheClient }
+                    },
+                    spotifyModule(env)
+                )
+            )
         }
 
         val cfg = GlobalContext.get().get<SpotifyConfig>(named(SPOTIFY_CONFIG_NAME))

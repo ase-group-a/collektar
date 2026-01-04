@@ -1,5 +1,6 @@
 package di.modules
 
+import com.collektar.imagecache.ImageCacheClient
 import integration.books.BooksClient
 import integration.books.BooksClientImpl
 import integration.books.BooksConfig
@@ -22,6 +23,8 @@ import kotlin.test.assertEquals
 
 class BooksModuleTest {
 
+    private val imageCacheClient = mockk<ImageCacheClient>()
+    
     @BeforeEach
     fun setup() {
         try { stopKoin() } catch (_: Exception) {}
@@ -49,6 +52,7 @@ class BooksModuleTest {
             modules(
                 module {
                     single { httpClient }
+                    single { imageCacheClient }
                 },
                 booksModule(env)
             )

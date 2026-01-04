@@ -1,11 +1,13 @@
 package service
 
+import com.collektar.imagecache.ImageCacheClient
 import io.ktor.client.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import integration.books.*
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlin.test.*
@@ -14,7 +16,8 @@ class BooksServiceTest {
 
     private val config = BooksConfig(bookApiKey = "testKey", baseUrl = "https://example.com")
     private val json = Json { ignoreUnknownKeys = true; isLenient = true }
-
+    private val imageCacheClient = mockk<ImageCacheClient>()
+    
     private fun createMockClient(
         responseContent: String,
         expectedQuery: String = "query"
@@ -44,7 +47,7 @@ class BooksServiceTest {
             }
         """.trimIndent()
 
-        val service = BooksService(createMockClient(mockResponse, "myquery"))
+        val service = BooksService(createMockClient(mockResponse, "myquery"), imageCacheClient)
         val result = service.search("myquery", 10, 0)
 
         assertEquals(2, result.total)
@@ -59,7 +62,7 @@ class BooksServiceTest {
             { "totalItems": 1, "items": [{ "id": "book1", "volumeInfo": {"title": "Book One", "authors": ["Author1"]} }] }
         """.trimIndent()
 
-        val service = BooksService(createMockClient(mockResponse, "bestseller"))
+        val service = BooksService(createMockClient(mockResponse, "bestseller"), imageCacheClient)
         val result = service.search(null, 10, 0)
 
         assertEquals(1, result.total)
@@ -79,7 +82,7 @@ class BooksServiceTest {
             }
         """.trimIndent()
 
-        val service = BooksService(createMockClient(mockResponse))
+        val service = BooksService(createMockClient(mockResponse), imageCacheClient)
         val result = service.search("query", 10, 0)
 
         assertEquals(2, result.total)
@@ -95,7 +98,7 @@ class BooksServiceTest {
             }
         """.trimIndent()
 
-        val service = BooksService(createMockClient(mockResponse))
+        val service = BooksService(createMockClient(mockResponse), imageCacheClient)
         val result = service.search("query", 10, 0)
 
         assertEquals(5, result.total)
@@ -111,7 +114,7 @@ class BooksServiceTest {
             }
         """.trimIndent()
 
-        val service = BooksService(createMockClient(mockResponse))
+        val service = BooksService(createMockClient(mockResponse), imageCacheClient)
         val result = service.search("query", 10, 0)
 
         assertEquals(0, result.total)
@@ -132,7 +135,7 @@ class BooksServiceTest {
             install(ContentNegotiation) { json(json) }
         }, config)
 
-        val service = BooksService(client)
+        val service = BooksService(client, imageCacheClient)
 
         assertFailsWith<RuntimeException> {
             service.search("query", 10, 0)

@@ -17,8 +17,8 @@ fun tmdbModule(env: ApplicationEnvironment) = module {
 
     single<TmdbClient> { TmdbClientImpl(get(), get()) }
 
-    single { MovieService(get()) }
-    single { ShowService(get()) }
+    single { MovieService(get(), get()) }
+    single { ShowService(get(), get()) }
 
     single<Controller>(named("movies")) { MovieController(get()) }
     single<Controller>(named("shows")) { ShowController(get()) }

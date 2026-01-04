@@ -6,7 +6,7 @@ networks:
     driver: bridge
 services:
   #
-  # Authentication- and User-Service
+  # Reverse Proxy / API-Gateway
   #
   traefik:
     image: traefik:v3
@@ -30,6 +30,9 @@ services:
       - "traefik.http.routers.dashboard.rule=Host(`traefik.${DOMAIN}`)"
       - "traefik.http.routers.dashboard.service=api@internal"
       - "traefik.http.routers.dashboard.entrypoints=web"
+  #
+  # Authentication- and User-Service
+  #
   auth-service:
     build:
       context: ./backend/Authentication-Service/
@@ -119,8 +122,13 @@ services:
       - "8080"
     env_file:
       - .env
+    environment:
+      - IMAGE_CACHE_REDIS_URL=redis://default:${IMAGE_CACHE_REDIS_PASSWORD}@image-cache-redis:6379
     networks:
       - web
+    depends_on:
+      image-cache-redis:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -173,6 +181,26 @@ services:
       - web
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${COLLECTION_DB_USER} -d ${COLLECTION_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+  #
+  # Redis for image caching
+  #
+  image-cache-redis:
+    image: redis:8.4
+    container_name: image-cache-redis
+    restart: unless-stopped
+    volumes:
+      - ./data/image-cache-redis:/data
+    networks:
+      - web
+    env_file:
+      - .env
+    command: /bin/sh -c 'redis-server --save 20 1 --requirepass "$IMAGE_CACHE_REDIS_PASSWORD"'
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli -a ${IMAGE_CACHE_REDIS_PASSWORD} ping | grep PONG" ]
       interval: 10s
       timeout: 5s
       retries: 5

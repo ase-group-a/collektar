@@ -1,11 +1,14 @@
 package services
 
+import com.collektar.imagecache.ImageCacheClient
+import com.collektar.imagecache.ImageSource
 import com.collektar.integration.igdb.CoverDto
 import com.collektar.integration.igdb.GameDto
 import com.collektar.integration.igdb.IGDBClient
 import com.collektar.integration.igdb.IGDBGamesResponse
 import domain.MediaType
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import service.GamesService
@@ -23,12 +26,14 @@ const val GAME_NAME = "Half-Life 3"
 const val GAME_SUMMARY = "Future game release"
 const val COVER_ID = 6789L
 const val COVER_IMAGE_ID = "a1b2c3d4"
+const val COVER_IMAGE_ID_MAPPED = "http://collektar.com/api/media/images?source=igdb&id=a1b2c3d4"
 
 const val IGDB_SOURCE_NAME = "igdb"
 
 class GamesServiceTest {
     private val igdbClient = mockk<IGDBClient>()
-    private val gamesService = GamesService(igdbClient)
+    private val imageCacheClient = mockk<ImageCacheClient>()
+    private val gamesService = GamesService(igdbClient, imageCacheClient)
     
     @Test
     fun `search maps games correctly media items`() {
@@ -48,6 +53,7 @@ class GamesServiceTest {
         )
         
         coEvery { igdbClient.searchGames(QUERY, LIMIT, OFFSET) } returns response
+        every { imageCacheClient.getImageUrl(ImageSource.IGDB, COVER_IMAGE_ID) } returns COVER_IMAGE_ID_MAPPED
         
         val res = runBlocking { gamesService.search(QUERY, LIMIT, OFFSET) }
         
@@ -59,6 +65,7 @@ class GamesServiceTest {
         assertEquals(GAME_NAME,item.title)
         assertEquals(MediaType.GAME, item.type)
         assertNotNull(item.imageUrl)
+        assertEquals(COVER_IMAGE_ID_MAPPED,item.imageUrl)
         assertEquals(GAME_SUMMARY, item.description)
         assertEquals(IGDB_SOURCE_NAME, item.source)
     }

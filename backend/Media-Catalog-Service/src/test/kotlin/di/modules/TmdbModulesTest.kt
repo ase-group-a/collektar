@@ -1,6 +1,7 @@
 package di.modules
 
 
+import com.collektar.imagecache.ImageCacheClient
 import controllers.Controller
 import controllers.MovieController
 import controllers.ShowController
@@ -27,7 +28,8 @@ import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 
 class TmdbModuleTest {
-
+    private val imageCacheClient = mockk<ImageCacheClient>()
+    
     @BeforeEach
     fun setUp() {
         try {
@@ -59,6 +61,9 @@ class TmdbModuleTest {
                 listOf(
                     module {
                         single { HttpClient() }
+                    },
+                    module {
+                        single { imageCacheClient }
                     },
                     tmdbModule(env)
                 )
