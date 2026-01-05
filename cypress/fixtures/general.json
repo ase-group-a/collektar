@@ -1,6 +1,5 @@
 {
-  "host": "http://localhost",
-  "mediaApi": "http://localhost/api/media",
-  "authApi": "http://localhost/api/auth",
-  "collectionApi": "http://localhost/api/collection"
+  "mediaApi": "/api/media",
+  "authApi": "/api/auth",
+  "collectionApi": "/api/collection"
 }
