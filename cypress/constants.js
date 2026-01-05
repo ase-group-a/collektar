@@ -50,3 +50,9 @@ export const SHOW_SEARCH = {
     imageSrc: "/api/media/images?source=tmbd&id=3Cz7ySOQJmqiuTdrc6CY0r65yDI",
     showTitle: "House"
 }
+
+export const MUSIC_SEARCH = {
+    searchTerm: "rick astley",
+    imageSrc: "/api/media/images?source=spotify&id=ab67616d0000b27315ebbedaacef61af244262a8",
+    songTitle: "Never Gonna Give You Up"
+}
