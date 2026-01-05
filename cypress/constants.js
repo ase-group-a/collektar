@@ -59,6 +59,6 @@ export const MUSIC_SEARCH = {
 
 export const BOOK_SEARCH = {
     searchTerm: "best practice software engineering schatten",
-    imageSrc: "/api/media/images?source=google_books&id=M90jBAAAQBAJ",
+    imageSrc: /\/api\/media\/images\?source=google_books&id=*/,
     bookTitle: "Best Practice Software-Engineering"
 }
