@@ -23,3 +23,35 @@
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+
+Cypress.Commands.add('paginationTest', () => {
+
+    // Find and store element values
+    cy.get('.card').first()
+        .then(($card) => {
+            const itemImgSrc = $card.find('img').attr('src')
+            const itemTitle = $card.find('h2').text()
+
+            expect(itemImgSrc).to.not.be.empty
+            expect(itemTitle).to.not.be.empty
+
+            // Find page buttons and click second page
+            cy.get('.join')
+                .should("exist")
+                .should("not.be.empty")
+                .find('button')
+                .contains('2')
+                .click()
+
+            // Find and compare element values of page 2 (should not be the same)
+            cy.get('.card').first()
+                .should('exist')
+                .find('img')
+                .should("not.have.attr", "src", itemImgSrc)
+
+            cy.get('.card').first()
+                .should('exist')
+                .find('h2')
+                .should("not.contain.text", itemTitle)
+        })
+})

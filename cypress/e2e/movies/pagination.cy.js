@@ -1,7 +1,7 @@
-describe('Game pagination works correctly', () => {
+describe('Movies pagination works correctly', () => {
     beforeEach(() => {
-        // Visit games page
-        cy.visit('/media/games')
+        // Visit movies page
+        cy.visit('/media/movies')
     })
 
     it('Pagination updates media item cards', () => {
