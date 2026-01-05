@@ -118,8 +118,15 @@ Cypress.Commands.add('registerUser', (user, navigateBack = true, logoutAfterRegi
     }
 })
 
+const usedNumbers = new Set()
 Cypress.Commands.add('getRandomUser', (user) => {
-    let random = Math.floor(Math.random() * 99999999);
+    let random
+    
+    // Make sure random numbers do not repeat
+    do {
+        random = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
+    } while (usedNumbers.has(random))
+    usedNumbers.add(random)
 
     return {
         email: `${random}${user.email}`,
