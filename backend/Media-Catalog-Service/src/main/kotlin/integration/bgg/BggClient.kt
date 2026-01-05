@@ -4,9 +4,16 @@ import domain.MediaItem
 import domain.SearchResult
 
 interface BggClient {
-    suspend fun searchBoardGames(query: String, limit: Int, offset: Int): SearchResult
-    suspend fun hotBoardGames(limit: Int, offset: Int): SearchResult
+    suspend fun searchBoardGames(
+        query: String,
+        limit: Int = 20,
+        offset: Int = 0
+    ): SearchResult
 
-    // Batch details fetch (for images etc.)
+    suspend fun hotBoardGames(
+        limit: Int = 20,
+        offset: Int = 0
+    ): SearchResult
+
     suspend fun getBoardGames(ids: List<Long>): List<MediaItem>
 }

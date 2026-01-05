@@ -12,7 +12,7 @@ class BggClientImplTest {
 
     private val config = BggConfig(
         baseUrl = "https://boardgamegeek.com/xmlapi2",
-        token = null,
+        token = ,
         minDelayMillis = 100L // Short delay for tests
     )
 
