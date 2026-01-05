@@ -55,3 +55,76 @@ Cypress.Commands.add('paginationTest', () => {
                 .should("not.contain.text", itemTitle)
         })
 })
+
+Cypress.Commands.add('registerUser', (user, navigateBack = true, logoutAfterRegister = true) => {
+    // Save current url
+    let url
+    cy.url().then(u => {
+        url = u
+    })
+    
+    // Open register page
+    cy.visit('/register')
+
+    cy.get('main')
+        .find('input[type="email"]')
+        .should("exist")
+        .type(user.email)
+
+    cy.get('main')
+        .find('input[placeholder="Your unique username"]')
+        .should("exist")
+        .type(user.username)
+
+    cy.get('main')
+        .find('input[placeholder="Your display name"]')
+        .should("exist")
+        .type(user.displayName)
+
+    cy.get('main')
+        .find('input[placeholder="Create a password"]')
+        .should("exist")
+        .type(user.password)
+
+    cy.get('main')
+        .find('input[placeholder="Repeat your password"]')
+        .should("exist")
+        .type(user.password)
+    
+    cy.get('main')
+        .find('button[type="submit"]')
+        .should("exist")
+        .click()
+    
+    if (logoutAfterRegister) {
+        cy.get('.navbar')
+            .get('.dropdown')
+            .should("exist")
+            .should("not.be.empty")
+            .click()
+
+        cy.get('.navbar')
+            .get('.dropdown')
+            .find('button')
+            .contains('Logout')
+            .click()
+    }
+    
+    // Navigate back to origin page
+    if (navigateBack) {
+        cy.then(() => {
+            cy.visit(url)
+        })
+    }
+})
+
+Cypress.Commands.add('getRandomUser', (user) => {
+    let random = Math.floor(Math.random() * 99999999);
+
+    return {
+        email: `${random}${user.email}`,
+        username: `${user.username}${random}`,
+        displayName: `${user.displayName}${random}`,
+        password: `${user.password}${random}`
+    }
+})
