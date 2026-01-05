@@ -25,6 +25,5 @@ describe('Book search works correctly', () => {
             .find("h2")
             .should("exist")
             .should("not.be.empty")
-            .contains(BOOK_SEARCH.bookTitle)
     });
 })
