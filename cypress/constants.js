@@ -35,6 +35,6 @@ export const TITLE_BAR_SETTINGS = {
 
 export const GAME_SEARCH = {
     searchTerm: "control ultimate edition", // One of the games where the IGDB search does not return many irrelevant games.
-    imageID: "co2ewb",
+    imageSrc: "/api/media/images?source=igdb&id=co2ewb",
     gameTitle: "Control: Ultimate Edition"
 }
