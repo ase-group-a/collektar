@@ -1,6 +1,10 @@
 describe('/media/books displays correctly', () => {
+    beforeEach(() => {
+        // Visit books
+        cy.visit('/media/books')
+    })
 
-    it('should correctly navigate to books and display at least one media item', () => {
+    it('Correctly navigates to books', () => {
         // Visit homepage
         cy.visit('/')
 
@@ -8,14 +12,17 @@ describe('/media/books displays correctly', () => {
         cy.get('a[href="/media/books"]')
             .should('exist')
             .click()
+    })
 
-        // At least one card exists
+    it('At least one books card exists and has correct image', () => {
         cy.get('.card').first()
             .should('exist')
             .find('img')
             .should('have.attr', 'src')
             .and("not.be.empty")
+    })
 
+    it('Book name is displaying', () => {
         cy.get('.card').first()
             .should('exist')
             .find('h2')
