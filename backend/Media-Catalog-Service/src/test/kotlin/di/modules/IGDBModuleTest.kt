@@ -1,5 +1,6 @@
 package di.modules
 
+import com.collektar.imagecache.ImageCacheClient
 import com.collektar.integration.igdb.IGDBClient
 import com.collektar.integration.igdb.IGDBClientImpl
 import com.collektar.integration.igdb.IGDBConfig
@@ -21,6 +22,7 @@ import org.koin.core.context.GlobalContext
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.core.qualifier.named
+import org.koin.dsl.module
 import kotlin.test.assertIs
 
 const val IGDB_CLIENT_ID = "igdb_client_id"
@@ -29,6 +31,8 @@ const val IGDB_BASE_URL = "https://api.igdb.com/v4"
 const val IGDB_TOKEN_URL = "https://id.twitch.tv/oauth2/token"
 
 class IGDBModuleTest {
+    private val imageCacheClient = mockk<ImageCacheClient>()
+    
     @BeforeEach
     fun setUp() {
         try {
@@ -58,7 +62,15 @@ class IGDBModuleTest {
         every { env.config } returns mapConfig
 
         startKoin {
-            modules(listOf(coreModule, igdbModule(env)))
+            modules(
+                listOf(
+                    coreModule,
+                    module {
+                        single { imageCacheClient }
+                    },
+                    igdbModule(env)
+                )
+            )
         }
 
         val cfg = GlobalContext.get().get<IGDBConfig>(named(IGDB_CONFIG_NAME))

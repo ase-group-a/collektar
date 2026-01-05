@@ -9,7 +9,6 @@ import org.koin.dsl.module
 import org.koin.core.qualifier.named
 import service.BooksService
 import io.ktor.server.application.*
-import integration.books.GoogleBooksSearchResponse
 
 const val BOOKS_CONFIG_NAME = "books_config"
 const val BOOKS_CONTROLLER_NAME = "books"
@@ -25,7 +24,7 @@ fun booksModule(env: ApplicationEnvironment) = module {
         )
     }
 
-    single { BooksService(get()) }
+    single { BooksService(get(), get()) }
 
     single<Controller>(named(BOOKS_CONTROLLER_NAME)) { BooksController(get()) }
 }

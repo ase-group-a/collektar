@@ -5,6 +5,7 @@ import domain.SearchResult
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
@@ -22,23 +23,34 @@ class BggClientImpl(
 
     companion object {
         private const val BGG_MAX_ITEMS_PER_REQUEST = 20
+        private const val MAX_RETRIES = 3
+        private const val RETRY_DELAY_MS = 5000L
+        private const val USER_AGENT = "MediaCatalogService/1.0 (compatible; +https://github.com/yourproject)"
     }
 
     private suspend fun <T> rateLimited(block: suspend () -> T): T =
         rateLimitMutex.withLock {
             val now = System.currentTimeMillis()
             val elapsed = now - lastCallTime
-            if (elapsed < config.minDelayMillis) delay(config.minDelayMillis - elapsed)
+            if (elapsed < config.minDelayMillis) {
+                val waitTime = config.minDelayMillis - elapsed
+                logger.debug("Rate limiting: waiting ${waitTime}ms")
+                delay(waitTime)
+            }
             val result = block()
             lastCallTime = System.currentTimeMillis()
             result
         }
 
     override suspend fun hotBoardGames(limit: Int, offset: Int): SearchResult = rateLimited {
-        val hotXml: String = httpClient.get("${config.baseUrl}/hot") {
-            parameter("type", "boardgame")
-            headerIfToken()
-        }.body()
+        val hotXml = fetchWithRetry("hot") {
+            httpClient.get("${config.baseUrl}/hot") {
+                parameter("type", "boardgame")
+                header(HttpHeaders.UserAgent, USER_AGENT)
+                header(HttpHeaders.Accept, "application/xml")
+                headerIfToken()
+            }
+        }
 
         val all = BggMapper.mapHotResponse(hotXml)
         val paged = all.drop(offset).take(limit)
@@ -52,11 +64,15 @@ class BggClientImpl(
     }
 
     override suspend fun searchBoardGames(query: String, limit: Int, offset: Int): SearchResult = rateLimited {
-        val searchXml: String = httpClient.get("${config.baseUrl}/search") {
-            parameter("query", query)
-            parameter("type", "boardgame")
-            headerIfToken()
-        }.body()
+        val searchXml = fetchWithRetry("search for '$query'") {
+            httpClient.get("${config.baseUrl}/search") {
+                parameter("query", query)
+                parameter("type", "boardgame")
+                header(HttpHeaders.UserAgent, USER_AGENT)
+                header(HttpHeaders.Accept, "application/xml")
+                headerIfToken()
+            }
+        }
 
         val (total, allIds) = BggMapper.parseSearchIds(searchXml)
         val pageIds = allIds.drop(offset).take(limit)
@@ -70,7 +86,6 @@ class BggClientImpl(
             )
         }
 
-        // ✅ Call internal method without additional rate limiting
         val fetched = getBoardGamesInternal(pageIds)
         val byId = fetched.associateBy { it.id.removePrefix("bgg:").toLongOrNull() }
         val ordered = pageIds.mapNotNull { id -> byId[id] }
@@ -83,27 +98,25 @@ class BggClientImpl(
         )
     }
 
-    // Public API with rate limiting
     override suspend fun getBoardGames(ids: List<Long>): List<MediaItem> = rateLimited {
         getBoardGamesInternal(ids)
     }
 
-    // ✅ Internal method without rate limiting - can be called from within other rateLimited blocks
-    // ✅ Handles batching for BGG's 20-item limit
     private suspend fun getBoardGamesInternal(ids: List<Long>): List<MediaItem> {
         if (ids.isEmpty()) return emptyList()
 
-        // ✅ Batch requests if more than 20 items
         if (ids.size > BGG_MAX_ITEMS_PER_REQUEST) {
             logger.debug("Batching ${ids.size} items into chunks of $BGG_MAX_ITEMS_PER_REQUEST")
 
             val results = mutableListOf<MediaItem>()
-            ids.chunked(BGG_MAX_ITEMS_PER_REQUEST).forEach { batch ->
+            val chunks = ids.chunked(BGG_MAX_ITEMS_PER_REQUEST)
+
+            chunks.forEachIndexed { index, batch ->
                 val batchResults = fetchBoardGamesBatch(batch)
                 results.addAll(batchResults)
 
-                // Add delay between batches to respect rate limits
-                if (batch !== ids.chunked(BGG_MAX_ITEMS_PER_REQUEST).last()) {
+                if (index < chunks.size - 1) {
+                    logger.debug("Waiting ${config.minDelayMillis}ms before next batch")
                     delay(config.minDelayMillis)
                 }
             }
@@ -115,25 +128,95 @@ class BggClientImpl(
 
     private suspend fun fetchBoardGamesBatch(ids: List<Long>): List<MediaItem> {
         val idCsv = ids.joinToString(",")
-        logger.debug("Fetching board game details for ${ids.size} IDs: $idCsv")
+        logger.debug("Fetching board game details for ${ids.size} IDs")
 
-        val xml: String = httpClient.get("${config.baseUrl}/thing") {
-            parameter("id", idCsv)
-            parameter("stats", 1)
-            headerIfToken()
-        }.body()
-
-        logger.debug("Thing response length: ${xml.length}")
-
-        // Trim any leading/trailing whitespace or BOM
-        val cleanedXml = xml.trim().trimStart('\uFEFF')
-
-        if (!cleanedXml.startsWith("<?xml") && !cleanedXml.startsWith("<")) {
-            logger.error("Invalid XML response: ${cleanedXml.take(200)}")
-            throw IllegalStateException("BGG returned non-XML response: ${cleanedXml.take(200)}")
+        val xml = fetchWithRetry("thing details for IDs: $idCsv") {
+            httpClient.get("${config.baseUrl}/thing") {
+                parameter("id", idCsv)
+                parameter("stats", 1)
+                header(HttpHeaders.UserAgent, USER_AGENT)
+                header(HttpHeaders.Accept, "application/xml")
+                headerIfToken()
+            }
         }
 
-        return BggMapper.mapThingListResponse(cleanedXml)
+        return BggMapper.mapThingListResponse(xml)
+    }
+
+    private suspend fun fetchWithRetry(
+        operation: String,
+        block: suspend () -> HttpResponse
+    ): String {
+        var lastException: Exception? = null
+
+        repeat(MAX_RETRIES) { attempt ->
+            try {
+                logger.debug("Attempting BGG request for $operation (attempt ${attempt + 1}/$MAX_RETRIES)")
+
+                val response = block()
+                val statusCode = response.status
+                val body: String = response.body()
+
+                logger.debug("Received response with status $statusCode and ${body.length} characters")
+
+                // Check status code
+                if (!statusCode.isSuccess()) {
+                    logger.warn("BGG returned non-success status: $statusCode for $operation")
+                    if (statusCode == HttpStatusCode.TooManyRequests || statusCode.value == 429) {
+                        logger.warn("Rate limited by BGG (429). Waiting longer...")
+                        if (attempt < MAX_RETRIES - 1) {
+                            delay(RETRY_DELAY_MS * 2) // Wait even longer for rate limit
+                            return@repeat
+                        }
+                    }
+                    if (attempt < MAX_RETRIES - 1) {
+                        delay(RETRY_DELAY_MS)
+                        return@repeat
+                    } else {
+                        throw IllegalStateException("BGG returned status $statusCode after $MAX_RETRIES attempts")
+                    }
+                }
+
+                // Validate response body
+                val trimmed = body.trim().trimStart('\uFEFF')
+
+                if (trimmed.isEmpty()) {
+                    logger.warn("Empty response from BGG for $operation (attempt ${attempt + 1}/$MAX_RETRIES), status was $statusCode")
+                    if (attempt < MAX_RETRIES - 1) {
+                        logger.info("Waiting ${RETRY_DELAY_MS}ms before retry...")
+                        delay(RETRY_DELAY_MS)
+                        return@repeat
+                    } else {
+                        throw IllegalStateException("BGG returned empty response after $MAX_RETRIES attempts for $operation")
+                    }
+                }
+
+                if (!trimmed.startsWith("<?xml") && !trimmed.startsWith("<")) {
+                    val preview = trimmed.take(200)
+                    logger.warn("Non-XML response from BGG for $operation (status $statusCode): $preview")
+                    if (attempt < MAX_RETRIES - 1) {
+                        logger.info("Waiting ${RETRY_DELAY_MS}ms before retry...")
+                        delay(RETRY_DELAY_MS)
+                        return@repeat
+                    } else {
+                        throw IllegalStateException("BGG returned non-XML response: $preview")
+                    }
+                }
+
+                logger.debug("Successfully received valid XML response for $operation")
+                return trimmed
+
+            } catch (e: Exception) {
+                lastException = e
+                logger.warn("Request failed for $operation (attempt ${attempt + 1}/$MAX_RETRIES): ${e.message}")
+                if (attempt < MAX_RETRIES - 1) {
+                    logger.info("Waiting ${RETRY_DELAY_MS}ms before retry...")
+                    delay(RETRY_DELAY_MS)
+                }
+            }
+        }
+
+        throw IllegalStateException("Failed to fetch from BGG after $MAX_RETRIES attempts for $operation", lastException)
     }
 
     private fun HttpRequestBuilder.headerIfToken() {
