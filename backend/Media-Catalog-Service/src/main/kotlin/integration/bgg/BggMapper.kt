@@ -1,142 +1,100 @@
+// src/main/kotlin/integration/bgg/BggMapper.kt
 package integration.bgg
 
 import domain.MediaItem
 import domain.MediaType
 import domain.SearchResult
-import org.w3c.dom.Element
-import java.io.ByteArrayInputStream
-import javax.xml.parsers.DocumentBuilderFactory
-import org.xml.sax.SAXParseException
-
-object XmlUtil {
-
-    fun parseOrNull(xml: String): Element? {
-        if (xml.isBlank()) return null
-
-        return try {
-            val factory = DocumentBuilderFactory.newInstance()
-            factory.isNamespaceAware = false
-            val builder = factory.newDocumentBuilder()
-            val doc = builder.parse(ByteArrayInputStream(xml.toByteArray(Charsets.UTF_8)))
-            doc.documentElement
-        } catch (e: SAXParseException) {
-            null
-        } catch (e: Exception) {
-            null
-        }
-    }
-}
+import org.jsoup.Jsoup
+import org.jsoup.parser.Parser
 
 object BggMapper {
 
-    fun mapSearchResponse(
-        xml: String,
+    data class SearchHit(
+        val id: Long,
+        val title: String,
+        val year: Int?
+    )
+
+    data class ThingInfo(
+        val id: Long,
+        val imageUrl: String?,
+        val thumbnailUrl: String?,
+        val description: String?
+    )
+
+    /**
+     * Parse /xmlapi2/search response.
+     * NOTE: no images here.
+     */
+    fun parseSearchHits(xml: String): List<SearchHit> {
+        val doc = Jsoup.parse(xml, "", Parser.xmlParser())
+        return doc.select("items > item").mapNotNull { item ->
+            val id = item.attr("id").toLongOrNull() ?: return@mapNotNull null
+
+            val name = item.selectFirst("name[type=primary]")?.attr("value")
+                ?: item.selectFirst("name")?.attr("value")
+                ?: "Unknown"
+
+            val year = item.selectFirst("yearpublished")?.attr("value")?.toIntOrNull()
+
+            SearchHit(
+                id = id,
+                title = name,
+                year = year
+            )
+        }
+    }
+
+    /**
+     * Parse /xmlapi2/thing response (supports multiple ids).
+     * Extracts image/thumbnail/description per item.
+     */
+    fun parseThings(xml: String): Map<Long, ThingInfo> {
+        val doc = Jsoup.parse(xml, "", Parser.xmlParser())
+        return doc.select("items > item").mapNotNull { item ->
+            val id = item.attr("id").toLongOrNull() ?: return@mapNotNull null
+
+            val image = item.selectFirst("image")?.text()?.trim().takeIf { !it.isNullOrBlank() }
+            val thumb = item.selectFirst("thumbnail")?.text()?.trim().takeIf { !it.isNullOrBlank() }
+            val desc = item.selectFirst("description")?.text()?.trim().takeIf { !it.isNullOrBlank() }
+
+            ThingInfo(
+                id = id,
+                imageUrl = image,
+                thumbnailUrl = thumb,
+                description = desc
+            )
+        }.associateBy { it.id }
+    }
+
+    /**
+     * Build SearchResult (paged) with images merged from ThingInfo map.
+     */
+    fun toSearchResultWithImages(
+        allHits: List<SearchHit>,
+        pageHits: List<SearchHit>,
+        thingInfo: Map<Long, ThingInfo>,
         limit: Int,
         offset: Int
     ): SearchResult {
-        val root = XmlUtil.parseOrNull(xml)
-            ?: return SearchResult(
-                total = 0,
-                limit = limit,
-                offset = offset,
-                items = emptyList()
+
+        val items = pageHits.map { hit ->
+            val info = thingInfo[hit.id]
+            MediaItem(
+                id = "bgg:${hit.id}",
+                title = hit.title,
+                type = MediaType.BOARDGAME,
+                imageUrl = info?.thumbnailUrl ?: info?.imageUrl,
+                description = info?.description,
+                source = "bgg"
             )
-
-        if (root.nodeName.equals("message", ignoreCase = true)) {
-            return SearchResult(
-                total = 0,
-                limit = limit,
-                offset = offset,
-                items = emptyList()
-            )
-        }
-
-        val itemsNodeList = root.getElementsByTagName("item")
-        val allItems = mutableListOf<MediaItem>()
-
-        for (i in 0 until itemsNodeList.length) {
-            val item = itemsNodeList.item(i) as Element
-            val id = item.getAttribute("id")
-
-            val nameNodes = item.getElementsByTagName("name")
-            val name = if (nameNodes.length > 0) {
-                (nameNodes.item(0) as Element).getAttribute("value")
-            } else {
-                "Unknown"
-            }
-
-            allItems.add(
-                MediaItem(
-                    id = "bgg:$id",
-                    title = name,
-                    type = MediaType.BOARDGAME,
-                    imageUrl = null,
-                    description = null,
-                    source = "BGG"
-                )
-            )
-        }
-
-        val totalAttr = root.getAttribute("total")
-        val totalFromApi = totalAttr.toIntOrNull() ?: allItems.size
-
-        val safeOffset = offset.coerceAtLeast(0)
-        val fromIndex = safeOffset.coerceAtMost(allItems.size)
-        val toIndex = (fromIndex + limit).coerceAtMost(allItems.size)
-
-        val pageItems = if (fromIndex < toIndex) {
-            allItems.subList(fromIndex, toIndex)
-        } else {
-            emptyList()
         }
 
         return SearchResult(
-            total = totalFromApi,
+            total = allHits.size,
             limit = limit,
-            offset = safeOffset,
-            items = pageItems
-        )
-    }
-
-    fun mapThingResponse(xml: String): MediaItem? {
-        val root = XmlUtil.parseOrNull(xml) ?: return null
-
-        if (root.nodeName.equals("message", ignoreCase = true)) {
-            return null
-        }
-
-        val itemsNodeList = root.getElementsByTagName("item")
-        if (itemsNodeList.length == 0) return null
-
-        val item = itemsNodeList.item(0) as Element
-        val id = item.getAttribute("id")
-
-        val nameNodes = item.getElementsByTagName("name")
-        val primaryName = (0 until nameNodes.length)
-            .asSequence()
-            .map { nameNodes.item(it) as Element }
-            .firstOrNull { it.getAttribute("type") == "primary" }
-            ?: (nameNodes.item(0) as? Element)
-
-        val name = primaryName?.getAttribute("value") ?: "Unknown"
-
-        val imageNodes = item.getElementsByTagName("image")
-        val imageUrl = if (imageNodes.length > 0) {
-            imageNodes.item(0).textContent
-        } else null
-
-        val descNodes = item.getElementsByTagName("description")
-        val rawDescription = if (descNodes.length > 0) {
-            descNodes.item(0).textContent
-        } else null
-
-        return MediaItem(
-            id = "bgg:$id",
-            title = name,
-            type = MediaType.BOARDGAME,
-            imageUrl = imageUrl,
-            description = rawDescription,
-            source = "BGG"
+            offset = offset,
+            items = items
         )
     }
 }

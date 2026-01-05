@@ -1,6 +1,5 @@
 package di.modules
 
-import com.collektar.HttpProvider
 import controllers.BoardGameController
 import controllers.Controller
 import integration.bgg.BggClient
@@ -12,15 +11,26 @@ import service.BggMediaService
 
 fun bggModule(env: ApplicationEnvironment) = module {
 
-    // Load BGG settings from env variables
-    single { BggConfig.fromEnv() }
+    // Load BGG config from environment variables
+    single {
+        BggConfig.fromEnv()
+    }
 
-    // Use HttpProvider.client (your existing HTTP client)
-    single<BggClient> { BggClientImpl(HttpProvider.client, get()) }
+    // BGG HTTP client (reuse shared Ktor HttpClient from coreModule)
+    single<BggClient> {
+        BggClientImpl(
+            get(), // HttpClient from coreModule
+            get()  // BggConfig
+        )
+    }
 
-    // Business logic
-    single { BggMediaService(get()) }
+    // Service layer
+    single {
+        BggMediaService(get())
+    }
 
-    // Controller for auto-registration
-    single<Controller> { BoardGameController(get()) }
+    // Controller (auto-registered)
+    single<Controller> {
+        BoardGameController(get())
+    }
 }
