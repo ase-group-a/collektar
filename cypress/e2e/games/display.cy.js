@@ -1,6 +1,10 @@
 describe('/media/games displays correctly', () => {
-
-    it('should correctly navigate to games and display at least one media item', () => {
+    beforeEach(() => {
+        // Visit games
+        cy.visit('/media/games')
+    })
+    
+    it('Correctly navigates to games', () => {
         // Visit homepage
         cy.visit('/')
 
@@ -8,14 +12,17 @@ describe('/media/games displays correctly', () => {
         cy.get('a[href="/media/games"]')
             .should('exist')
             .click()
+    })
 
-        // At least one card exists
+    it('At least one card exists and has correct image', () => {
         cy.get('.card').first()
             .should('exist')
             .find('img')
             .should('have.attr', 'src')
             .and("not.be.empty")
+    })
 
+    it('Game name is displaying', () => {
         cy.get('.card').first()
             .should('exist')
             .find('h2')
