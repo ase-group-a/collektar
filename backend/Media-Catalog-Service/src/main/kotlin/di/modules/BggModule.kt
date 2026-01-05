@@ -5,32 +5,21 @@ import controllers.Controller
 import integration.bgg.BggClient
 import integration.bgg.BggClientImpl
 import integration.bgg.BggConfig
-import io.ktor.server.application.*
+import io.ktor.client.HttpClient
+import io.ktor.server.application.ApplicationEnvironment
 import org.koin.dsl.module
 import service.BggMediaService
 
 fun bggModule(env: ApplicationEnvironment) = module {
 
-    // Load BGG config from environment variables
-    single {
-        BggConfig.fromEnv()
-    }
+    // Your fromEnv() takes no args
+    single { BggConfig.fromEnv() }
 
-    // BGG HTTP client (reuse shared Ktor HttpClient from coreModule)
-    single<BggClient> {
-        BggClientImpl(
-            get(), // HttpClient from coreModule
-            get()  // BggConfig
-        )
-    }
+    // Use the shared HttpClient from coreModule
+    single<BggClient> { BggClientImpl(get<HttpClient>(), get()) }
 
-    // Service layer
-    single {
-        BggMediaService(get())
-    }
+    single { BggMediaService(get()) }
 
-    // Controller (auto-registered)
-    single<Controller> {
-        BoardGameController(get())
-    }
+    // Controller for auto-registration
+    single<Controller> { BoardGameController(get()) }
 }

@@ -1,1 +1,0 @@
-I changed docker compose to switch HOST with hardcoded value as it didnt work for me somehow.

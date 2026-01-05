@@ -2,7 +2,7 @@ import { fetcher } from "../fetcher";
 import { MediaItem, SearchResult } from "@/types/media";
 
 export const searchMedia = async (
-    type: "games" | "movies" | "shows" | "music" | "books",
+    type: "games" | "movies" | "shows" | "music" | "books" | "board game",
     query: string,
     limit = 10,
     offset = 0

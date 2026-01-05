@@ -1,4 +1,3 @@
-// src/main/kotlin/integration/bgg/BggClientImpl.kt
 package integration.bgg
 
 import domain.MediaItem
@@ -10,95 +9,131 @@ import io.ktor.http.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.slf4j.LoggerFactory
 
 class BggClientImpl(
     private val httpClient: HttpClient,
     private val config: BggConfig
 ) : BggClient {
 
+    private val logger = LoggerFactory.getLogger(BggClientImpl::class.java)
     private val rateLimitMutex = Mutex()
     private var lastCallTime: Long = 0
+
+    companion object {
+        private const val BGG_MAX_ITEMS_PER_REQUEST = 20
+    }
 
     private suspend fun <T> rateLimited(block: suspend () -> T): T =
         rateLimitMutex.withLock {
             val now = System.currentTimeMillis()
             val elapsed = now - lastCallTime
-            if (elapsed < config.minDelayMillis) {
-                delay(config.minDelayMillis - elapsed)
-            }
+            if (elapsed < config.minDelayMillis) delay(config.minDelayMillis - elapsed)
             val result = block()
             lastCallTime = System.currentTimeMillis()
             result
         }
 
-    override suspend fun searchBoardGames(
-        query: String,
-        limit: Int,
-        offset: Int
-    ): SearchResult = rateLimited {
-        try {
-            // 1) SEARCH (ids + titles, no images)
-            val searchXml: String = httpClient.get("${config.baseUrl}/search") {
-                parameter("query", query)
-                parameter("type", "boardgame")
-                headerIfToken()
-            }.body()
+    override suspend fun hotBoardGames(limit: Int, offset: Int): SearchResult = rateLimited {
+        val hotXml: String = httpClient.get("${config.baseUrl}/hot") {
+            parameter("type", "boardgame")
+            headerIfToken()
+        }.body()
 
-            val allHits = BggMapper.parseSearchHits(searchXml)
-            val pageHits = allHits.drop(offset).take(limit)
+        val all = BggMapper.mapHotResponse(hotXml)
+        val paged = all.drop(offset).take(limit)
 
-            if (pageHits.isEmpty()) {
-                return@rateLimited SearchResult(
-                    total = allHits.size,
-                    limit = limit,
-                    offset = offset,
-                    items = emptyList()
-                )
-            }
+        SearchResult(
+            total = all.size,
+            limit = limit,
+            offset = offset,
+            items = paged
+        )
+    }
 
-            // 2) THING (images/description) — one request for all ids in the page
-            val idsCsv = pageHits.joinToString(",") { it.id.toString() }
+    override suspend fun searchBoardGames(query: String, limit: Int, offset: Int): SearchResult = rateLimited {
+        val searchXml: String = httpClient.get("${config.baseUrl}/search") {
+            parameter("query", query)
+            parameter("type", "boardgame")
+            headerIfToken()
+        }.body()
 
-            val thingXml: String = httpClient.get("${config.baseUrl}/thing") {
-                parameter("id", idsCsv)
-                parameter("stats", 0) // stats=0 is faster; set 1 if you need ratings, etc.
-                headerIfToken()
-            }.body()
+        val (total, allIds) = BggMapper.parseSearchIds(searchXml)
+        val pageIds = allIds.drop(offset).take(limit)
 
-            val infoMap = BggMapper.parseThings(thingXml)
-
-            // 3) MERGE -> MediaItem list with image_url filled
-            BggMapper.toSearchResultWithImages(
-                allHits = allHits,
-                pageHits = pageHits,
-                thingInfo = infoMap,
-                limit = limit,
-                offset = offset
-            )
-        } catch (e: Exception) {
-            SearchResult(
-                total = 0,
+        if (pageIds.isEmpty()) {
+            return@rateLimited SearchResult(
+                total = total,
                 limit = limit,
                 offset = offset,
                 items = emptyList()
             )
         }
+
+        // ✅ Call internal method without additional rate limiting
+        val fetched = getBoardGamesInternal(pageIds)
+        val byId = fetched.associateBy { it.id.removePrefix("bgg:").toLongOrNull() }
+        val ordered = pageIds.mapNotNull { id -> byId[id] }
+
+        SearchResult(
+            total = total,
+            limit = limit,
+            offset = offset,
+            items = ordered
+        )
     }
 
-    override suspend fun getBoardGame(id: Long): MediaItem? = rateLimited {
-        try {
-            val response: String = httpClient.get("${config.baseUrl}/thing") {
-                parameter("id", id)
-                parameter("stats", 1)
-                headerIfToken()
-            }.body()
+    // Public API with rate limiting
+    override suspend fun getBoardGames(ids: List<Long>): List<MediaItem> = rateLimited {
+        getBoardGamesInternal(ids)
+    }
 
-            // If your existing mapThingResponse already returns full MediaItem with imageUrl,
-            // keep it as-is.
-            BggMapper.mapThingResponse(response)
-        } catch (e: Exception) {
-            null
+    // ✅ Internal method without rate limiting - can be called from within other rateLimited blocks
+    // ✅ Handles batching for BGG's 20-item limit
+    private suspend fun getBoardGamesInternal(ids: List<Long>): List<MediaItem> {
+        if (ids.isEmpty()) return emptyList()
+
+        // ✅ Batch requests if more than 20 items
+        if (ids.size > BGG_MAX_ITEMS_PER_REQUEST) {
+            logger.debug("Batching ${ids.size} items into chunks of $BGG_MAX_ITEMS_PER_REQUEST")
+
+            val results = mutableListOf<MediaItem>()
+            ids.chunked(BGG_MAX_ITEMS_PER_REQUEST).forEach { batch ->
+                val batchResults = fetchBoardGamesBatch(batch)
+                results.addAll(batchResults)
+
+                // Add delay between batches to respect rate limits
+                if (batch !== ids.chunked(BGG_MAX_ITEMS_PER_REQUEST).last()) {
+                    delay(config.minDelayMillis)
+                }
+            }
+            return results
         }
+
+        return fetchBoardGamesBatch(ids)
+    }
+
+    private suspend fun fetchBoardGamesBatch(ids: List<Long>): List<MediaItem> {
+        val idCsv = ids.joinToString(",")
+        logger.debug("Fetching board game details for ${ids.size} IDs: $idCsv")
+
+        val xml: String = httpClient.get("${config.baseUrl}/thing") {
+            parameter("id", idCsv)
+            parameter("stats", 1)
+            headerIfToken()
+        }.body()
+
+        logger.debug("Thing response length: ${xml.length}")
+
+        // Trim any leading/trailing whitespace or BOM
+        val cleanedXml = xml.trim().trimStart('\uFEFF')
+
+        if (!cleanedXml.startsWith("<?xml") && !cleanedXml.startsWith("<")) {
+            logger.error("Invalid XML response: ${cleanedXml.take(200)}")
+            throw IllegalStateException("BGG returned non-XML response: ${cleanedXml.take(200)}")
+        }
+
+        return BggMapper.mapThingListResponse(cleanedXml)
     }
 
     private fun HttpRequestBuilder.headerIfToken() {
