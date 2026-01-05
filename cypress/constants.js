@@ -38,3 +38,9 @@ export const GAME_SEARCH = {
     imageSrc: "/api/media/images?source=igdb&id=co2ewb",
     gameTitle: "Control: Ultimate Edition"
 }
+
+export const MOVIE_SEARCH = {
+    searchTerm: "morbius",
+    imageSrc: "/api/media/images?source=tmbd&id=6JjfSchsU6daXk2AKX8EEBjO3Fm",
+    movieTitle: "Morbius"
+}
