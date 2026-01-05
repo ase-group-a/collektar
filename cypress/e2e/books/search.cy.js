@@ -17,7 +17,8 @@ describe('Book search works correctly', () => {
         cy.get('.card').first()
             .should('exist')
             .find('img')
-            .should('have.attr', 'src', BOOK_SEARCH.imageSrc)
+            .should('have.attr', 'src')
+            .and('match', BOOK_SEARCH.imageSrc)
         
         cy.get('.card').first()
             .should("exist")
