@@ -1,6 +1,10 @@
 describe('/media/movies displays correctly', () => {
+    beforeEach(() => {
+        // Visit movies
+        cy.visit('/media/movies')
+    })
 
-    it('should correctly navigate to movies and display at least one media item', () => {
+    it('Correctly navigates to movies', () => {
         // Visit homepage
         cy.visit('/')
 
@@ -8,14 +12,17 @@ describe('/media/movies displays correctly', () => {
         cy.get('a[href="/media/movies"]')
             .should('exist')
             .click()
+    })
 
-        // At least one card exists
+    it('At least one movie card exists and has correct image', () => {
         cy.get('.card').first()
             .should('exist')
             .find('img')
             .should('have.attr', 'src')
             .and("not.be.empty")
+    })
 
+    it('Movie name is displaying', () => {
         cy.get('.card').first()
             .should('exist')
             .find('h2')
