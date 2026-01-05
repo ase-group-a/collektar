@@ -56,3 +56,9 @@ export const MUSIC_SEARCH = {
     imageSrc: "/api/media/images?source=spotify&id=ab67616d0000b27315ebbedaacef61af244262a8",
     songTitle: "Never Gonna Give You Up"
 }
+
+export const BOOK_SEARCH = {
+    searchTerm: "best practice software engineering schatten",
+    imageSrc: "/api/media/images?source=google_books&id=M90jBAAAQBAJ",
+    bookTitle: "Best Practice Software-Engineering"
+}
