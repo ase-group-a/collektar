@@ -36,14 +36,10 @@ services:
   #
   rabbitmq:
     image: rabbitmq:4-management
-    container_name: rabbitmq
     restart: unless-stopped
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
-    ports:
-      - "5672:5672"
-      - "15672:15672"  # Dashboard
     volumes:
       - ./data/rabbitmq:/var/lib/rabbitmq
     networks:
@@ -182,7 +178,6 @@ services:
     build:
       context: ./backend/Email-Service/
       dockerfile: Dockerfile
-    container_name: email-service
     restart: unless-stopped
     expose:
       - "8080"
