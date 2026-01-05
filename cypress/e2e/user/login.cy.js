@@ -38,6 +38,12 @@ describe('Login works correctly', () => {
             cy.get('main')
                 .find("p")
                 .contains(user.username)
+
+            cy.get('.navbar')
+                .find(`a[href="/u/${user.username}"]`)
+                .should("exist")
+                .should("not.be.empty")
+                .contains("My Collections")
         })
     });
 
