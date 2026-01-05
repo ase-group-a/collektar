@@ -44,3 +44,9 @@ export const MOVIE_SEARCH = {
     imageSrc: "/api/media/images?source=tmbd&id=6JjfSchsU6daXk2AKX8EEBjO3Fm",
     movieTitle: "Morbius"
 }
+
+export const SHOW_SEARCH = {
+    searchTerm: "house",
+    imageSrc: "/api/media/images?source=tmbd&id=3Cz7ySOQJmqiuTdrc6CY0r65yDI",
+    showTitle: "House"
+}
