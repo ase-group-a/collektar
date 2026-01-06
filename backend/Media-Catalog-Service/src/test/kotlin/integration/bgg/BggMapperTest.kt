@@ -4,6 +4,7 @@ import domain.MediaType
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class BggMapperTest {
 
@@ -290,7 +291,7 @@ class BggMapperTest {
     fun `parseXml throws exception on invalid XML`() {
         val invalidXml = "This is not XML"
 
-        val exception = kotlin.test.assertFailsWith<IllegalStateException> {
+        val exception = assertFailsWith<IllegalStateException> {
             BggMapper.parseSearchIds(invalidXml)
         }
 

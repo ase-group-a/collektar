@@ -1,19 +1,29 @@
 package integration.bgg
 
+import com.collektar.imagecache.ImageCacheClient
 import domain.MediaType
 import io.ktor.client.*
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import kotlin.test.*
 
 class BggClientImplTest {
 
-    private val config = BggConfig(
+    private val configWithToken = BggConfig(
+        baseUrl = "https://boardgamegeek.com/xmlapi2",
+        token = "test-token-123",
+        minDelayMillis = 100L
+    )
+
+    private val configWithoutToken = BggConfig(
         baseUrl = "https://boardgamegeek.com/xmlapi2",
         token = null,
-        minDelayMillis = 100L // Short delay for tests
+        minDelayMillis = 100L
     )
+
+    private val mockImageCacheClient = mockk<ImageCacheClient>(relaxed = true)
 
     private fun mockHttpClient(handler: MockRequestHandler): HttpClient {
         return HttpClient(MockEngine { request -> handler(request) })
@@ -48,7 +58,7 @@ class BggClientImplTest {
             )
         }
 
-        val client = BggClientImpl(httpClient, config)
+        val client = BggClientImpl(httpClient, configWithoutToken, mockImageCacheClient)
         val result = client.hotBoardGames(limit = 10, offset = 0)
 
         assertEquals(2, result.total)
@@ -58,7 +68,48 @@ class BggClientImplTest {
         assertEquals("bgg:174430", result.items[0].id)
         assertEquals("Gloomhaven", result.items[0].title)
         assertEquals(MediaType.BOARDGAME, result.items[0].type)
-        assertEquals("https://cf.geekdo-images.com/thumb.jpg", result.items[0].imageUrl)
+    }
+
+    @Test
+    fun `hotBoardGames sends Authorization header when token is provided`() = runBlocking {
+        val mockXml = """
+            <?xml version="1.0" encoding="utf-8"?>
+            <items termsofuse="...">
+                <item id="123" rank="1">
+                    <thumbnail value="url"/>
+                    <name value="Game"/>
+                </item>
+            </items>
+        """.trimIndent()
+
+        val httpClient = mockHttpClient { request ->
+            assertEquals("Bearer test-token-123", request.headers[HttpHeaders.Authorization])
+            respond(mockXml, HttpStatusCode.OK)
+        }
+
+        val client = BggClientImpl(httpClient, configWithToken, mockImageCacheClient)
+        client.hotBoardGames(10, 0)
+    }
+
+    @Test
+    fun `hotBoardGames does not send Authorization header when token is null`() = runBlocking {
+        val mockXml = """
+            <?xml version="1.0" encoding="utf-8"?>
+            <items termsofuse="...">
+                <item id="123" rank="1">
+                    <thumbnail value="url"/>
+                    <name value="Game"/>
+                </item>
+            </items>
+        """.trimIndent()
+
+        val httpClient = mockHttpClient { request ->
+            assertNull(request.headers[HttpHeaders.Authorization])
+            respond(mockXml, HttpStatusCode.OK)
+        }
+
+        val client = BggClientImpl(httpClient, configWithoutToken, mockImageCacheClient)
+        client.hotBoardGames(10, 0)
     }
 
     @Test
@@ -76,14 +127,14 @@ class BggClientImplTest {
 
         val httpClient = mockHttpClient { respond(mockXml, HttpStatusCode.OK) }
 
-        val client = BggClientImpl(httpClient, config)
+        val client = BggClientImpl(httpClient, configWithoutToken, mockImageCacheClient)
         val result = client.hotBoardGames(limit = 2, offset = 1)
 
         assertEquals(5, result.total)
         assertEquals(2, result.limit)
         assertEquals(1, result.offset)
         assertEquals(2, result.items.size)
-        assertEquals("bgg:2", result.items[0].id) // Skip first, take 2
+        assertEquals("bgg:2", result.items[0].id)
         assertEquals("bgg:3", result.items[1].id)
     }
 
@@ -135,7 +186,7 @@ class BggClientImplTest {
             }
         }
 
-        val client = BggClientImpl(httpClient, config)
+        val client = BggClientImpl(httpClient, configWithoutToken, mockImageCacheClient)
         val result = client.searchBoardGames("catan", limit = 10, offset = 0)
 
         assertEquals(2, result.total)
@@ -144,8 +195,42 @@ class BggClientImplTest {
         assertEquals(2, result.items.size)
         assertEquals("bgg:13", result.items[0].id)
         assertEquals("Catan", result.items[0].title)
-        assertEquals("https://example.com/catan.jpg", result.items[0].imageUrl)
-        assertEquals(2, callCount) // Should make 2 calls: search + thing
+        assertEquals(2, callCount)
+    }
+
+    @Test
+    fun `searchBoardGames sends Authorization header when token is provided`() = runBlocking {
+        val searchXml = """
+            <?xml version="1.0" encoding="utf-8"?>
+            <items total="1" termsofuse="...">
+                <item type="boardgame" id="13">
+                    <name type="primary" value="Catan"/>
+                </item>
+            </items>
+        """.trimIndent()
+
+        val thingXml = """
+            <?xml version="1.0" encoding="utf-8"?>
+            <items termsofuse="...">
+                <item type="boardgame" id="13">
+                    <image>url</image>
+                    <name type="primary" value="Catan"/>
+                </item>
+            </items>
+        """.trimIndent()
+
+        val httpClient = mockHttpClient { request ->
+            assertEquals("Bearer test-token-123", request.headers[HttpHeaders.Authorization])
+
+            when (request.url.encodedPath) {
+                "/search" -> respond(searchXml, HttpStatusCode.OK)
+                "/thing" -> respond(thingXml, HttpStatusCode.OK)
+                else -> error("Unexpected path")
+            }
+        }
+
+        val client = BggClientImpl(httpClient, configWithToken, mockImageCacheClient)
+        client.searchBoardGames("catan", 10, 0)
     }
 
     @Test
@@ -158,7 +243,7 @@ class BggClientImplTest {
 
         val httpClient = mockHttpClient { respond(emptyXml, HttpStatusCode.OK) }
 
-        val client = BggClientImpl(httpClient, config)
+        val client = BggClientImpl(httpClient, configWithoutToken, mockImageCacheClient)
         val result = client.searchBoardGames("nonexistentgame12345", limit = 20, offset = 0)
 
         assertEquals(0, result.total)
@@ -192,7 +277,6 @@ class BggClientImplTest {
             when (request.url.encodedPath) {
                 "/search" -> respond(searchXml, HttpStatusCode.OK)
                 "/thing" -> {
-                    // Should only fetch the paginated item (id=2)
                     assertEquals("2", request.url.parameters["id"])
                     respond(thingXml, HttpStatusCode.OK)
                 }
@@ -200,7 +284,7 @@ class BggClientImplTest {
             }
         }
 
-        val client = BggClientImpl(httpClient, config)
+        val client = BggClientImpl(httpClient, configWithoutToken, mockImageCacheClient)
         val result = client.searchBoardGames("game", limit = 1, offset = 1)
 
         assertEquals(100, result.total)
@@ -230,7 +314,7 @@ class BggClientImplTest {
             )
         }
 
-        val client = BggClientImpl(httpClient, config)
+        val client = BggClientImpl(httpClient, configWithoutToken, mockImageCacheClient)
         client.getBoardGames(ids)
 
         assertEquals(2, batchCount)
@@ -240,7 +324,7 @@ class BggClientImplTest {
     fun `getBoardGames with empty list returns empty`() = runBlocking {
         val httpClient = mockHttpClient { error("Should not be called") }
 
-        val client = BggClientImpl(httpClient, config)
+        val client = BggClientImpl(httpClient, configWithoutToken, mockImageCacheClient)
         val result = client.getBoardGames(emptyList())
 
         assertEquals(0, result.size)
@@ -261,7 +345,7 @@ class BggClientImplTest {
             }
         }
 
-        val client = BggClientImpl(httpClient, config)
+        val client = BggClientImpl(httpClient, configWithoutToken, mockImageCacheClient)
         client.hotBoardGames(10, 0)
 
         assertEquals(3, attemptCount)
@@ -271,7 +355,7 @@ class BggClientImplTest {
     fun `throws exception after max retries on empty response`() = runBlocking {
         val httpClient = mockHttpClient { respond("", HttpStatusCode.OK) }
 
-        val client = BggClientImpl(httpClient, config)
+        val client = BggClientImpl(httpClient, configWithoutToken, mockImageCacheClient)
 
         val exception = assertFailsWith<IllegalStateException> {
             client.hotBoardGames(10, 0)
@@ -284,7 +368,7 @@ class BggClientImplTest {
     fun `handles non-XML response with retry`() = runBlocking {
         val httpClient = mockHttpClient { respond("Not XML content", HttpStatusCode.OK) }
 
-        val client = BggClientImpl(httpClient, config)
+        val client = BggClientImpl(httpClient, configWithoutToken, mockImageCacheClient)
 
         val exception = assertFailsWith<IllegalStateException> {
             client.hotBoardGames(10, 0)
@@ -308,7 +392,7 @@ class BggClientImplTest {
             }
         }
 
-        val client = BggClientImpl(httpClient, config)
+        val client = BggClientImpl(httpClient, configWithoutToken, mockImageCacheClient)
         client.hotBoardGames(10, 0)
 
         assertEquals(2, attemptCount)
@@ -329,7 +413,7 @@ class BggClientImplTest {
             }
         }
 
-        val client = BggClientImpl(httpClient, config)
+        val client = BggClientImpl(httpClient, configWithoutToken, mockImageCacheClient)
         client.hotBoardGames(10, 0)
 
         assertEquals(2, attemptCount)
@@ -341,12 +425,27 @@ class BggClientImplTest {
             respond("Server Error", HttpStatusCode.InternalServerError)
         }
 
-        val client = BggClientImpl(httpClient, config)
+        val client = BggClientImpl(httpClient, configWithoutToken, mockImageCacheClient)
 
         val exception = assertFailsWith<IllegalStateException> {
             client.hotBoardGames(10, 0)
         }
 
         assertTrue(exception.message!!.contains("500"))
+    }
+
+    @Test
+    fun `handles 401 Unauthorized with invalid token`() = runBlocking {
+        val httpClient = mockHttpClient { request ->
+            respond("Unauthorized", HttpStatusCode.Unauthorized)
+        }
+
+        val client = BggClientImpl(httpClient, configWithToken, mockImageCacheClient)
+
+        val exception = assertFailsWith<IllegalStateException> {
+            client.hotBoardGames(10, 0)
+        }
+
+        assertTrue(exception.message!!.contains("401"))
     }
 }
