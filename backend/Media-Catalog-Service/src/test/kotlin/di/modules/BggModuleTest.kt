@@ -7,7 +7,7 @@ import io.ktor.client.*
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.junit.pioneer.jupiter.SetEnvironmentVariable
+import org.junitpioneer.jupiter.SetEnvironmentVariable
 import org.junitpioneer.jupiter.EnvironmentVariableExtension
 import org.koin.core.context.stopKoin
 import org.koin.dsl.koinApplication
