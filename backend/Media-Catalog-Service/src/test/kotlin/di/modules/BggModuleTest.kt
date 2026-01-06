@@ -1,6 +1,6 @@
 package di.modules
 
-import com.collektar.imagecache.ImageCacheClient
+import com.collektar.di.modules.imageCacheModule
 import integration.bgg.BggClient
 import integration.bgg.BggConfig
 import io.ktor.client.HttpClient
@@ -17,6 +17,7 @@ import org.koin.core.context.stopKoin
 import org.koin.dsl.module
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+
 
 class BggModuleTest {
 
