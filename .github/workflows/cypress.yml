@@ -14,7 +14,7 @@ jobs:
       - name: Set up Docker Compose
         uses: docker/setup-compose-action@v1
         with:
-          version: latest
+          version: "latest"
       - name: Create .env file from .env.development
         run: grep -v -e '^[[:space:]]*$' -e '^[[:space:]]*#' -e '^[^=]*=$' .env.development > .env
       - name: Add secrets to .env file
@@ -30,11 +30,11 @@ jobs:
       - name: Export environment variables
         run: export $(cat .env | xargs)
       - name: Start Services
-        run: docker compose up -f docker-compose.yml -d
+        run: docker compose -f docker-compose.yml up -d
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: "10"
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
@@ -59,10 +59,10 @@ jobs:
           COMMIT_INFO_SHA: ${{github.event.pull_request.head.sha}}
       - name: Stop Services
         if: ${{ always() }}
-        run: docker compose down -f docker-compose.yml --rmi 'all'
+        run: docker compose -f docker-compose.yml down --rmi 'all'
       - name: Output service logs
         if: ${{ always() }}
-        run: docker compose down -f docker-compose.yml logs
+        run: docker compose -f docker-compose.yml logs
       - name: Cleanup .env
         if: ${{ always() }}
         run: rm .env
