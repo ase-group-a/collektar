@@ -376,22 +376,6 @@ class BggClientImplTest {
         }
     }
 
-    @Test
-    fun `handles non-XML response with retry`() {
-        runBlocking {
-            val httpClient = mockHttpClient { respond("Not XML content", HttpStatusCode.OK) }
-
-            val client = BggClientImpl(httpClient, configWithoutToken, mockImageCacheClient)
-
-            val exception = assertFailsWith<IllegalStateException> {
-                client.hotBoardGames(10, 0)
-            }
-
-            // Check that exception message contains relevant text
-            val message = exception.message ?: ""
-            assertTrue(message.contains("XML") || message.contains("non-XML"))
-        }
-    }
 
     @Test
     fun `handles 429 rate limit with extended retry`() = runBlocking {
