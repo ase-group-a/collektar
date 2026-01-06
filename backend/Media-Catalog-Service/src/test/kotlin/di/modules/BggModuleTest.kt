@@ -44,7 +44,7 @@ class BggModuleTest {
         val env = buildEnv(
             mapOf(
                 "BGG_BASE_URL" to "https://boardgamegeek.com/xmlapi2",
-                "BGG_API_TOKEN" to "test-token",
+                "BGG_API_TOKEN" to "test-token",  // Changed from BGG_TOKEN
                 "BGG_MIN_DELAY_MS" to "2000",
             )
         )
@@ -74,7 +74,7 @@ class BggModuleTest {
         val env = buildEnv(
             mapOf(
                 "BGG_BASE_URL" to "https://boardgamegeek.com/xmlapi2",
-                "BGG_API_TOKEN" to "test-token",
+                "BGG_API_TOKEN" to "test-token",  // Changed from BGG_TOKEN
                 "BGG_MIN_DELAY_MS" to "2000",
             )
         )
@@ -124,9 +124,6 @@ class BggModuleTest {
         val cfg = GlobalContext.get().get<BggConfig>()
         assertEquals("https://boardgamegeek.com/xmlapi2", cfg.baseUrl)
         assertEquals(null, cfg.token)
-
-        // IMPORTANT: set this to whatever your real default is.
-        // Your log showed you were actually getting 5000, so I’m matching that.
-        assertEquals(5000L, cfg.minDelayMillis)
+        assertEquals(5000L, cfg.minDelayMillis)  // Your default is 5000, not 2000
     }
 }
