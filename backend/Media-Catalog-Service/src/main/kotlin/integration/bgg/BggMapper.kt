@@ -1,5 +1,7 @@
 package integration.bgg
 
+import com.collektar.imagecache.ImageCacheClient
+import com.collektar.imagecache.ImageSource
 import domain.MediaItem
 import domain.MediaType
 import javax.xml.parsers.DocumentBuilderFactory
@@ -9,11 +11,6 @@ import org.xml.sax.InputSource
 
 object BggMapper {
 
-    /**
-     * Parse BGG /search XML and return:
-     * - total number of matches
-     * - list of item ids in the order BGG returned them
-     */
     fun parseSearchIds(xml: String): Pair<Int, List<Long>> {
         val doc = parseXml(xml)
         val items = doc.getElementsByTagName("item")
@@ -27,11 +24,7 @@ object BggMapper {
         return total to ids
     }
 
-    /**
-     * Map /hot response:
-     * <thumbnail value="..."/> (attribute, not text)
-     */
-    fun mapHotResponse(xml: String): List<MediaItem> {
+    fun mapHotResponse(xml: String, imageCacheClient: ImageCacheClient? = null): List<MediaItem> {
         val doc = parseXml(xml)
         val items = doc.getElementsByTagName("item")
 
@@ -53,22 +46,22 @@ object BggMapper {
                 ?.trim()
                 ?.takeIf { it.isNotBlank() }
 
+            val imageUrl = thumb?.let {
+                imageCacheClient?.getImageUrl(ImageSource.BGG, it) ?: it
+            }
+
             MediaItem(
                 id = "bgg:$id",
                 title = name,
                 type = MediaType.BOARDGAME,
-                imageUrl = thumb,
+                imageUrl = imageUrl,
                 description = null,
                 source = "BGG"
             )
         }
     }
 
-    /**
-     * Map /thing?id=1,2,3 response:
-     * <image>TEXT</image> and <thumbnail>TEXT</thumbnail>
-     */
-    fun mapThingListResponse(xml: String): List<MediaItem> {
+    fun mapThingListResponse(xml: String, imageCacheClient: ImageCacheClient? = null): List<MediaItem> {
         val doc = parseXml(xml)
         val items = doc.getElementsByTagName("item")
 
@@ -98,11 +91,16 @@ object BggMapper {
                 ?.trim()
                 ?.takeIf { it.isNotBlank() }
 
+            val originalUrl = imageUrl ?: thumbUrl
+            val cachedImageUrl = originalUrl?.let {
+                imageCacheClient?.getImageUrl(ImageSource.BGG, it) ?: it
+            }
+
             MediaItem(
                 id = "bgg:$id",
                 title = primaryName,
                 type = MediaType.BOARDGAME,
-                imageUrl = imageUrl ?: thumbUrl,
+                imageUrl = cachedImageUrl,
                 description = null,
                 source = "BGG"
             )
@@ -110,13 +108,11 @@ object BggMapper {
     }
 
     private fun parseXml(xml: String) = try {
-        // Clean the XML by removing BOM and trimming
         val cleanXml = xml.trim().trimStart('\uFEFF')
 
         DocumentBuilderFactory.newInstance()
             .apply {
                 isNamespaceAware = false
-                // Add better error handling
                 setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
             }
             .newDocumentBuilder()

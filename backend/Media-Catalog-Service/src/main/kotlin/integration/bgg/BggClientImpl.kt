@@ -1,5 +1,6 @@
 package integration.bgg
 
+import com.collektar.imagecache.ImageCacheClient
 import domain.MediaItem
 import domain.SearchResult
 import io.ktor.client.*
@@ -14,7 +15,8 @@ import org.slf4j.LoggerFactory
 
 class BggClientImpl(
     private val httpClient: HttpClient,
-    private val config: BggConfig
+    private val config: BggConfig,
+    private val imageCacheClient: ImageCacheClient  // ✅ Add image cache client
 ) : BggClient {
 
     private val logger = LoggerFactory.getLogger(BggClientImpl::class.java)
@@ -25,7 +27,7 @@ class BggClientImpl(
         private const val BGG_MAX_ITEMS_PER_REQUEST = 20
         private const val MAX_RETRIES = 3
         private const val RETRY_DELAY_MS = 5000L
-        private const val USER_AGENT = "MediaCatalogService/1.0 (compatible; +https://github.com/yourproject)"
+        private const val USER_AGENT = "MediaCatalogService/1.0"
     }
 
     private suspend fun <T> rateLimited(block: suspend () -> T): T =
@@ -52,7 +54,7 @@ class BggClientImpl(
             }
         }
 
-        val all = BggMapper.mapHotResponse(hotXml)
+        val all = BggMapper.mapHotResponse(hotXml, imageCacheClient)
         val paged = all.drop(offset).take(limit)
 
         SearchResult(
@@ -140,7 +142,7 @@ class BggClientImpl(
             }
         }
 
-        return BggMapper.mapThingListResponse(xml)
+        return BggMapper.mapThingListResponse(xml, imageCacheClient)  // ✅ Pass image cache
     }
 
     private suspend fun fetchWithRetry(
@@ -159,13 +161,12 @@ class BggClientImpl(
 
                 logger.debug("Received response with status $statusCode and ${body.length} characters")
 
-                // Check status code
                 if (!statusCode.isSuccess()) {
                     logger.warn("BGG returned non-success status: $statusCode for $operation")
                     if (statusCode == HttpStatusCode.TooManyRequests || statusCode.value == 429) {
                         logger.warn("Rate limited by BGG (429). Waiting longer...")
                         if (attempt < MAX_RETRIES - 1) {
-                            delay(RETRY_DELAY_MS * 2) // Wait even longer for rate limit
+                            delay(RETRY_DELAY_MS * 2)
                             return@repeat
                         }
                     }
@@ -177,7 +178,6 @@ class BggClientImpl(
                     }
                 }
 
-                // Validate response body
                 val trimmed = body.trim().trimStart('\uFEFF')
 
                 if (trimmed.isEmpty()) {

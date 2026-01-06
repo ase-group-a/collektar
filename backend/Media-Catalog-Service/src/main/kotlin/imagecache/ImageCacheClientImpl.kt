@@ -21,7 +21,6 @@ class ImageCacheClientImpl(
         // Get image from Redis cache
         var image = redis[imageKey]
         if (image == null) {
-            // Image does not exist in the cache, retrieve it from the external service
             image = getImageFromService(imageSource, imageId)
             redis.setex(imageKey, config.cacheTTL, image)
         }
@@ -29,15 +28,13 @@ class ImageCacheClientImpl(
         return image
     }
 
-    /**
-     * Retrieves the image from the external service
-     */
     private suspend fun getImageFromService(imageSource: ImageSource, imageId: String): ByteArray {
         val imageUrl = when (imageSource) {
             ImageSource.SPOTIFY -> "${config.spotifyUrlPrefix}$imageId"
             ImageSource.TMBD -> "${config.tmdbUrlPrefix}$imageId.jpg"
             ImageSource.IGDB -> "${config.igdbUrlPrefix}$imageId.jpg"
             ImageSource.GOOGLE_BOOKS -> "${config.googleBooksUrlPrefix}$imageId"
+            ImageSource.BGG -> imageId
         }
 
         val response = httpClient.get(imageUrl)

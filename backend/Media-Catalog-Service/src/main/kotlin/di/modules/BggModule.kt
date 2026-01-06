@@ -1,5 +1,6 @@
 package di.modules
 
+import com.collektar.imagecache.ImageCacheClient
 import controllers.BoardGameController
 import controllers.Controller
 import integration.bgg.BggClient
@@ -11,15 +12,17 @@ import org.koin.dsl.module
 import service.BggMediaService
 
 fun bggModule(env: ApplicationEnvironment) = module {
-
-    // Your fromEnv() takes no args
     single { BggConfig.fromEnv() }
 
-    // Use the shared HttpClient from coreModule
-    single<BggClient> { BggClientImpl(get<HttpClient>(), get()) }
+    single<BggClient> {
+        BggClientImpl(
+            get<HttpClient>(),
+            get<BggConfig>(),
+            get<ImageCacheClient>()  // Inject image cache client
+        )
+    }
 
     single { BggMediaService(get()) }
 
-    // Controller for auto-registration
     single<Controller> { BoardGameController(get()) }
 }
