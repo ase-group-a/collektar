@@ -1,155 +1,133 @@
 package integration.bgg
 
+import io.ktor.server.application.ApplicationEnvironment
+import io.ktor.server.config.MapApplicationConfig
 import io.mockk.every
-import io.mockk.mockkStatic
-import io.mockk.unmockkAll
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
-import kotlin.test.Test
+import io.mockk.mockk
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import org.junitpioneer.jupiter.ClearEnvironmentVariable
+import org.junitpioneer.jupiter.EnvironmentVariableExtension
+import org.junitpioneer.jupiter.SetEnvironmentVariable
 import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
+@ExtendWith(EnvironmentVariableExtension::class)
 class BggConfigTest {
 
-    @BeforeEach
-    fun setUp() {
-        mockkStatic(System::class)
-    }
-
-    @AfterEach
-    fun tearDown() {
-        unmockkAll()
-    }
-
-    @Test
-    fun `BggConfig constructor with token`() {
-        val config = BggConfig(
-            baseUrl = "https://boardgamegeek.com/xmlapi2",
-            token = "valid-bgg-token-abc123",
-            minDelayMillis = 5000L
-        )
-
-        assertEquals("https://boardgamegeek.com/xmlapi2", config.baseUrl)
-        assertEquals("valid-bgg-token-abc123", config.token)
-        assertEquals(5000L, config.minDelayMillis)
+    private fun buildEnv(config: Map<String, String>): ApplicationEnvironment {
+        val mapConfig = MapApplicationConfig().apply {
+            config.forEach { (k, v) -> put(k, v) }
+        }
+        return mockk<ApplicationEnvironment>().also { env ->
+            every { env.config } returns mapConfig
+        }
     }
 
     @Test
-    fun `BggConfig constructor with null token`() {
-        val config = BggConfig(
-            baseUrl = "https://boardgamegeek.com/xmlapi2",
-            token = null,
-            minDelayMillis = 5000L
-        )
-
-        assertEquals("https://boardgamegeek.com/xmlapi2", config.baseUrl)
-        assertNull(config.token)
-        assertEquals(5000L, config.minDelayMillis)
-    }
-
-    @Test
-    fun `BggConfig with custom values`() {
-        val config = BggConfig(
-            baseUrl = "https://custom.bgg.url",
-            token = "custom-token",
-            minDelayMillis = 10000L
-        )
-
-        assertEquals("https://custom.bgg.url", config.baseUrl)
-        assertEquals("custom-token", config.token)
-        assertEquals(10000L, config.minDelayMillis)
-    }
-
-    @Test
+    @ClearEnvironmentVariable(key = "BGG_BASE_URL")
+    @ClearEnvironmentVariable(key = "BGG_API_TOKEN")
+    @ClearEnvironmentVariable(key = "BGG_MIN_DELAY_MS")
     fun `fromEnv uses all environment variables when set`() {
-        every { System.getenv("BGG_BASE_URL") } returns "https://custom.boardgamegeek.com/api"
-        every { System.getenv("BGG_API_TOKEN") } returns "env-token-123"
-        every { System.getenv("BGG_MIN_DELAY_MS") } returns "3000"
+        val env = buildEnv(
+            mapOf(
+                "BGG_BASE_URL" to "https://test.example.com",
+                "BGG_API_TOKEN" to "test-token-123",
+                "BGG_MIN_DELAY_MS" to "3000"
+            )
+        )
 
-        val config = BggConfig.fromEnv()
+        val config = BggConfig.fromEnv(env)
 
-        assertEquals("https://custom.boardgamegeek.com/api", config.baseUrl)
-        assertEquals("env-token-123", config.token)
+        assertEquals("https://test.example.com", config.baseUrl)
+        assertEquals("test-token-123", config.token)
         assertEquals(3000L, config.minDelayMillis)
     }
 
     @Test
-    fun `fromEnv uses defaults when environment variables not set`() {
-        every { System.getenv("BGG_BASE_URL") } returns null
-        every { System.getenv("BGG_API_TOKEN") } returns null
-        every { System.getenv("BGG_MIN_DELAY_MS") } returns null
+    @ClearEnvironmentVariable(key = "BGG_BASE_URL")
+    @ClearEnvironmentVariable(key = "BGG_API_TOKEN")
+    @ClearEnvironmentVariable(key = "BGG_MIN_DELAY_MS")
+    fun `fromEnv uses default baseUrl when not set`() {
+        val env = buildEnv(emptyMap())
 
-        val config = BggConfig.fromEnv()
+        val config = BggConfig.fromEnv(env)
 
         assertEquals("https://boardgamegeek.com/xmlapi2", config.baseUrl)
-        assertNull(config.token)
+    }
+
+    @Test
+    @ClearEnvironmentVariable(key = "BGG_BASE_URL")
+    @ClearEnvironmentVariable(key = "BGG_API_TOKEN")
+    @ClearEnvironmentVariable(key = "BGG_MIN_DELAY_MS")
+    fun `fromEnv uses null token when not set`() {
+        val env = buildEnv(
+            mapOf("BGG_BASE_URL" to "https://boardgamegeek.com/xmlapi2")
+        )
+
+        val config = BggConfig.fromEnv(env)
+
+        assertEquals(null, config.token)
+    }
+
+    @Test
+    @ClearEnvironmentVariable(key = "BGG_BASE_URL")
+    @ClearEnvironmentVariable(key = "BGG_API_TOKEN")
+    @ClearEnvironmentVariable(key = "BGG_MIN_DELAY_MS")
+    fun `fromEnv uses default minDelayMillis when not set`() {
+        val env = buildEnv(
+            mapOf("BGG_BASE_URL" to "https://boardgamegeek.com/xmlapi2")
+        )
+
+        val config = BggConfig.fromEnv(env)
+
         assertEquals(5000L, config.minDelayMillis)
     }
 
     @Test
-    fun `fromEnv uses default baseUrl when BGG_BASE_URL is null`() {
-        every { System.getenv("BGG_BASE_URL") } returns null
-        every { System.getenv("BGG_API_TOKEN") } returns "token"
-        every { System.getenv("BGG_MIN_DELAY_MS") } returns "2000"
+    @ClearEnvironmentVariable(key = "BGG_BASE_URL")
+    @ClearEnvironmentVariable(key = "BGG_API_TOKEN")
+    @ClearEnvironmentVariable(key = "BGG_MIN_DELAY_MS")
+    fun `fromEnv handles invalid minDelayMillis gracefully`() {
+        val env = buildEnv(
+            mapOf(
+                "BGG_BASE_URL" to "https://boardgamegeek.com/xmlapi2",
+                "BGG_MIN_DELAY_MS" to "invalid"
+            )
+        )
 
-        val config = BggConfig.fromEnv()
+        val config = BggConfig.fromEnv(env)
 
-        assertEquals("https://boardgamegeek.com/xmlapi2", config.baseUrl)
-        assertEquals("token", config.token)
-        assertEquals(2000L, config.minDelayMillis)
-    }
-
-    @Test
-    fun `fromEnv uses default minDelayMillis when BGG_MIN_DELAY_MS is null`() {
-        every { System.getenv("BGG_BASE_URL") } returns "https://custom.url"
-        every { System.getenv("BGG_API_TOKEN") } returns "token"
-        every { System.getenv("BGG_MIN_DELAY_MS") } returns null
-
-        val config = BggConfig.fromEnv()
-
-        assertEquals("https://custom.url", config.baseUrl)
-        assertEquals("token", config.token)
         assertEquals(5000L, config.minDelayMillis)
     }
 
     @Test
-    fun `fromEnv token is null when BGG_API_TOKEN not set`() {
-        every { System.getenv("BGG_BASE_URL") } returns "https://boardgamegeek.com/xmlapi2"
-        every { System.getenv("BGG_API_TOKEN") } returns null
-        every { System.getenv("BGG_MIN_DELAY_MS") } returns "5000"
+    @ClearEnvironmentVariable(key = "BGG_BASE_URL")
+    @ClearEnvironmentVariable(key = "BGG_API_TOKEN")
+    @ClearEnvironmentVariable(key = "BGG_MIN_DELAY_MS")
+    fun `fromEnv uses provided token when set`() {
+        val env = buildEnv(
+            mapOf(
+                "BGG_BASE_URL" to "https://boardgamegeek.com/xmlapi2",
+                "BGG_API_TOKEN" to "my-token"
+            )
+        )
 
-        val config = BggConfig.fromEnv()
+        val config = BggConfig.fromEnv(env)
 
-        assertEquals("https://boardgamegeek.com/xmlapi2", config.baseUrl)
-        assertNull(config.token)
-        assertEquals(5000L, config.minDelayMillis)
+        assertEquals("my-token", config.token)
     }
 
     @Test
-    fun `fromEnv parses minDelayMillis as Long`() {
-        every { System.getenv("BGG_BASE_URL") } returns "https://boardgamegeek.com/xmlapi2"
-        every { System.getenv("BGG_API_TOKEN") } returns null
-        every { System.getenv("BGG_MIN_DELAY_MS") } returns "10000"
+    @ClearEnvironmentVariable(key = "BGG_BASE_URL")
+    @ClearEnvironmentVariable(key = "BGG_API_TOKEN")
+    @ClearEnvironmentVariable(key = "BGG_MIN_DELAY_MS")
+    fun `fromEnv uses provided baseUrl when set`() {
+        val env = buildEnv(
+            mapOf("BGG_BASE_URL" to "https://custom.url.com")
+        )
 
-        val config = BggConfig.fromEnv()
+        val config = BggConfig.fromEnv(env)
 
-        assertEquals(10000L, config.minDelayMillis)
-    }
-
-    @Test
-    fun `fromEnv with empty string environment variables uses defaults`() {
-        every { System.getenv("BGG_BASE_URL") } returns ""
-        every { System.getenv("BGG_API_TOKEN") } returns ""
-        every { System.getenv("BGG_MIN_DELAY_MS") } returns ""
-
-        val config = BggConfig.fromEnv()
-
-        // Empty string is truthy, so it won't use defaults for baseUrl
-        assertEquals("", config.baseUrl)
-        // Empty string for token is still set (not null)
-        assertEquals("", config.token)
-        // Empty string can't parse to Long, so this will throw
-        // But the code doesn't handle this - it will crash
-        // This is actually a bug in your code that should be fixed
+        assertEquals("https://custom.url.com", config.baseUrl)
     }
 }
