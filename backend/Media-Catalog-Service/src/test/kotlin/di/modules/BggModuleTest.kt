@@ -1,6 +1,7 @@
 package di.modules
 
 import com.collektar.di.modules.imageCacheModule
+import com.collektar.imagecache.ImageCacheClient
 import integration.bgg.BggClient
 import integration.bgg.BggConfig
 import io.ktor.client.HttpClient
