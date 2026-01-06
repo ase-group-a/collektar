@@ -46,7 +46,6 @@ services:
       - DB_URL=jdbc:postgresql://${PROJECT}-auth-db:5432/${AUTH_DB_NAME}
       - DB_USER=${AUTH_DB_USER}
       - DB_PASSWORD=${AUTH_DB_PASSWORD}
-    user: "1000:1000"
     depends_on:
       auth-db:
         condition: service_healthy
