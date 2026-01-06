@@ -23,7 +23,7 @@ describe('GET /api/media/health', () => {
         });
     });
 
-    it('should return 401 for /api/media/health', function () {
+    it('should return 401 for /api/collections/health', function () {
         cy.request({
             method: 'GET',
             url: `${this.general.collectionApi}/health`
