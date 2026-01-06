@@ -9,7 +9,8 @@ describe('/media/music displays correctly', () => {
         cy.visit('/')
 
         // Find and search music button
-        cy.get('a[href="/media/music"]')
+        cy.get('.navbar')
+            .find('a[href="/media/music"]')
             .should('exist')
             .click()
     })
