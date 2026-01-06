@@ -28,9 +28,9 @@ Cypress.Commands.add('paginationTest', () => {
 
     // Find and store element values
     cy.get('.card').first()
-        .then(($card) => {
-            const itemImgSrc = $card.find('img').attr('src')
-            const itemTitle = $card.find('h2').text()
+        .then((card) => {
+            const itemImgSrc = card.find('img').attr('src')
+            const itemTitle = card.find('h2').text()
 
             expect(itemImgSrc).to.not.be.empty
             expect(itemTitle).to.not.be.empty
@@ -53,6 +53,118 @@ Cypress.Commands.add('paginationTest', () => {
                 .should('exist')
                 .find('h2')
                 .should("not.contain.text", itemTitle)
+        })
+})
+
+Cypress.Commands.add('collectionItemTest', (mediaType) => {
+    cy.wait(500)
+
+    cy.visit(`/media/${mediaType}`)
+
+    cy.get('.card').first()
+        .then((card) => {
+
+            // Save image src and title of media item card 1 for comparison
+            const item1ImgSrc = card.find('img').attr('src')
+            const item1Title = card.find('h2').text()
+            expect(item1ImgSrc).to.not.be.empty
+            expect(item1Title).to.not.be.empty
+
+            // Add item 1 to collection
+            cy.get('.card')
+                .first()
+                .find('button')
+                .should("exist")
+                .click()
+
+            cy.get('.card').eq(1) // Get second card
+                .then((card2) => {
+                    // Save image src and title for second media card
+                    const item2ImgSrc = card2.find('img').attr('src')
+                    const item2Title = card2.find('h2').text()
+                    expect(item2ImgSrc).to.not.be.empty
+                    expect(item2Title).to.not.be.empty
+
+                    // Add item 2 to collection
+                    cy.get('.card')
+                        .eq(1)
+                        .find('button')
+                        .should("exist")
+                        .click()
+
+                    // Navigate to collections
+                    cy.get('.navbar')
+                        .get(`a`)
+                        .contains("My Collections")
+                        .should("exist")
+                        .click()
+
+                    // Select collection and open it
+                    cy.get('main')
+                        .find("h3")
+                        .contains(new RegExp(`^${mediaType}$`))
+                        .should('exist')
+                        .click()
+                    
+                    // Check card 1
+                    cy.get('.card')
+                        .first()
+                        .should('exist')
+                        .find('img')
+                        .should('have.attr', 'src', item1ImgSrc)
+
+                    cy.get('.card')
+                        .first()
+                        .should("exist")
+                        .find("h2")
+                        .should("exist")
+                        .should("not.be.empty")
+                        .contains(item1Title)
+
+                    // Check card 2
+                    cy.get('.card')
+                        .eq(1)
+                        .should('exist')
+                        .find('img')
+                        .should('have.attr', 'src', item2ImgSrc)
+
+                    cy.get('.card')
+                        .eq(1)
+                        .should("exist")
+                        .find("h2")
+                        .should("exist")
+                        .should("not.be.empty")
+                        .contains(item2Title)
+                    
+                    // Remove media item 1
+                    cy.get('.card')
+                        .first()
+                        .find('button')
+                        .should("exist")
+                        .click()
+                    
+                    cy.reload()
+
+                    // Check that card 2 is the new first item
+                    cy.get('.card')
+                        .first()
+                        .should('exist')
+                        .find('img')
+                        .should('have.attr', 'src', item2ImgSrc)
+
+                    cy.get('.card')
+                        .first()
+                        .should("exist")
+                        .find("h2")
+                        .should("exist")
+                        .should("not.be.empty")
+                        .contains(item2Title)
+                    
+                    // Check that no other card exists
+                    cy.get('.card')
+                        .eq(2)
+                        .should("not.exist")
+                })
         })
 })
 
