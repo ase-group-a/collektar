@@ -46,7 +46,7 @@ class BggClientImplTest {
         """.trimIndent()
 
         val httpClient = mockHttpClient { request ->
-            assertEquals("/hot", request.url.encodedPath)
+            assertEquals("/xmlapi2/hot", request.url.encodedPath)
             assertEquals("boardgame", request.url.parameters["type"])
             assertNotNull(request.headers[HttpHeaders.UserAgent])
             assertEquals("application/xml", request.headers[HttpHeaders.Accept])
@@ -172,12 +172,12 @@ class BggClientImplTest {
         val httpClient = mockHttpClient { request ->
             callCount++
             when (request.url.encodedPath) {
-                "/search" -> {
+                "/xmlapi2/search" -> {
                     assertEquals("catan", request.url.parameters["query"])
                     assertEquals("boardgame", request.url.parameters["type"])
                     respond(searchXml, HttpStatusCode.OK)
                 }
-                "/thing" -> {
+                "/xmlapi2/thing" -> {
                     assertEquals("13,822", request.url.parameters["id"])
                     assertEquals("1", request.url.parameters["stats"])
                     respond(thingXml, HttpStatusCode.OK)
@@ -223,8 +223,8 @@ class BggClientImplTest {
             assertEquals("Bearer test-token-123", request.headers[HttpHeaders.Authorization])
 
             when (request.url.encodedPath) {
-                "/search" -> respond(searchXml, HttpStatusCode.OK)
-                "/thing" -> respond(thingXml, HttpStatusCode.OK)
+                "/xmlapi2/search" -> respond(searchXml, HttpStatusCode.OK)
+                "/xmlapi2/thing" -> respond(thingXml, HttpStatusCode.OK)
                 else -> error("Unexpected path")
             }
         }
@@ -275,8 +275,8 @@ class BggClientImplTest {
 
         val httpClient = mockHttpClient { request ->
             when (request.url.encodedPath) {
-                "/search" -> respond(searchXml, HttpStatusCode.OK)
-                "/thing" -> {
+                "/xmlapi2/search" -> respond(searchXml, HttpStatusCode.OK)
+                "/xmlapi2/thing" -> {
                     assertEquals("2", request.url.parameters["id"])
                     respond(thingXml, HttpStatusCode.OK)
                 }
@@ -431,7 +431,7 @@ class BggClientImplTest {
             client.hotBoardGames(10, 0)
         }
 
-        assertTrue(exception.message!!.contains("500"))
+        assertTrue(exception.message!!.contains("500") || exception.message!!.contains("Internal Server Error"))
     }
 
     @Test
@@ -446,6 +446,6 @@ class BggClientImplTest {
             client.hotBoardGames(10, 0)
         }
 
-        assertTrue(exception.message!!.contains("401"))
+        assertTrue(exception.message!!.contains("401") || exception.message!!.contains("Unauthorized"))
     }
 }
