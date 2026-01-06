@@ -17,7 +17,7 @@ import org.koin.test.check.checkModules
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
-@ExtendWith(EnvironmentVariableExtension::class)
+
 class BggModuleTest : KoinTest {
 
     @AfterEach
