@@ -5,13 +5,8 @@ import io.ktor.server.config.MapApplicationConfig
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
-import org.junitpioneer.jupiter.ClearEnvironmentVariable
-import org.junitpioneer.jupiter.EnvironmentVariableExtension
-import org.junitpioneer.jupiter.SetEnvironmentVariable
 import kotlin.test.assertEquals
 
-@ExtendWith(EnvironmentVariableExtension::class)
 class BggConfigTest {
 
     private fun buildEnv(config: Map<String, String>): ApplicationEnvironment {
@@ -24,10 +19,7 @@ class BggConfigTest {
     }
 
     @Test
-    @ClearEnvironmentVariable(key = "BGG_BASE_URL")
-    @ClearEnvironmentVariable(key = "BGG_API_TOKEN")
-    @ClearEnvironmentVariable(key = "BGG_MIN_DELAY_MS")
-    fun `fromEnv uses all environment variables when set`() {
+    fun `fromEnv uses all config values when set`() {
         val env = buildEnv(
             mapOf(
                 "BGG_BASE_URL" to "https://test.example.com",
@@ -44,9 +36,6 @@ class BggConfigTest {
     }
 
     @Test
-    @ClearEnvironmentVariable(key = "BGG_BASE_URL")
-    @ClearEnvironmentVariable(key = "BGG_API_TOKEN")
-    @ClearEnvironmentVariable(key = "BGG_MIN_DELAY_MS")
     fun `fromEnv uses default baseUrl when not set`() {
         val env = buildEnv(emptyMap())
 
@@ -56,9 +45,6 @@ class BggConfigTest {
     }
 
     @Test
-    @ClearEnvironmentVariable(key = "BGG_BASE_URL")
-    @ClearEnvironmentVariable(key = "BGG_API_TOKEN")
-    @ClearEnvironmentVariable(key = "BGG_MIN_DELAY_MS")
     fun `fromEnv uses null token when not set`() {
         val env = buildEnv(
             mapOf("BGG_BASE_URL" to "https://boardgamegeek.com/xmlapi2")
@@ -70,9 +56,6 @@ class BggConfigTest {
     }
 
     @Test
-    @ClearEnvironmentVariable(key = "BGG_BASE_URL")
-    @ClearEnvironmentVariable(key = "BGG_API_TOKEN")
-    @ClearEnvironmentVariable(key = "BGG_MIN_DELAY_MS")
     fun `fromEnv uses default minDelayMillis when not set`() {
         val env = buildEnv(
             mapOf("BGG_BASE_URL" to "https://boardgamegeek.com/xmlapi2")
@@ -84,9 +67,6 @@ class BggConfigTest {
     }
 
     @Test
-    @ClearEnvironmentVariable(key = "BGG_BASE_URL")
-    @ClearEnvironmentVariable(key = "BGG_API_TOKEN")
-    @ClearEnvironmentVariable(key = "BGG_MIN_DELAY_MS")
     fun `fromEnv handles invalid minDelayMillis gracefully`() {
         val env = buildEnv(
             mapOf(
@@ -101,9 +81,6 @@ class BggConfigTest {
     }
 
     @Test
-    @ClearEnvironmentVariable(key = "BGG_BASE_URL")
-    @ClearEnvironmentVariable(key = "BGG_API_TOKEN")
-    @ClearEnvironmentVariable(key = "BGG_MIN_DELAY_MS")
     fun `fromEnv uses provided token when set`() {
         val env = buildEnv(
             mapOf(
@@ -118,9 +95,6 @@ class BggConfigTest {
     }
 
     @Test
-    @ClearEnvironmentVariable(key = "BGG_BASE_URL")
-    @ClearEnvironmentVariable(key = "BGG_API_TOKEN")
-    @ClearEnvironmentVariable(key = "BGG_MIN_DELAY_MS")
     fun `fromEnv uses provided baseUrl when set`() {
         val env = buildEnv(
             mapOf("BGG_BASE_URL" to "https://custom.url.com")
