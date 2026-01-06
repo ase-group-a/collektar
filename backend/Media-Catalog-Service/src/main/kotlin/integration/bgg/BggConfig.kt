@@ -1,18 +1,19 @@
 package integration.bgg
 
+import io.ktor.server.application.ApplicationEnvironment
+
 data class BggConfig(
     val baseUrl: String,
     val token: String?,
     val minDelayMillis: Long
 ) {
     companion object {
-        fun fromEnv(): BggConfig =
+        fun fromEnv(env: ApplicationEnvironment): BggConfig =
             BggConfig(
-                baseUrl = System.getenv("BGG_BASE_URL")
+                baseUrl = env.config.propertyOrNull("BGG_BASE_URL")?.getString()
                     ?: "https://boardgamegeek.com/xmlapi2",
-                token = System.getenv("BGG_API_TOKEN"),
-                // default 5 seconds between calls
-                minDelayMillis = (System.getenv("BGG_MIN_DELAY_MS") ?: "5000").toLong()
+                token = env.config.propertyOrNull("BGG_API_TOKEN")?.getString(),
+                minDelayMillis = env.config.propertyOrNull("BGG_MIN_DELAY_MS")?.getString()?.toLongOrNull() ?: 5000L
             )
     }
 }
