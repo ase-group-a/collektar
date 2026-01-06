@@ -10,6 +10,10 @@ fun Application.configureHTTP() {
     routing {
         swaggerUI(path = "openapi")
     }
+
+    val isProd = System.getenv("KTOR_ENVIRONMENT") == "production"
+    val domain = System.getenv("DOMAIN") ?: "localhost"
+
     install(CORS) {
         allowMethod(HttpMethod.Options)
         allowMethod(HttpMethod.Put)
@@ -20,7 +24,10 @@ fun Application.configureHTTP() {
         allowHeader(HttpHeaders.ContentType)
         allowCredentials = true
         allowHeader(HttpHeaders.Authorization)
-        allowHeader("MyCustomHeader")
-        anyHost() // @TODO: Don't do this in production if possible. Try to limit it.
+        if (isProd) {
+            allowHost(domain, schemes = listOf("https"))
+        } else {
+            anyHost()
+        }
     }
 }
