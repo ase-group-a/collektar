@@ -30,7 +30,7 @@ jobs:
       - name: Export environment variables
         run: export $(cat .env | xargs)
       - name: Start Services
-        run: docker compose up -d
+        run: docker compose up -f docker-compose.yml -d
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -58,6 +58,11 @@ jobs:
           COMMIT_INFO_MESSAGE: ${{github.event.pull_request.title}}
           COMMIT_INFO_SHA: ${{github.event.pull_request.head.sha}}
       - name: Stop Services
-        run: docker compose down --rmi 'all'
+        if: ${{ always() }}
+        run: docker compose down -f docker-compose.yml --rmi 'all'
+      - name: Output service logs
+        if: ${{ always() }}
+        run: docker compose down -f docker-compose.yml logs
       - name: Cleanup .env
+        if: ${{ always() }}
         run: rm .env
