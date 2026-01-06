@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test
 import org.koin.core.context.GlobalContext
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -44,7 +45,7 @@ class BggModuleTest {
         val env = buildEnv(
             mapOf(
                 "BGG_BASE_URL" to "https://boardgamegeek.com/xmlapi2",
-                "BGG_API_TOKEN" to "test-token",  // Changed from BGG_TOKEN
+                "BGG_API_TOKEN" to "test-token",
                 "BGG_MIN_DELAY_MS" to "2000",
             )
         )
@@ -63,7 +64,7 @@ class BggModuleTest {
         }
 
         val koin = GlobalContext.get()
-        assertNotNull(koin.get<BggConfig>())
+        assertNotNull(koin.get<BggConfig>(named(BGG_CONFIG_NAME)))
         assertNotNull(koin.get<BggClient>())
         assertNotNull(koin.get<ImageCacheClient>())
         assertNotNull(koin.get<HttpClient>())
@@ -74,7 +75,7 @@ class BggModuleTest {
         val env = buildEnv(
             mapOf(
                 "BGG_BASE_URL" to "https://boardgamegeek.com/xmlapi2",
-                "BGG_API_TOKEN" to "test-token",  // Changed from BGG_TOKEN
+                "BGG_API_TOKEN" to "test-token",
                 "BGG_MIN_DELAY_MS" to "2000",
             )
         )
@@ -92,7 +93,7 @@ class BggModuleTest {
             )
         }
 
-        val cfg = GlobalContext.get().get<BggConfig>()
+        val cfg = GlobalContext.get().get<BggConfig>(named(BGG_CONFIG_NAME))
         assertEquals("https://boardgamegeek.com/xmlapi2", cfg.baseUrl)
         assertEquals("test-token", cfg.token)
         assertEquals(2000L, cfg.minDelayMillis)
@@ -121,9 +122,9 @@ class BggModuleTest {
             )
         }
 
-        val cfg = GlobalContext.get().get<BggConfig>()
+        val cfg = GlobalContext.get().get<BggConfig>(named(BGG_CONFIG_NAME))
         assertEquals("https://boardgamegeek.com/xmlapi2", cfg.baseUrl)
         assertEquals(null, cfg.token)
-        assertEquals(5000L, cfg.minDelayMillis)  // Your default is 5000, not 2000
+        assertEquals(5000L, cfg.minDelayMillis)  // Default is 5000
     }
 }

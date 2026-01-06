@@ -8,21 +8,25 @@ import integration.bgg.BggClientImpl
 import integration.bgg.BggConfig
 import io.ktor.client.HttpClient
 import io.ktor.server.application.ApplicationEnvironment
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import service.BggMediaService
 
+const val BGG_CONFIG_NAME = "bgg_config"
+const val BGG_CONTROLLER_NAME = "boardgames"
+
 fun bggModule(env: ApplicationEnvironment) = module {
-    single { BggConfig.fromEnv() }
+    single(named(BGG_CONFIG_NAME)) { BggConfig.fromEnv(env) }
 
     single<BggClient> {
         BggClientImpl(
             get<HttpClient>(),
-            get<BggConfig>(),
-            get<ImageCacheClient>()  // Inject image cache client
+            get(named(BGG_CONFIG_NAME)),
+            get<ImageCacheClient>()
         )
     }
 
     single { BggMediaService(get()) }
 
-    single<Controller> { BoardGameController(get()) }
+    single<Controller>(named(BGG_CONTROLLER_NAME)) { BoardGameController(get()) }
 }
