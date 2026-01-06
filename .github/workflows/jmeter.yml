@@ -61,9 +61,9 @@ jobs:
             echo "JMeter log file does not exit."
           fi
       - name: Upload JMeter Results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: jmeter-results
+          name: jmeter-results.jtl
           path: results.jtl
       - name: Output service logs
         if: ${{ always() }}
