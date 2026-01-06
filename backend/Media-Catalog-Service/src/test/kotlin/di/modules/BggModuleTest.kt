@@ -3,158 +3,134 @@ package di.modules
 import com.collektar.imagecache.ImageCacheClient
 import integration.bgg.BggClient
 import integration.bgg.BggConfig
-import io.ktor.client.*
+import io.ktor.client.HttpClient
+import io.ktor.server.application.ApplicationEnvironment
+import io.ktor.server.config.MapApplicationConfig
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
-import org.junitpioneer.jupiter.SetEnvironmentVariable
-import org.junitpioneer.jupiter.EnvironmentVariableExtension
+import org.koin.core.context.GlobalContext
+import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
-import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import org.koin.test.KoinTest
-import org.koin.test.check.checkModules
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
+class BggModuleTest {
 
-class BggModuleTest : KoinTest {
+    @BeforeEach
+    fun setup() {
+        try { stopKoin() } catch (_: Exception) {}
+    }
 
     @AfterEach
-    fun tearDown() {
-        stopKoin()
+    fun teardown() {
+        try { stopKoin() } catch (_: Exception) {}
+    }
+
+    private fun buildEnv(config: Map<String, String>): ApplicationEnvironment {
+        val mapConfig = MapApplicationConfig().apply {
+            config.forEach { (k, v) -> put(k, v) }
+        }
+        return mockk<ApplicationEnvironment>().also { env ->
+            every { env.config } returns mapConfig
+        }
     }
 
     @Test
-    @SetEnvironmentVariable(key = "BGG_BASE_URL", value = "https://boardgamegeek.com/xmlapi2")
-    @SetEnvironmentVariable(key = "BGG_TOKEN", value = "test-token")
-    @SetEnvironmentVariable(key = "BGG_MIN_DELAY_MS", value = "2000")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_TMDB_URL", value = "https://image.tmdb.org/t/p/")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_IGDB_URL", value = "https://images.igdb.com/igdb/image/upload/")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_SPOTIFY_URL", value = "https://i.scdn.co/image/")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_BGG_URL", value = "https://cf.geekdo-images.com/")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_BOOKS_URL", value = "https://books.google.com/books/content")
     fun `bggModule can be checked`() {
-        koinApplication {
-            modules(bggModule, imageCacheModule)
-            checkModules()
-        }
-    }
+        val env = buildEnv(
+            mapOf(
+                "bgg.baseUrl" to "https://boardgamegeek.com/xmlapi2",
+                "bgg.token" to "test-token",
+                "bgg.minDelayMs" to "2000",
+                "imageCache.tmdbUrl" to "https://image.tmdb.org/t/p/",
+                "imageCache.igdbUrl" to "https://images.igdb.com/igdb/image/upload/",
+                "imageCache.spotifyUrl" to "https://i.scdn.co/image/",
+                "imageCache.bggUrl" to "https://cf.geekdo-images.com/",
+                "imageCache.booksUrl" to "https://books.google.com/books/content"
+            )
+        )
 
-    @Test
-    @SetEnvironmentVariable(key = "BGG_BASE_URL", value = "https://boardgamegeek.com/xmlapi2")
-    @SetEnvironmentVariable(key = "BGG_TOKEN", value = "test-token")
-    @SetEnvironmentVariable(key = "BGG_MIN_DELAY_MS", value = "2000")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_TMDB_URL", value = "https://image.tmdb.org/t/p/")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_IGDB_URL", value = "https://images.igdb.com/igdb/image/upload/")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_SPOTIFY_URL", value = "https://i.scdn.co/image/")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_BGG_URL", value = "https://cf.geekdo-images.com/")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_BOOKS_URL", value = "https://books.google.com/books/content")
-    fun `bggModule provides BggConfig from environment`() {
-        val app = koinApplication {
-            modules(bggModule, imageCacheModule)
-        }
+        val httpClient = mockk<HttpClient>(relaxed = true)
 
-        val config = app.koin.get<BggConfig>()
-
-        assertEquals("https://boardgamegeek.com/xmlapi2", config.baseUrl)
-        assertEquals("test-token", config.token)
-        assertEquals(2000L, config.minDelayMillis)
-    }
-
-    @Test
-    @SetEnvironmentVariable(key = "BGG_BASE_URL", value = "https://boardgamegeek.com/xmlapi2")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_TMDB_URL", value = "https://image.tmdb.org/t/p/")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_IGDB_URL", value = "https://images.igdb.com/igdb/image/upload/")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_SPOTIFY_URL", value = "https://i.scdn.co/image/")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_BGG_URL", value = "https://cf.geekdo-images.com/")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_BOOKS_URL", value = "https://books.google.com/books/content")
-    fun `bggModule provides BggConfig with defaults when optional env vars missing`() {
-        val app = koinApplication {
-            modules(bggModule, imageCacheModule)
+        startKoin {
+            modules(
+                module { single { httpClient } },
+                bggModule(env),
+                imageCacheModule(env),
+            )
         }
 
-        val config = app.koin.get<BggConfig>()
-
-        assertEquals("https://boardgamegeek.com/xmlapi2", config.baseUrl)
-        assertEquals(null, config.token)
-        assertEquals(2000L, config.minDelayMillis)
-    }
-
-    @Test
-    @SetEnvironmentVariable(key = "BGG_BASE_URL", value = "https://boardgamegeek.com/xmlapi2")
-    @SetEnvironmentVariable(key = "BGG_TOKEN", value = "test-token")
-    @SetEnvironmentVariable(key = "BGG_MIN_DELAY_MS", value = "2000")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_TMDB_URL", value = "https://image.tmdb.org/t/p/")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_IGDB_URL", value = "https://images.igdb.com/igdb/image/upload/")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_SPOTIFY_URL", value = "https://i.scdn.co/image/")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_BGG_URL", value = "https://cf.geekdo-images.com/")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_BOOKS_URL", value = "https://books.google.com/books/content")
-    fun `bggModule provides HttpClient with injected HttpClient`() {
-        val mockHttpClientModule = module {
-            single {
-                HttpClient()
-            }
-        }
-
-        val app = koinApplication {
-            modules(mockHttpClientModule, bggModule, imageCacheModule)
-        }
-
-        val httpClient = app.koin.get<HttpClient>()
-        assertNotNull(httpClient)
-    }
-
-    @Test
-    @SetEnvironmentVariable(key = "BGG_BASE_URL", value = "https://boardgamegeek.com/xmlapi2")
-    @SetEnvironmentVariable(key = "BGG_TOKEN", value = "test-token")
-    @SetEnvironmentVariable(key = "BGG_MIN_DELAY_MS", value = "2000")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_TMDB_URL", value = "https://image.tmdb.org/t/p/")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_IGDB_URL", value = "https://images.igdb.com/igdb/image/upload/")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_SPOTIFY_URL", value = "https://i.scdn.co/image/")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_BGG_URL", value = "https://cf.geekdo-images.com/")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_BOOKS_URL", value = "https://books.google.com/books/content")
-    fun `bggModule provides BggClient`() {
-        val mockHttpClientModule = module {
-            single {
-                HttpClient()
-            }
-        }
-
-        val app = koinApplication {
-            modules(mockHttpClientModule, bggModule, imageCacheModule)
-        }
-
-        val bggClient = app.koin.get<BggClient>()
-        assertNotNull(bggClient)
-    }
-
-    @Test
-    @SetEnvironmentVariable(key = "BGG_BASE_URL", value = "https://boardgamegeek.com/xmlapi2")
-    @SetEnvironmentVariable(key = "BGG_TOKEN", value = "test-token")
-    @SetEnvironmentVariable(key = "BGG_MIN_DELAY_MS", value = "2000")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_TMDB_URL", value = "https://image.tmdb.org/t/p/")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_IGDB_URL", value = "https://images.igdb.com/igdb/image/upload/")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_SPOTIFY_URL", value = "https://i.scdn.co/image/")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_BGG_URL", value = "https://cf.geekdo-images.com/")
-    @SetEnvironmentVariable(key = "IMAGE_CACHE_BOOKS_URL", value = "https://books.google.com/books/content")
-    fun `bggModule provides expected dependencies`() {
-        val mockHttpClientModule = module {
-            single {
-                HttpClient()
-            }
-        }
-
-        val app = koinApplication {
-            modules(mockHttpClientModule, bggModule, imageCacheModule)
-        }
-
-        val koin = app.koin
-
-        // Verify all expected dependencies can be resolved
+        // basic smoke: can resolve key beans
+        val koin = GlobalContext.get()
         assertNotNull(koin.get<BggConfig>())
         assertNotNull(koin.get<BggClient>())
         assertNotNull(koin.get<ImageCacheClient>())
         assertNotNull(koin.get<HttpClient>())
+    }
+
+    @Test
+    fun `bggModule provides BggConfig from config`() {
+        val env = buildEnv(
+            mapOf(
+                "bgg.baseUrl" to "https://boardgamegeek.com/xmlapi2",
+                "bgg.token" to "test-token",
+                "bgg.minDelayMs" to "2000",
+                "imageCache.tmdbUrl" to "https://image.tmdb.org/t/p/",
+                "imageCache.igdbUrl" to "https://images.igdb.com/igdb/image/upload/",
+                "imageCache.spotifyUrl" to "https://i.scdn.co/image/",
+                "imageCache.bggUrl" to "https://cf.geekdo-images.com/",
+                "imageCache.booksUrl" to "https://books.google.com/books/content"
+            )
+        )
+
+        val httpClient = mockk<HttpClient>(relaxed = true)
+
+        startKoin {
+            modules(
+                module { single { httpClient } },
+                bggModule(env),
+                imageCacheModule(env),
+            )
+        }
+
+        val cfg = GlobalContext.get().get<BggConfig>()
+        assertEquals("https://boardgamegeek.com/xmlapi2", cfg.baseUrl)
+        assertEquals("test-token", cfg.token)
+        assertEquals(2000L, cfg.minDelayMillis)
+    }
+
+    @Test
+    fun `bggModule provides BggConfig with defaults when optional config missing`() {
+        val env = buildEnv(
+            mapOf(
+                "bgg.baseUrl" to "https://boardgamegeek.com/xmlapi2",
+                // token missing
+                // minDelayMs missing -> default expected
+                "imageCache.tmdbUrl" to "https://image.tmdb.org/t/p/",
+                "imageCache.igdbUrl" to "https://images.igdb.com/igdb/image/upload/",
+                "imageCache.spotifyUrl" to "https://i.scdn.co/image/",
+                "imageCache.bggUrl" to "https://cf.geekdo-images.com/",
+                "imageCache.booksUrl" to "https://books.google.com/books/content"
+            )
+        )
+
+        val httpClient = mockk<HttpClient>(relaxed = true)
+
+        startKoin {
+            modules(
+                module { single { httpClient } },
+                bggModule(env),
+                imageCacheModule(env),
+            )
+        }
+
+        val cfg = GlobalContext.get().get<BggConfig>()
+        assertEquals("https://boardgamegeek.com/xmlapi2", cfg.baseUrl)
+        assertEquals(null, cfg.token)
+        assertEquals(2000L, cfg.minDelayMillis)
     }
 }
