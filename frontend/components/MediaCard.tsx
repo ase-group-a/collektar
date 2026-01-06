@@ -100,15 +100,30 @@ const MediaCard = ({ item, layout = "grid" }: MediaCardProps) => {
                 </div>
             </div>
 
-            <h2
+            <div
                 className={
                     layout === "grid"
-                        ? "text-xs text-center truncate p-2"
-                        : "text-sm font-medium px-4 truncate"
+                        ? "p-2 text-center"
+                        : "px-4 flex flex-col justify-center text-left overflow-hidden"
                 }
             >
-                {item.title}
-            </h2>
+                <h2
+                    className={
+                        layout === "grid"
+                            ? "text-xs truncate"
+                            : "text-sm font-medium truncate"
+                    }
+                >
+                    {item.title}
+                </h2>
+
+                {layout === "list" && item.description && (
+                    <p className="text-xs opacity-70 line-clamp-2">
+                        {item.description}
+                    </p>
+                )}
+            </div>
+
         </div>
     );
 };
