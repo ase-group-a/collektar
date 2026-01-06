@@ -57,12 +57,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COMMIT_INFO_MESSAGE: ${{github.event.pull_request.title}}
           COMMIT_INFO_SHA: ${{github.event.pull_request.head.sha}}
-      - name: Stop Services
-        if: ${{ always() }}
-        run: docker compose -f docker-compose.yml down --rmi 'all'
       - name: Output service logs
         if: ${{ always() }}
         run: docker compose -f docker-compose.yml logs
+      - name: Stop Services
+        if: ${{ always() }}
+        run: docker compose -f docker-compose.yml down --rmi 'all'
       - name: Cleanup .env
         if: ${{ always() }}
         run: rm .env
