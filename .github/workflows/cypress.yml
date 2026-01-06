@@ -27,6 +27,10 @@ jobs:
           echo "GOOGLE_BOOKSAPI_KEY=${{ secrets.GOOGLE_BOOKSAPI_KEY }}" >> .env
       - name: Generate Required Keys and Certificates
         run: make setup
+      - name: Fix cert permissions
+        run: |
+          sudo chgrp 1000 ./secrets/jwt_private.pem ./secrets/token_hasher_secret
+          sudo chmod 640  ./secrets/jwt_private.pem ./secrets/token_hasher_secret
       - name: Export environment variables
         run: export $(cat .env | xargs)
       - name: Start Services
