@@ -23,9 +23,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 
-const val BGG_BASE_URL = "https://boardgamegeek.com/xmlapi2"
-const val BGG_MIN_DELAY_MS = 2000L
-
 class BggModuleTest {
 
     @BeforeEach
@@ -47,12 +44,12 @@ class BggModuleTest {
 
     @Test
     fun `bggModule provides expected dependencies`() {
-        // Mock BggConfig.fromEnv() since it reads from environment
+        // Mock BggConfig.fromEnv()
         mockkObject(BggConfig.Companion)
         val expectedConfig = BggConfig(
-            baseUrl = BGG_BASE_URL,
+            baseUrl = "https://boardgamegeek.com/xmlapi2",
             token = null,
-            minDelayMillis = BGG_MIN_DELAY_MS
+            minDelayMillis = 5000L
         )
         every { BggConfig.fromEnv() } returns expectedConfig
 
@@ -69,9 +66,9 @@ class BggModuleTest {
         }
 
         val cfg = GlobalContext.get().get<BggConfig>()
-        assertEquals(BGG_BASE_URL, cfg.baseUrl)
+        assertEquals("https://boardgamegeek.com/xmlapi2", cfg.baseUrl)
         assertEquals(null, cfg.token)
-        assertEquals(BGG_MIN_DELAY_MS, cfg.minDelayMillis)
+        assertEquals(5000L, cfg.minDelayMillis)
 
         val client = GlobalContext.get().get<BggClient>()
         assertIs<BggClientImpl>(client)
@@ -81,5 +78,33 @@ class BggModuleTest {
 
         val controller = GlobalContext.get().get<Controller>()
         assertIs<BoardGameController>(controller)
+    }
+
+    @Test
+    fun `bggModule with custom config`() {
+        mockkObject(BggConfig.Companion)
+        val expectedConfig = BggConfig(
+            baseUrl = "https://custom.bgg.url",
+            token = "custom-token",
+            minDelayMillis = 10000L
+        )
+        every { BggConfig.fromEnv() } returns expectedConfig
+
+        val env = mockk<ApplicationEnvironment>(relaxed = true)
+        val httpClient = mockk<HttpClient>(relaxed = true)
+
+        startKoin {
+            modules(
+                module {
+                    single { httpClient }
+                },
+                bggModule(env)
+            )
+        }
+
+        val cfg = GlobalContext.get().get<BggConfig>()
+        assertEquals("https://custom.bgg.url", cfg.baseUrl)
+        assertEquals("custom-token", cfg.token)
+        assertEquals(10000L, cfg.minDelayMillis)
     }
 }
