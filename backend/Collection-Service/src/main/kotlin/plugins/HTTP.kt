@@ -8,6 +8,9 @@ import io.ktor.server.plugins.swagger.*
 import io.ktor.server.routing.*
 
 fun Application.configureHTTP() {
+    val isProd = System.getenv("KTOR_ENVIRONMENT") == "production"
+    val domain = System.getenv("DOMAIN") ?: "localhost"
+
     install(CORS) {
         allowMethod(HttpMethod.Options)
         allowMethod(HttpMethod.Get)
@@ -21,7 +24,11 @@ fun Application.configureHTTP() {
         allowHeader("X-User-Id")
         allowCredentials = true
 
-        anyHost() // @TODO: Don't do this in production if possible. Try to limit it.
+        if (isProd) {
+            allowHost(domain, schemes = listOf("https"))
+        } else {
+            anyHost()
+        }
     }
     install(DefaultHeaders) {
         header("X-Engine", "Ktor") // will send this header with each response
