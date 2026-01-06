@@ -60,11 +60,13 @@ jobs:
           else
             echo "JMeter log file does not exit."
           fi
+      - name: Move results into out folder
+        run: mv results.jtl out
       - name: Upload JMeter Results
         uses: actions/upload-artifact@v4
         with:
-          name: jmeter-results.jtl
-          path: results.jtl
+          name: jmeter-results
+          path: out
       - name: Output service logs
         if: ${{ always() }}
         run: docker compose -f docker-compose.yml logs
