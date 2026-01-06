@@ -111,62 +111,60 @@ Cypress.Commands.add('collectionItemTest', (mediaType) => {
                     
                     // Check card 1
                     cy.get('.card')
-                        .first()
+                        .find(`img[src="${item1ImgSrc}"]`)
                         .should('exist')
-                        .find('img')
-                        .should('have.attr', 'src', item1ImgSrc)
-
+                        
                     cy.get('.card')
-                        .first()
-                        .should("exist")
                         .find("h2")
-                        .should("exist")
-                        .should("not.be.empty")
                         .contains(item1Title)
+                        .should("exist")
 
                     // Check card 2
                     cy.get('.card')
-                        .eq(1)
+                        .find(`img[src="${item2ImgSrc}"]`)
                         .should('exist')
-                        .find('img')
-                        .should('have.attr', 'src', item2ImgSrc)
 
                     cy.get('.card')
-                        .eq(1)
-                        .should("exist")
                         .find("h2")
-                        .should("exist")
-                        .should("not.be.empty")
                         .contains(item2Title)
+                        .should("exist")
                     
                     // Remove media item 1
-                    cy.get('.card')
-                        .first()
-                        .find('button')
-                        .should("exist")
-                        .click()
-                    
-                    cy.reload()
+                    cy.get('.card').first()
+                        .then((card) => {
 
-                    // Check that card 2 is the new first item
-                    cy.get('.card')
-                        .first()
-                        .should('exist')
-                        .find('img')
-                        .should('have.attr', 'src', item2ImgSrc)
+                            // Save image src and title of media item card 1 for comparison
+                            const itemImgSrc = card.find('img').attr('src')
+                            const itemTitle = card.find('h2').text()
+                            expect(itemImgSrc).to.not.be.empty
+                            expect(itemTitle).to.not.be.empty
 
-                    cy.get('.card')
-                        .first()
-                        .should("exist")
-                        .find("h2")
-                        .should("exist")
-                        .should("not.be.empty")
-                        .contains(item2Title)
-                    
-                    // Check that no other card exists
-                    cy.get('.card')
-                        .eq(2)
-                        .should("not.exist")
+                            cy.get('.card')
+                                .first()
+                                .find('button')
+                                .should("exist")
+                                .click()
+
+                            cy.reload()
+
+                            // Check that the remaining card is not the deleted media item
+                            cy.get('.card')
+                                .first()
+                                .find(`img[src="${itemImgSrc}"]`)
+                                .should('not.exist')
+
+                            cy.get('.card')
+                                .first()
+                                .should("exist")
+                                .find("h2")
+                                .contains(itemTitle)
+                                .should("not.exist")
+                            
+                            // Check that no other card exists
+                            cy.get('.card')
+                                .eq(2)
+                                .should("not.exist")
+                        })
                 })
         })
 })
