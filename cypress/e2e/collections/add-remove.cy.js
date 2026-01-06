@@ -5,6 +5,7 @@ describe('Collections work as expected', () => {
     it('Adding and removing game items to collections works', () => {
         cy.getRandomUser(USER).then(user => {
             cy.registerUser(user, false, false).then(() => {
+                cy.url().should('contain', '/u/')
                 cy.collectionItemTest('games')
             })
         })
@@ -13,6 +14,7 @@ describe('Collections work as expected', () => {
     it('Adding and removing movie items to collections works', () => {
         cy.getRandomUser(USER).then(user => {
             cy.registerUser(user, false, false).then(() => {
+                cy.url().should('contain', '/u/')
                 cy.collectionItemTest('movies')
             })
         })
@@ -21,6 +23,7 @@ describe('Collections work as expected', () => {
     it('Adding and removing show items to collections works', () => {
         cy.getRandomUser(USER).then(user => {
             cy.registerUser(user, false, false).then(() => {
+                cy.url().should('contain', '/u/')
                 cy.collectionItemTest('shows')
             })
         })
@@ -29,6 +32,7 @@ describe('Collections work as expected', () => {
     it('Adding and removing music items to collections works', () => {
         cy.getRandomUser(USER).then(user => {
             cy.registerUser(user, false, false).then(() => {
+                cy.url().should('contain', '/u/')
                 cy.collectionItemTest('music')
             })
         })
@@ -37,6 +41,7 @@ describe('Collections work as expected', () => {
     it('Adding and removing book items to collections works', () => {
         cy.getRandomUser(USER).then(user => {
             cy.registerUser(user, false, false).then(() => {
+                cy.url().should('contain', '/u/')
                 cy.collectionItemTest('books')
             })
         })
