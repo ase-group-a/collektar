@@ -45,9 +45,9 @@ class BggModuleTest {
     fun `bggModule can be checked`() {
         val env = buildEnv(
             mapOf(
-                "bgg.baseUrl" to "https://boardgamegeek.com/xmlapi2",
-                "bgg.token" to "test-token",
-                "bgg.minDelayMs" to "2000",
+                "BGG_BASE_URL" to "https://boardgamegeek.com/xmlapi2",
+                "BGG_API_KEY" to "test-token",
+                "BGG_MIN_DELAY_MS" to "2000",
                 "imageCache.tmdbUrl" to "https://image.tmdb.org/t/p/",
                 "imageCache.igdbUrl" to "https://images.igdb.com/igdb/image/upload/",
                 "imageCache.spotifyUrl" to "https://i.scdn.co/image/",
@@ -78,9 +78,9 @@ class BggModuleTest {
     fun `bggModule provides BggConfig from config`() {
         val env = buildEnv(
             mapOf(
-                "bgg.baseUrl" to "https://boardgamegeek.com/xmlapi2",
-                "bgg.token" to "test-token",
-                "bgg.minDelayMs" to "2000",
+                "BGG_BASE_URL" to "https://boardgamegeek.com/xmlapi2",
+                "BGG_API_KEY" to "test-token",
+                "BGG_MIN_DELAY_MS" to "2000",
                 "imageCache.tmdbUrl" to "https://image.tmdb.org/t/p/",
                 "imageCache.igdbUrl" to "https://images.igdb.com/igdb/image/upload/",
                 "imageCache.spotifyUrl" to "https://i.scdn.co/image/",
@@ -109,9 +109,9 @@ class BggModuleTest {
     fun `bggModule provides BggConfig with defaults when optional config missing`() {
         val env = buildEnv(
             mapOf(
-                "bgg.baseUrl" to "https://boardgamegeek.com/xmlapi2",
-                // token missing
-                // minDelayMs missing -> default expected
+                "BGG_BASE_URL" to "https://boardgamegeek.com/xmlapi2",
+                "BGG_API_KEY" to "test-token",
+                "BGG_MIN_DELAY_MS" to "2000",
                 "imageCache.tmdbUrl" to "https://image.tmdb.org/t/p/",
                 "imageCache.igdbUrl" to "https://images.igdb.com/igdb/image/upload/",
                 "imageCache.spotifyUrl" to "https://i.scdn.co/image/",
