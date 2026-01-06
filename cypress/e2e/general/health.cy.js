@@ -26,7 +26,8 @@ describe('GET /api/media/health', () => {
     it('should return 401 for /api/collections/health', function () {
         cy.request({
             method: 'GET',
-            url: `${this.general.collectionApi}/health`
+            url: `${this.general.collectionApi}/health`,
+            failOnStatusCode: false
         }).then((response) => {
             expect(response.status).to.equal(401);
         });
