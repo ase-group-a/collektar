@@ -20,7 +20,7 @@ class BooksService(
         })} ?: emptyList()
 
         return SearchResult(
-            total = result.totalItems ?: items.size,
+            total = minOf(result.totalItems ?: items.size.coerceAtMost(200), 200),
             limit = limit,
             offset = offset,
             items = items
