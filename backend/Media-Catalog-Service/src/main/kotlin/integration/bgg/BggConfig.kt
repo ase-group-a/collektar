@@ -8,12 +8,16 @@ data class BggConfig(
     val minDelayMillis: Long
 ) {
     companion object {
-        fun fromEnv(env: ApplicationEnvironment): BggConfig =
-            BggConfig(
+        fun fromEnv(env: ApplicationEnvironment): BggConfig {
+            return BggConfig(
                 baseUrl = env.config.propertyOrNull("BGG_BASE_URL")?.getString()
+                    ?: System.getenv("BGG_BASE_URL")
                     ?: "https://boardgamegeek.com/xmlapi2",
-                token = env.config.propertyOrNull("BGG_API_TOKEN")?.getString(),
-                minDelayMillis = env.config.propertyOrNull("BGG_MIN_DELAY_MS")?.getString()?.toLongOrNull() ?: 5000L
+                token = env.config.propertyOrNull("BGG_API_TOKEN")?.getString()
+                    ?: System.getenv("BGG_API_TOKEN"),
+                minDelayMillis = (env.config.propertyOrNull("BGG_MIN_DELAY_MS")?.getString()
+                    ?: System.getenv("BGG_MIN_DELAY_MS"))?.toLongOrNull() ?: 5000L
             )
+        }
     }
 }
