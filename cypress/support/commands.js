@@ -105,6 +105,9 @@ Cypress.Commands.add('collectionItemTest', (mediaType) => {
                         .contains(new RegExp(`^${mediaType}$`))
                         .should('exist')
                         .click()
+
+                    // Wait for loading to finish
+                    cy.wait(500)
                     
                     // Check card 1
                     cy.get('.card')
