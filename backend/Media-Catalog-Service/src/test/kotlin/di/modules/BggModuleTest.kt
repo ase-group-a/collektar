@@ -8,9 +8,8 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.pioneer.jupiter.SetEnvironmentVariable
-import org.junitpioneer.jupiter.junitpioneer.EnvironmentVariableExtension
+import org.junitpioneer.jupiter.EnvironmentVariableExtension
 import org.koin.core.context.stopKoin
-import org.koin.core.parameter.parametersOf
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import org.koin.test.KoinTest
@@ -138,7 +137,7 @@ class BggModuleTest : KoinTest {
     @SetEnvironmentVariable(key = "IMAGE_CACHE_IGDB_URL", value = "https://images.igdb.com/igdb/image/upload/")
     @SetEnvironmentVariable(key = "IMAGE_CACHE_SPOTIFY_URL", value = "https://i.scdn.co/image/")
     @SetEnvironmentVariable(key = "IMAGE_CACHE_BGG_URL", value = "https://cf.geekdo-images.com/")
-    @SetEnvironmentVariable(key =="IMAGE_CACHE_BOOKS_URL", value = "https://books.google.com/books/content")
+    @SetEnvironmentVariable(key = "IMAGE_CACHE_BOOKS_URL", value = "https://books.google.com/books/content")
     fun `bggModule provides expected dependencies`() {
         val mockHttpClientModule = module {
             single {
