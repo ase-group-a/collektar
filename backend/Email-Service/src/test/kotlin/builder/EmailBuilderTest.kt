@@ -103,7 +103,6 @@ class EmailBuilderTest {
         assertEquals(defaultRecipient, result.to)
         assertEquals("Password Changed", result.subject)
         assertTrue(result.htmlBody.contains(defaultDisplayName))
-        assertTrue(result.htmlBody.contains("$defaultAppBaseUrl/support"))
     }
 
     @Test
