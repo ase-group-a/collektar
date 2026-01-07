@@ -23,6 +23,14 @@ sealed class AppError(message: String, val statusCode: HttpStatusCode) : Excepti
         class RefreshTokenMissing : BadRequest(
             "Refresh token is required."
         )
+
+        class InvalidOrExpiredToken : BadRequest(
+            "Token is expired or invalid"
+        )
+
+        class InvalidUserIdFormat : BadRequest(
+            "Invalid user id format"
+        )
     }
 
     sealed class Unauthorized(message: String) : AppError(message, HttpStatusCode.Unauthorized) {
@@ -37,15 +45,25 @@ sealed class AppError(message: String, val statusCode: HttpStatusCode) : Excepti
         class MissingToken : Unauthorized(
             "Missing authentication token"
         )
+
+        class MissingUserId : Unauthorized(
+            "Missing user id"
+        )
     }
 
-    sealed class Conflict(message: String) : AppError(message, HttpStatusCode.NotFound) {
+    sealed class Conflict(message: String) : AppError(message, HttpStatusCode.Conflict) {
         data class UsernameTaken(private val username: String) : Conflict(
             "Username $username is already taken"
         )
 
         class EmailAlreadyInUse : Conflict(
             "Email is already in use"
+        )
+    }
+
+    sealed class NotFound(message: String) : AppError(message, HttpStatusCode.NotFound) {
+        class UserNotFound : NotFound(
+            "Invalid UserId"
         )
     }
 }
