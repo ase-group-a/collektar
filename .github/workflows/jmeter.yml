@@ -25,6 +25,7 @@ jobs:
           echo "IGDB_CLIENT_ID=${{ secrets.IGDB_CLIENT_ID }}" >> .env
           echo "IGDB_CLIENT_SECRET=${{ secrets.IGDB_CLIENT_SECRET }}" >> .env
           echo "GOOGLE_BOOKSAPI_KEY=${{ secrets.GOOGLE_BOOKSAPI_KEY }}" >> .env
+          echo "BGG_API_TOKEN=${{ secrets.BGG_API_TOKEN }}" >> .env
       - name: Generate Required Keys and Certificates
         run: make setup
       - name: Fix cert permissions
