@@ -10,6 +10,7 @@ object SchemaInitializer {
             SchemaUtils.create(
                 Tables.Users,
                 Tables.RefreshTokens,
+                Tables.PasswordResetTokens,
             )
         }
     }
