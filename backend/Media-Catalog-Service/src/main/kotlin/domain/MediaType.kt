@@ -4,5 +4,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class MediaType {
-    GAME, MOVIE, SHOW, MUSIC, BOOK
+    GAMES, MOVIES, SHOWS, MUSIC, BOOKS, BOARDGAMES
 }

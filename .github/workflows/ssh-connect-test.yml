@@ -1,7 +1,5 @@
 name: "Dev - SSH connect test"
 on:
-  push:
-    branches:
   workflow_dispatch:
 
 jobs:

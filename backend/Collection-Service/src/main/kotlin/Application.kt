@@ -1,5 +1,12 @@
 package com.collektar
 
+import com.collektar.plugins.configureFrameworks
+import com.collektar.plugins.configureHTTP
+import com.collektar.plugins.configureMonitoring
+import com.collektar.plugins.configureRouting
+import com.collektar.plugins.configureSecurity
+import com.collektar.plugins.configureSerialization
+import com.collektar.shared.errors.configureStatusPages
 import io.ktor.server.application.*
 
 fun main(args: Array<String>) {
@@ -7,9 +14,10 @@ fun main(args: Array<String>) {
 }
 
 fun Application.module() {
+    configureFrameworks()
     configureHTTP()
     configureSerialization()
-    configureDatabases()
+    configureStatusPages()
     configureSecurity()
     configureMonitoring()
     configureRouting()

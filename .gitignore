@@ -3,3 +3,7 @@
 /data
 /secrets
 /config
+node_modules
+jmeter.log
+out
+results.jtl

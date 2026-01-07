@@ -28,7 +28,6 @@ class TmdbConfigTest {
     fun `fromEnv uses default baseUrl when none configured or in env`() {
         val mapConfig = MapApplicationConfig(
             "tmdb.bearerToken" to "bearer"
-            // no tmdb.baseUrl
         )
 
         val env = mockk<ApplicationEnvironment>()

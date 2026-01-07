@@ -38,6 +38,16 @@ export default function Header() {
                     <li><Link href="/media/shows">Shows</Link></li>
                     <li><Link href="/media/music">Music</Link></li>
                     <li><Link href="/media/books">Books</Link></li>
+                    <li><Link href="/media/boardgames">Boardgames</Link></li>
+
+                    {isAuthenticated && (
+                        <>
+                            <li>
+                                <span className="mx-2"></span>
+                            </li>
+                            <li><Link href={`/u/${user?.username}`}>My Collections</Link></li>
+                        </>
+                    )}
                 </ul>
             </div>
 

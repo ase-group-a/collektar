@@ -8,6 +8,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
+const val URL_MAPPER_POSTFIX = "mapped"
+        
 class IGDBMapperTest {
     
     @Test
@@ -22,15 +24,15 @@ class IGDBMapperTest {
         
         // Build required values
         val mappedId = "${IGDBMapper.IGDB_SOURCE_ID}:$GAME_ID"
-        val mappedCoverUrl = "${IGDBMapper.IGDB_IMAGE_URL}$COVER_IMAGE_ID${IGDBMapper.IGDB_IMAGE_EXTENSION}"
+        val mappedCoverUrl = "$COVER_IMAGE_ID$URL_MAPPER_POSTFIX"
         
-        val mappedItem = IGDBMapper.gameToMediaItem(gameDto)
+        val mappedItem = IGDBMapper.gameToMediaItem(gameDto, imageIdentifierMapper = { imageIdentifier -> "$imageIdentifier$URL_MAPPER_POSTFIX" })
 
         assertNotNull(mappedItem.description)
         assertNotNull(mappedItem.imageUrl)
         assertEquals(mappedId, mappedItem.id)
         assertEquals(GAME_NAME, mappedItem.title)
-        assertEquals(MediaType.GAME, mappedItem.type)
+        assertEquals(MediaType.GAMES, mappedItem.type)
         assertEquals(mappedCoverUrl, mappedItem.imageUrl)
         assertEquals(GAME_SUMMARY, mappedItem.description)
         assertEquals(IGDBMapper.IGDB_SOURCE_ID, mappedItem.source)
@@ -43,7 +45,7 @@ class IGDBMapperTest {
             GAME_ID, null, GAME_NAME, null
         )
         
-        val mappedItem = IGDBMapper.gameToMediaItem(gameDto)
+        val mappedItem = IGDBMapper.gameToMediaItem(gameDto, imageIdentifierMapper = { imageIdentifier -> "$imageIdentifier$URL_MAPPER_POSTFIX" })
 
         assertNull(mappedItem.description)
         assertNull(mappedItem.imageUrl)
