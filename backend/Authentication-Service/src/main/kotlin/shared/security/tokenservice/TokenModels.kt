@@ -17,7 +17,8 @@ data class TokenClaims(
 
 data class PasswordResetToken(
     val token: String,
-    val expiresAt: Instant
+    val expiresAt: Instant,
+    val validityMinutes: Int
 )
 
 data class PasswordResetTokenClaims(

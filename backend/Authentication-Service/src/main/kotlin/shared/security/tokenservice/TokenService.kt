@@ -80,9 +80,9 @@ class TokenService(
     }
 
     override suspend fun generatePasswordResetToken(userId: UUID): PasswordResetToken {
-        val rawToken = opaqueTokenGenerator.generateRaw()
-        val tokenHash = tokenHasher.hash(rawToken)
-        val expiresAt = Instant.now().plusSeconds(30 * 60L)
+        val rawTokenData = opaqueTokenGenerator.generateRaw()
+        val tokenHash = tokenHasher.hash(rawTokenData.rawToken)
+        val expiresAt = Instant.now().plusSeconds(rawTokenData.validityInMinutes * 60L)
 
         repository.savePasswordResetToken(
             userId = userId,
@@ -91,8 +91,9 @@ class TokenService(
         )
 
         return PasswordResetToken(
-            token = rawToken,
+            token = rawTokenData.rawToken,
             expiresAt = expiresAt,
+            validityMinutes = rawTokenData.validityInMinutes
         )
     }
 
