@@ -51,7 +51,7 @@ jobs:
       - name: Run JMeter Test
         run: |
           mkdir -p out
-          jmeter -n -t performance.jmx -l results.jtl -e -o out
+          jmeter -n -t performance.jmx -l results.jtl -e -o out -Jjmeter.reportgenerator.overall_granularity=5000 -Jjmeter.reportgenerator.report_title="Collektar JMeter Performance Test"
         continue-on-error: true
       - name: Print JMeter Logs
         run: |
@@ -60,8 +60,10 @@ jobs:
           else
             echo "JMeter log file does not exit."
           fi
-      - name: Move results into out folder
-        run: mv results.jtl out
+      - name: Move results and logs into out folder
+        run: |
+          mv results.jtl out
+          mv jmeter.log out
       - name: Upload JMeter Results
         uses: actions/upload-artifact@v4
         with:
