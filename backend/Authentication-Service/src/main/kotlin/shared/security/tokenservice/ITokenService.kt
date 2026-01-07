@@ -7,4 +7,8 @@ interface ITokenService {
     suspend fun validateAndRefresh(token: String): TokenPair
     suspend fun validateAccessToken(token: String): TokenClaims
     suspend fun revokeRefreshToken(token: String)
+    suspend fun generatePasswordResetToken(userId: UUID): PasswordResetToken
+    suspend fun validatePasswordResetToken(token: String): PasswordResetTokenClaims
+    suspend fun consumePasswordResetToken(token: String): PasswordResetTokenClaims
+    suspend fun invalidatePasswordResetTokens(userId: UUID)
 }
