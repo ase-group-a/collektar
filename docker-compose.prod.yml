@@ -1,3 +1,4 @@
+---
 networks:
   #
   # Override definition of the shared network to use pre-existing network on server
