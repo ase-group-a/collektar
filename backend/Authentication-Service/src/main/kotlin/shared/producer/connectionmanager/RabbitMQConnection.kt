@@ -34,7 +34,7 @@ class RabbitMQConnection(
         }
 
         connection = factory.newConnection()
-        channel = newConnection.createChannel().apply {
+        channel = connection!!.createChannel().apply {
             queueDeclare(config.queueName, true, false, false, null)
             basicQos(1)
         }
