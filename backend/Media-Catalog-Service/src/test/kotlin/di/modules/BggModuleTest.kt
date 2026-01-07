@@ -44,9 +44,9 @@ class BggModuleTest {
     fun `bggModule can be checked`() {
         val env = buildEnv(
             mapOf(
-                "BGG_BASE_URL" to "https://boardgamegeek.com/xmlapi2",
-                "BGG_API_TOKEN" to "test-token",
-                "BGG_MIN_DELAY_MS" to "2000",
+                "bgg.baseUrl" to "https://boardgamegeek.com/xmlapi2",
+                "bgg.apiToken" to "test-token",
+                "bgg.minDelayMs" to "2000",
             )
         )
 
@@ -70,13 +70,14 @@ class BggModuleTest {
         assertNotNull(koin.get<HttpClient>())
     }
 
+
     @Test
     fun `bggModule provides BggConfig from config`() {
         val env = buildEnv(
             mapOf(
-                "BGG_BASE_URL" to "https://boardgamegeek.com/xmlapi2",
-                "BGG_API_TOKEN" to "test-token",
-                "BGG_MIN_DELAY_MS" to "2000",
+                "bgg.baseUrl" to "https://boardgamegeek.com/xmlapi2",
+                "bgg.apiToken" to "test-token",
+                "bgg.minDelayMs" to "2000",
             )
         )
 
@@ -98,4 +99,5 @@ class BggModuleTest {
         assertEquals("test-token", cfg.token)
         assertEquals(2000L, cfg.minDelayMillis)
     }
+
 }
