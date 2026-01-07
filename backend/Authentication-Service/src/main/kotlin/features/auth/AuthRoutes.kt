@@ -1,11 +1,10 @@
 package com.collektar.features.auth
 
-import com.collektar.dto.LoginRequest
-import com.collektar.dto.RefreshTokenRequest
-import com.collektar.dto.RegisterRequest
+import com.collektar.dto.*
 import com.collektar.features.auth.service.IAuthService
 import com.collektar.shared.errors.AppError
 import com.collektar.shared.security.cookies.ICookieProvider
+import com.collektar.shared.utility.userId
 import com.collektar.shared.validation.Validator
 import io.ktor.http.*
 import io.ktor.server.request.*
@@ -29,7 +28,7 @@ fun Route.authRoutes(authService: IAuthService, cookieProvider: ICookieProvider)
         val res = authService.login(req)
 
         cookieProvider.set(call, "refresh_token", res.refreshToken, res.refreshTokenExpiresIn)
-        call.respond(HttpStatusCode.OK,res.accessTokenResponse)
+        call.respond(HttpStatusCode.OK, res.accessTokenResponse)
     }
 
     post("/refresh") {
@@ -42,7 +41,7 @@ fun Route.authRoutes(authService: IAuthService, cookieProvider: ICookieProvider)
         val res = authService.refresh(req)
 
         cookieProvider.set(call, "refresh_token", res.refreshToken, res.refreshTokenExpiresIn)
-        call.respond(HttpStatusCode.OK,res.accessTokenResponse)
+        call.respond(HttpStatusCode.OK, res.accessTokenResponse)
     }
 
     get("/verify") {
@@ -62,6 +61,38 @@ fun Route.authRoutes(authService: IAuthService, cookieProvider: ICookieProvider)
 
     post("/logout") {
         authService.logout(cookieProvider.get(call, "refresh_token"))
+        cookieProvider.delete(call, "refresh_token")
+        call.respond(HttpStatusCode.OK)
+    }
+
+    post("/forgot-password") {
+        val req = call.receive<ForgotPasswordRequest>()
+        Validator.validateEmail(req.email)
+        authService.forgotPassword(req)
+
+        call.respond(HttpStatusCode.OK)
+    }
+
+    post("/reset-password") {
+        val req = call.receive<ResetPasswordRequest>()
+        Validator.validatePassword(req.newPassword)
+        authService.resetPassword(req)
+        call.respond(HttpStatusCode.OK)
+    }
+
+    post("/change-password") {
+        val userId = call.userId
+        val req = call.receive<ChangePasswordRequest>()
+        Validator.validatePassword(req.newPassword)
+        authService.changePassword(userId, req)
+        cookieProvider.delete(call, "refresh_token")
+        call.respond(HttpStatusCode.OK)
+    }
+
+    delete("/account") {
+        val userId = call.userId
+        val req = call.receive<DeleteAccountRequest>()
+        authService.deleteAccount(userId, req)
         cookieProvider.delete(call, "refresh_token")
         call.respond(HttpStatusCode.OK)
     }
