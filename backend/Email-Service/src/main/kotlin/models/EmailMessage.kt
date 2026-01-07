@@ -99,7 +99,7 @@ data class PasswordChangedEmail(
             <p>Hi $displayName,</p>
             <p>Your password has been changed successfully.</p>
             <p>If you didn't make this change, please contact our support team immediately.</p>
-            <a href="$appUrl/support" class="button">Contact Support</a>
+            <a href="mailto:support@example.com" class="button">Contact Support</a>
         """.trimIndent()
     )
 }
