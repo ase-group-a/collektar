@@ -1,0 +1,72 @@
+name: Cypress E2E Testing
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+jobs:
+  compose-and-test:
+    name: Setup Docker Compose and run Cypress E2E Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout collektar repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Docker Compose
+        uses: docker/setup-compose-action@v1
+        with:
+          version: "latest"
+      - name: Create .env file from .env.development
+        run: grep -v -e '^[[:space:]]*$' -e '^[[:space:]]*#' -e '^[^=]*=$' .env.development > .env
+      - name: Add secrets to .env file
+        run: |
+          echo "SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }}" >> .env
+          echo "SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }}" >> .env
+          echo "TMDB_BEARER_TOKEN=${{ secrets.TMDB_BEARER_TOKEN }}" >> .env
+          echo "IGDB_CLIENT_ID=${{ secrets.IGDB_CLIENT_ID }}" >> .env
+          echo "IGDB_CLIENT_SECRET=${{ secrets.IGDB_CLIENT_SECRET }}" >> .env
+          echo "GOOGLE_BOOKSAPI_KEY=${{ secrets.GOOGLE_BOOKSAPI_KEY }}" >> .env
+      - name: Generate Required Keys and Certificates
+        run: make setup
+      - name: Fix cert permissions
+        run: |
+          sudo chgrp 1000 ./secrets/jwt_private.pem ./secrets/token_hasher_secret
+          sudo chmod 640  ./secrets/jwt_private.pem ./secrets/token_hasher_secret
+      - name: Export environment variables
+        run: export $(cat .env | xargs)
+      - name: Start Services
+        run: docker compose -f docker-compose.yml up -d
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: "10"
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Run pnpm install
+        run: pnpm install
+      - name: Install cypress
+        run: pnpm cypress install
+      - name: Wait for all Services to finish initialization
+        run: sleep 10
+      - name: Run Cypress E2E Tests
+        uses: cypress-io/github-action@v6
+        with:
+          browser: chrome
+          record: true
+        env:
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMIT_INFO_MESSAGE: ${{github.event.pull_request.title}}
+          COMMIT_INFO_SHA: ${{github.event.pull_request.head.sha}}
+      - name: Output service logs
+        if: ${{ always() }}
+        run: docker compose -f docker-compose.yml logs
+      - name: Stop Services
+        if: ${{ always() }}
+        run: docker compose -f docker-compose.yml down --rmi 'all'
+      - name: Cleanup .env
+        if: ${{ always() }}
+        run: rm .env
