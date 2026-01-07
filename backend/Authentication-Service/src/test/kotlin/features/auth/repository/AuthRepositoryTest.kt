@@ -1,5 +1,6 @@
 package com.collektar.features.auth.repository
 
+import com.collektar.shared.database.Tables.PasswordResetTokens
 import com.collektar.shared.database.Tables.RefreshTokens
 import com.collektar.shared.database.Tables.Users
 import kotlinx.coroutines.test.runTest
@@ -28,7 +29,7 @@ class AuthRepositoryTest {
             )
 
             transaction {
-                SchemaUtils.create(Users, RefreshTokens)
+                SchemaUtils.create(Users, RefreshTokens, PasswordResetTokens)
             }
 
             repository = AuthRepository(database)
@@ -38,7 +39,7 @@ class AuthRepositoryTest {
         @AfterAll
         fun teardownDatabase() {
             transaction(database) {
-                SchemaUtils.drop(RefreshTokens, Users)
+                SchemaUtils.drop(PasswordResetTokens, RefreshTokens, Users)
             }
         }
     }
@@ -46,8 +47,8 @@ class AuthRepositoryTest {
     @BeforeEach
     fun cleanDatabase() {
         transaction(database) {
-            SchemaUtils.drop(RefreshTokens, Users)
-            SchemaUtils.create(Users, RefreshTokens)
+            SchemaUtils.drop(PasswordResetTokens, RefreshTokens, Users)
+            SchemaUtils.create(Users, RefreshTokens, PasswordResetTokens)
         }
     }
 
@@ -301,5 +302,267 @@ class AuthRepositoryTest {
 
         assertNotNull(result)
         assertEquals(tokenHash, result!!.tokenHash)
+    }
+
+    @Test
+    fun shouldUpdateUserPassword() = runTest {
+        val userId = UUID.randomUUID()
+        val oldPasswordHash = "old_password_hash"
+        val newPasswordHash = "new_password_hash"
+
+        repository.createUser(
+            userId = userId,
+            username = "passworduser",
+            email = "password@test.com",
+            displayName = "Password User",
+            passwordHash = oldPasswordHash
+        )
+
+        repository.updatePassword(userId, newPasswordHash)
+
+        val user = repository.findByUserId(userId)
+        assertNotNull(user)
+        assertEquals(newPasswordHash, user!!.passwordHash)
+    }
+
+    @Test
+    fun shouldDeleteUserAndAllRelatedData() = runTest {
+        val userId = UUID.randomUUID()
+        repository.createUser(
+            userId = userId,
+            username = "deleteuser",
+            email = "delete@test.com",
+            displayName = "Delete User",
+            passwordHash = "hash"
+        )
+
+        repository.saveRefreshToken(
+            userId,
+            "refresh_token_hash",
+            Instant.now().plusSeconds(86400),
+            Instant.now()
+        )
+
+        repository.savePasswordResetToken(
+            userId,
+            "reset_token_hash",
+            Instant.now().plusSeconds(3600)
+        )
+
+        repository.deleteUser(userId)
+
+        assertNull(repository.findByUserId(userId))
+        assertNull(repository.findRefreshToken("refresh_token_hash"))
+        assertNull(repository.findPasswordResetToken("reset_token_hash"))
+    }
+
+    @Test
+    fun shouldSavePasswordResetTokenAndReturnTokenId() = runTest {
+        val userId = UUID.randomUUID()
+        repository.createUser(
+            userId = userId,
+            username = "resetuser",
+            email = "reset@test.com",
+            displayName = "Reset User",
+            passwordHash = "hash"
+        )
+
+        val tokenHash = "reset_token_hash_123"
+        val expiresAt = Instant.now().plusSeconds(3600)
+
+        val tokenId = repository.savePasswordResetToken(userId, tokenHash, expiresAt)
+
+        assertNotNull(tokenId)
+
+        val retrieved = repository.findPasswordResetToken(tokenHash)
+        assertNotNull(retrieved)
+        assertEquals(tokenId, retrieved!!.id)
+        assertEquals(userId, retrieved.userId)
+        assertEquals(tokenHash, retrieved.tokenHash)
+        assertNull(retrieved.usedAt)
+    }
+
+    @Test
+    fun shouldFindPasswordResetTokenIfValidAndUnused() = runTest {
+        val userId = UUID.randomUUID()
+        repository.createUser(
+            userId = userId,
+            username = "findresetuser",
+            email = "findreset@test.com",
+            displayName = "Find Reset User",
+            passwordHash = "hash"
+        )
+
+        val tokenHash = "valid_reset_token"
+        val expiresAt = Instant.now().plusSeconds(3600)
+
+        repository.savePasswordResetToken(userId, tokenHash, expiresAt)
+
+        val result = repository.findPasswordResetToken(tokenHash)
+
+        assertNotNull(result)
+        assertEquals(tokenHash, result!!.tokenHash)
+        assertEquals(userId, result.userId)
+        assertNull(result.usedAt)
+    }
+
+    @Test
+    fun shouldReturnNullIfPasswordResetTokenDoesNotExist() = runTest {
+        val result = repository.findPasswordResetToken("nonexistent_reset_token")
+
+        assertNull(result)
+    }
+
+    @Test
+    fun shouldReturnNullIfPasswordResetTokenIsExpired() = runTest {
+        val userId = UUID.randomUUID()
+        repository.createUser(
+            userId = userId,
+            username = "expireduser",
+            email = "expired@test.com",
+            displayName = "Expired User",
+            passwordHash = "hash"
+        )
+
+        val tokenHash = "expired_reset_token"
+        val expiresAt = Instant.now().minusSeconds(3600)
+
+        repository.savePasswordResetToken(userId, tokenHash, expiresAt)
+
+        val result = repository.findPasswordResetToken(tokenHash)
+
+        assertNull(result)
+    }
+
+    @Test
+    fun shouldReturnNullIfPasswordResetTokenIsAlreadyUsed() = runTest {
+        val userId = UUID.randomUUID()
+        repository.createUser(
+            userId = userId,
+            username = "useduser",
+            email = "used@test.com",
+            displayName = "Used User",
+            passwordHash = "hash"
+        )
+
+        val tokenHash = "used_reset_token"
+        val expiresAt = Instant.now().plusSeconds(3600)
+
+        val tokenId = repository.savePasswordResetToken(userId, tokenHash, expiresAt)
+        repository.markPasswordResetTokenAsUsed(tokenId)
+
+        val result = repository.findPasswordResetToken(tokenHash)
+
+        assertNull(result)
+    }
+
+    @Test
+    fun shouldMarkPasswordResetTokenAsUsed() = runTest {
+        val userId = UUID.randomUUID()
+        repository.createUser(
+            userId = userId,
+            username = "markuser",
+            email = "mark@test.com",
+            displayName = "Mark User",
+            passwordHash = "hash"
+        )
+
+        val tokenHash = "mark_used_token"
+        val expiresAt = Instant.now().plusSeconds(3600)
+
+        val tokenId = repository.savePasswordResetToken(userId, tokenHash, expiresAt)
+
+        val beforeMark = repository.findPasswordResetToken(tokenHash)
+        assertNotNull(beforeMark)
+        assertNull(beforeMark!!.usedAt)
+
+        repository.markPasswordResetTokenAsUsed(tokenId)
+
+        val afterMark = repository.findPasswordResetToken(tokenHash)
+        assertNull(afterMark)
+    }
+
+    @Test
+    fun shouldDeleteAllPasswordResetTokensForUser() = runTest {
+        val userId = UUID.randomUUID()
+        repository.createUser(
+            userId = userId,
+            username = "multiresetuser",
+            email = "multireset@test.com",
+            displayName = "Multi Reset User",
+            passwordHash = "hash"
+        )
+
+        val token1Hash = "reset_token_1"
+        val token2Hash = "reset_token_2"
+        val expiresAt = Instant.now().plusSeconds(3600)
+
+        repository.savePasswordResetToken(userId, token1Hash, expiresAt)
+        repository.savePasswordResetToken(userId, token2Hash, expiresAt)
+
+        assertNotNull(repository.findPasswordResetToken(token1Hash))
+        assertNotNull(repository.findPasswordResetToken(token2Hash))
+
+        repository.deletePasswordResetTokensOfUser(userId)
+
+        assertNull(repository.findPasswordResetToken(token1Hash))
+        assertNull(repository.findPasswordResetToken(token2Hash))
+    }
+
+    @Test
+    fun shouldNotDeletePasswordResetTokensOfOtherUsers() = runTest {
+        val userId1 = UUID.randomUUID()
+        val userId2 = UUID.randomUUID()
+
+        repository.createUser(
+            userId = userId1,
+            username = "user1",
+            email = "user1@test.com",
+            displayName = "User 1",
+            passwordHash = "hash"
+        )
+
+        repository.createUser(
+            userId = userId2,
+            username = "user2",
+            email = "user2@test.com",
+            displayName = "User 2",
+            passwordHash = "hash"
+        )
+
+        val token1Hash = "user1_reset_token"
+        val token2Hash = "user2_reset_token"
+        val expiresAt = Instant.now().plusSeconds(3600)
+
+        repository.savePasswordResetToken(userId1, token1Hash, expiresAt)
+        repository.savePasswordResetToken(userId2, token2Hash, expiresAt)
+
+        repository.deletePasswordResetTokensOfUser(userId1)
+
+        assertNull(repository.findPasswordResetToken(token1Hash))
+
+        assertNotNull(repository.findPasswordResetToken(token2Hash))
+    }
+
+    @Test
+    fun shouldHandleMultipleRefreshTokensWhenDeletingUser() = runTest {
+        val userId = UUID.randomUUID()
+        repository.createUser(
+            userId = userId,
+            username = "multitokenuser",
+            email = "multitoken@test.com",
+            displayName = "Multi Token User",
+            passwordHash = "hash"
+        )
+
+        repository.saveRefreshToken(userId, "token1", Instant.now().plusSeconds(86400), Instant.now())
+        repository.saveRefreshToken(userId, "token2", Instant.now().plusSeconds(86400), Instant.now())
+        repository.saveRefreshToken(userId, "token3", Instant.now().plusSeconds(86400), Instant.now())
+
+        repository.deleteUser(userId)
+
+        assertNull(repository.findRefreshToken("token1"))
+        assertNull(repository.findRefreshToken("token2"))
+        assertNull(repository.findRefreshToken("token3"))
     }
 }
