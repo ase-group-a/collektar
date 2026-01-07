@@ -88,7 +88,7 @@ services:
     labels:
       - "traefik.enable=true"
       # Public Routes
-      - "traefik.http.routers.${PROJECT}-auth-public.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/auth`) && (Path(`/api/auth/register`) || Path(`/api/auth/login`) || Path(`/api/auth/refresh`) || Path(`/api/auth/verify`) || Path(`/api/auth/forgot-password`) || Path(`/api/auth/reset-password`)) || Path(`/api/auth/health`))"
+      - "traefik.http.routers.${PROJECT}-auth-public.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/auth`) && (Path(`/api/auth/register`) || Path(`/api/auth/login`) || Path(`/api/auth/refresh`) || Path(`/api/auth/verify`) || Path(`/api/auth/forgot-password`) || Path(`/api/auth/reset-password`) || Path(`/api/auth/health`))"
       - "traefik.http.routers.${PROJECT}-auth-public.entrypoints=${TRAEFIK_ENTRYPOINT}"
       - "traefik.http.routers.${PROJECT}-auth-public.tls=${TRAEFIK_TLS_ENABLED}"
       - "traefik.http.routers.${PROJECT}-auth-public.tls.certresolver=${TRAEFIK_CERTRESOLVER:-}"
