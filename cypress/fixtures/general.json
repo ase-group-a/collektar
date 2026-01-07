@@ -1,0 +1,5 @@
+{
+  "mediaApi": "/api/media",
+  "authApi": "/api/auth",
+  "collectionApi": "/api/collection"
+}

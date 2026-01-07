@@ -25,7 +25,7 @@ class MovieService(
         }
 
         return SearchResult(
-            total = tmdbResult.totalResults,
+            total = minOf(tmdbResult.totalResults, 10000),
             limit = limit,
             offset = offset,
             items = items

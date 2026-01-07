@@ -23,6 +23,9 @@ application {
 }
 
 dependencies {
+    //BGG JSON PARSE
+    implementation("org.jsoup:jsoup:1.17.2")
+    ///
     implementation("io.ktor:ktor-server-cors")
     implementation("io.ktor:ktor-server-default-headers")
     implementation("io.ktor:ktor-server-core")
