@@ -13,4 +13,5 @@ fun appModules(env: ApplicationEnvironment) = listOf(
     booksModule(env),
     redisModule(),
     imageCacheModule(env),
+    bggModule(env)
 )

@@ -5,7 +5,10 @@ import { HeartIcon as SolidHeartIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
 import { MediaItem } from "@/types/media";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import {addItemToCollection, removeItemFromCollection} from "@/lib/api/collectionApi";
+import {
+    addItemToCollection,
+    removeItemFromCollection,
+} from "@/lib/api/collectionApi";
 
 interface MediaCardProps {
     item: MediaItem & { addedToCollection?: boolean };
@@ -44,10 +47,22 @@ const MediaCard = ({ item, layout = "grid" }: MediaCardProps) => {
     };
 
     return (
-        <div className="card bg-base-200 w-40 border border-transparent hover:border-primary hover:shadow-md transition-all duration-200 flex flex-col relative">
+        <div
+            className={`card border border-transparent hover:border-primary hover:shadow-md transition-all duration-200 relative
+                ${
+                layout === "grid"
+                    ? "bg-base-200 w-40 flex flex-col"
+                    : "bg-base-200 w-full flex flex-row items-center h-24"
+            }`}
+        >
             {isAuthenticated && (
                 <button
-                    className="absolute top-1 right-1 p-1 rounded-full z-20"
+                    className={`absolute p-1 rounded-full z-20
+                        ${
+                        layout === "grid"
+                            ? "top-1 right-1"
+                            : "top-1/2 right-2 -translate-y-1/2"
+                    }`}
                     onClick={handleLike}
                     disabled={loading}
                 >
@@ -59,7 +74,13 @@ const MediaCard = ({ item, layout = "grid" }: MediaCardProps) => {
                 </button>
             )}
 
-            <div className="flex-1 relative overflow-hidden">
+            <div
+                className={
+                    layout === "grid"
+                        ? "flex-1 relative overflow-hidden"
+                        : "relative h-full w-24 flex-shrink-0 overflow-hidden"
+                }
+            >
                 <img
                     src={item.image_url ?? "/collektar-logo-c.png"}
                     alt=""
@@ -70,15 +91,39 @@ const MediaCard = ({ item, layout = "grid" }: MediaCardProps) => {
                     <img
                         src={item.image_url ?? "/collektar-logo-c.png"}
                         alt={item.title}
-                        className="max-h-full max-w-full object-contain"
+                        className={
+                            layout === "grid"
+                                ? "max-h-full max-w-full object-contain"
+                                : "h-20 w-20 object-contain"
+                        }
                     />
                 </div>
             </div>
 
+            <div
+                className={
+                    layout === "grid"
+                        ? "p-2 text-center"
+                        : "px-4 flex flex-col justify-center text-left overflow-hidden"
+                }
+            >
+                <h2
+                    className={
+                        layout === "grid"
+                            ? "text-xs truncate"
+                            : "text-sm font-medium truncate"
+                    }
+                >
+                    {item.title}
+                </h2>
 
-            <h2 className="text-xs text-center truncate p-2">
-                {item.title}
-            </h2>
+                {layout === "list" && item.description && (
+                    <p className="text-xs opacity-70 line-clamp-2">
+                        {item.description}
+                    </p>
+                )}
+            </div>
+
         </div>
     );
 };

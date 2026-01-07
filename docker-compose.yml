@@ -67,7 +67,7 @@ services:
     env_file:
       - .env
     environment:
-      - DB_URL=jdbc:postgresql://auth-db:5432/${AUTH_DB_NAME}
+      - DB_URL=jdbc:postgresql://${PROJECT}-auth-db:5432/${AUTH_DB_NAME}
       - DB_USER=${AUTH_DB_USER}
       - DB_PASSWORD=${AUTH_DB_PASSWORD}
     user: "1000:1000"
@@ -119,7 +119,7 @@ services:
     expose:
       - "8080"
     environment:
-      - DB_URL=jdbc:postgresql://collection-db:5432/${COLLECTION_DB_NAME}
+      - DB_URL=jdbc:postgresql://${PROJECT}-collection-db:5432/${COLLECTION_DB_NAME}
       - DB_USER=${COLLECTION_DB_USER}
       - DB_PASSWORD=${COLLECTION_DB_PASSWORD}
     depends_on:
@@ -162,7 +162,7 @@ services:
     env_file:
       - .env
     environment:
-      - IMAGE_CACHE_REDIS_URL=redis://default:${IMAGE_CACHE_REDIS_PASSWORD}@image-cache-redis:6379
+      - IMAGE_CACHE_REDIS_URL=redis://default:${IMAGE_CACHE_REDIS_PASSWORD}@${PROJECT}-image-cache-redis:6379
     networks:
       - web
     depends_on:
@@ -221,7 +221,9 @@ services:
     volumes:
       - ./data/auth-db:/var/lib/postgresql
     networks:
-      - web
+      web:
+        aliases:
+          - ${PROJECT}-auth-db
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${AUTH_DB_USER} -d ${AUTH_DB_NAME}"]
       interval: 10s
@@ -241,7 +243,9 @@ services:
     volumes:
       - ./data/collection-db:/var/lib/postgresql
     networks:
-      - web
+      web:
+        aliases:
+          - ${PROJECT}-collection-db
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${COLLECTION_DB_USER} -d ${COLLECTION_DB_NAME}"]
       interval: 10s
@@ -257,7 +261,9 @@ services:
     volumes:
       - ./data/image-cache-redis:/data
     networks:
-      - web
+      web:
+        aliases:
+          - ${PROJECT}-image-cache-redis
     env_file:
       - .env
     command: /bin/sh -c 'redis-server --save 20 1 --requirepass "$IMAGE_CACHE_REDIS_PASSWORD"'

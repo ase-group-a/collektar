@@ -4,5 +4,6 @@ enum class ImageSource {
     SPOTIFY,
     TMBD,
     IGDB,
-    GOOGLE_BOOKS
+    GOOGLE_BOOKS,
+    BGG
 }
