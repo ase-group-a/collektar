@@ -88,17 +88,26 @@ services:
       start_period: 10s
     labels:
       - "traefik.enable=true"
-      # HTTP Router
-      - "traefik.http.routers.${PROJECT}-auth.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/auth`)"
-      - "traefik.http.routers.${PROJECT}-auth.entrypoints=${TRAEFIK_ENTRYPOINT}"
-      - "traefik.http.routers.${PROJECT}-auth.tls=${TRAEFIK_TLS_ENABLED}"
-      - "traefik.http.routers.${PROJECT}-auth.tls.certresolver=${TRAEFIK_CERTRESOLVER:-}"
-      - "traefik.http.routers.${PROJECT}-auth.service=${PROJECT}-auth-service"
+      # Public Routes
+      - "traefik.http.routers.${PROJECT}-auth-public.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/auth`) && (Path(`/api/auth/register`) || Path(`/api/auth/login`) || Path(`/api/auth/refresh`) || Path(`/api/auth/verify`) || Path(`/api/auth/forgot-password`) || Path(`/api/auth/reset-password`))"
+      - "traefik.http.routers.${PROJECT}-auth-public.entrypoints=${TRAEFIK_ENTRYPOINT}"
+      - "traefik.http.routers.${PROJECT}-auth-public.tls=${TRAEFIK_TLS_ENABLED}"
+      - "traefik.http.routers.${PROJECT}-auth-public.tls.certresolver=${TRAEFIK_CERTRESOLVER:-}"
+      - "traefik.http.routers.${PROJECT}-auth-public.service=${PROJECT}-auth-service"
+      - "traefik.http.routers.${PROJECT}-auth-public.priority=100"
+      - "traefik.http.routers.${PROJECT}-auth-public.middlewares=${PROJECT}-auth-stripprefix"
+      # (Default) Protected Routes
+      - "traefik.http.routers.${PROJECT}-auth-protected.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/auth`)"
+      - "traefik.http.routers.${PROJECT}-auth-protected.entrypoints=${TRAEFIK_ENTRYPOINT}"
+      - "traefik.http.routers.${PROJECT}-auth-protected.tls=${TRAEFIK_TLS_ENABLED}"
+      - "traefik.http.routers.${PROJECT}-auth-protected.tls.certresolver=${TRAEFIK_CERTRESOLVER:-}"
+      - "traefik.http.routers.${PROJECT}-auth-protected.service=${PROJECT}-auth-service"
+      - "traefik.http.routers.${PROJECT}-auth-protected.priority=50"
+      - "traefik.http.routers.${PROJECT}-auth-protected.middlewares=auth-forward@file,${PROJECT}-auth-stripprefix"
       # Service definition
       - "traefik.http.services.${PROJECT}-auth-service.loadbalancer.server.port=8080"
       # Middleware to strip /api/auth prefix
       - "traefik.http.middlewares.${PROJECT}-auth-stripprefix.stripprefix.prefixes=/api/auth"
-      - "traefik.http.routers.${PROJECT}-auth.middlewares=${PROJECT}-auth-stripprefix"
   #
   # Service to manage user collections
   #
