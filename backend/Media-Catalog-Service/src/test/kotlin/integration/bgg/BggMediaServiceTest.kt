@@ -21,8 +21,8 @@ class BggMediaServiceTest {
             limit = 10,
             offset = 5,
             items = listOf(
-                MediaItem("bgg:13", "Catan", MediaType.BOARDGAME, "url1", null, "BGG"),
-                MediaItem("bgg:822", "Carcassonne", MediaType.BOARDGAME, "url2", null, "BGG")
+                MediaItem("bgg:13", "Catan", MediaType.BOARDGAMES, "url1", null, "BGG"),
+                MediaItem("bgg:822", "Carcassonne", MediaType.BOARDGAMES, "url2", null, "BGG")
             )
         )
 
@@ -48,7 +48,7 @@ class BggMediaServiceTest {
             limit = 20,
             offset = 0,
             items = listOf(
-                MediaItem("bgg:174430", "Gloomhaven", MediaType.BOARDGAME, null, null, "BGG")
+                MediaItem("bgg:174430", "Gloomhaven", MediaType.BOARDGAMES, null, null, "BGG")
             )
         )
 
@@ -72,7 +72,7 @@ class BggMediaServiceTest {
             limit = 25,
             offset = 50,
             items = listOf(
-                MediaItem("bgg:1", "Game 1", MediaType.BOARDGAME, null, null, "BGG")
+                MediaItem("bgg:1", "Game 1", MediaType.BOARDGAMES, null, null, "BGG")
             )
         )
 
@@ -115,8 +115,8 @@ class BggMediaServiceTest {
             limit = 15,
             offset = 5,
             items = listOf(
-                MediaItem("bgg:1", "Hot Game 1", MediaType.BOARDGAME, "url1", null, "BGG"),
-                MediaItem("bgg:2", "Hot Game 2", MediaType.BOARDGAME, "url2", null, "BGG")
+                MediaItem("bgg:1", "Hot Game 1", MediaType.BOARDGAMES, "url1", null, "BGG"),
+                MediaItem("bgg:2", "Hot Game 2", MediaType.BOARDGAMES, "url2", null, "BGG")
             )
         )
 
@@ -142,7 +142,7 @@ class BggMediaServiceTest {
             limit = 20,
             offset = 0,
             items = listOf(
-                MediaItem("bgg:174430", "Gloomhaven", MediaType.BOARDGAME, null, null, "BGG")
+                MediaItem("bgg:174430", "Gloomhaven", MediaType.BOARDGAMES, null, null, "BGG")
             )
         )
 

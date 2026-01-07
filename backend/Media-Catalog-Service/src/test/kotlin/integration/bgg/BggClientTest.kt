@@ -19,7 +19,7 @@ class BggClientTest {
                     MediaItem(
                         id = "bgg:13",
                         title = "Catan",
-                        type = MediaType.BOARDGAME,
+                        type = MediaType.BOARDGAMES,
                         imageUrl = "https://example.com/catan.jpg",
                         description = null,
                         source = "BGG"
@@ -37,7 +37,7 @@ class BggClientTest {
                     MediaItem(
                         id = "bgg:174430",
                         title = "Gloomhaven",
-                        type = MediaType.BOARDGAME,
+                        type = MediaType.BOARDGAMES,
                         imageUrl = "https://example.com/gloomhaven.jpg",
                         description = null,
                         source = "BGG"
@@ -51,7 +51,7 @@ class BggClientTest {
                 MediaItem(
                     id = "bgg:$id",
                     title = "Game $id",
-                    type = MediaType.BOARDGAME,
+                    type = MediaType.BOARDGAMES,
                     imageUrl = null,
                     description = null,
                     source = "BGG"

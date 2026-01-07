@@ -38,7 +38,7 @@ export default function Header() {
                     <li><Link href="/media/shows">Shows</Link></li>
                     <li><Link href="/media/music">Music</Link></li>
                     <li><Link href="/media/books">Books</Link></li>
-                    <li><Link href="/media/boardgames">Board Games</Link></li>
+                    <li><Link href="/media/boardgames">Boardgames</Link></li>
 
                     {isAuthenticated && (
                         <>

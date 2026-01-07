@@ -53,7 +53,7 @@ object BggMapper {
             MediaItem(
                 id = "bgg:$id",
                 title = name,
-                type = MediaType.BOARDGAME,
+                type = MediaType.BOARDGAMES,
                 imageUrl = imageUrl,
                 description = null,
                 source = "BGG"
@@ -99,7 +99,7 @@ object BggMapper {
             MediaItem(
                 id = "bgg:$id",
                 title = primaryName,
-                type = MediaType.BOARDGAME,
+                type = MediaType.BOARDGAMES,
                 imageUrl = cachedImageUrl,
                 description = null,
                 source = "BGG"

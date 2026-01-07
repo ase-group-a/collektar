@@ -52,7 +52,7 @@ class BggResponseTest {
         val item1 = MediaItem(
             id = "bgg:174430",
             title = "Gloomhaven",
-            type = MediaType.BOARDGAME,
+            type = MediaType.BOARDGAMES,
             imageUrl = "https://cf.geekdo-images.com/gloomhaven.jpg",
             description = null,
             source = "BGG"
@@ -60,7 +60,7 @@ class BggResponseTest {
         val item2 = MediaItem(
             id = "bgg:13",
             title = "Catan",
-            type = MediaType.BOARDGAME,
+            type = MediaType.BOARDGAMES,
             imageUrl = "https://cf.geekdo-images.com/catan.jpg",
             description = null,
             source = "BGG"
@@ -103,7 +103,7 @@ class BggResponseTest {
         val item = MediaItem(
             id = "bgg:1",
             title = "Test Game",
-            type = MediaType.BOARDGAME,
+            type = MediaType.BOARDGAMES,
             imageUrl = null,
             description = null,
             source = "BGG"
@@ -127,7 +127,7 @@ class BggResponseTest {
         val item = MediaItem(
             id = "bgg:174430",
             title = "Gloomhaven",
-            type = MediaType.BOARDGAME,
+            type = MediaType.BOARDGAMES,
             imageUrl = "https://cf.geekdo-images.com/sZYp_3BTDGjh2unaZfZmuA__original/img/image.jpg",
             description = "A cooperative game of tactical combat",
             source = "BGG"
@@ -135,7 +135,7 @@ class BggResponseTest {
 
         assertEquals("bgg:174430", item.id)
         assertEquals("Gloomhaven", item.title)
-        assertEquals(MediaType.BOARDGAME, item.type)
+        assertEquals(MediaType.BOARDGAMES, item.type)
         assertEquals("https://cf.geekdo-images.com/sZYp_3BTDGjh2unaZfZmuA__original/img/image.jpg", item.imageUrl)
         assertEquals("A cooperative game of tactical combat", item.description)
         assertEquals("BGG", item.source)
@@ -146,7 +146,7 @@ class BggResponseTest {
         val item = MediaItem(
             id = "bgg:12345",
             title = "Unknown Game",
-            type = MediaType.BOARDGAME,
+            type = MediaType.BOARDGAMES,
             imageUrl = null,
             description = null,
             source = "BGG"
@@ -154,7 +154,7 @@ class BggResponseTest {
 
         assertEquals("bgg:12345", item.id)
         assertEquals("Unknown Game", item.title)
-        assertEquals(MediaType.BOARDGAME, item.type)
+        assertEquals(MediaType.BOARDGAMES, item.type)
         assertNull(item.imageUrl)
         assertNull(item.description)
         assertEquals("BGG", item.source)
@@ -165,7 +165,7 @@ class BggResponseTest {
         val item = MediaItem(
             id = "bgg:174430",
             title = "Gloomhaven",
-            type = MediaType.BOARDGAME,
+            type = MediaType.BOARDGAMES,
             imageUrl = null,
             description = null,
             source = "BGG"
@@ -181,9 +181,9 @@ class BggResponseTest {
 
     @Test
     fun `MediaItem with different board game titles`() {
-        val catan = MediaItem("bgg:13", "Catan", MediaType.BOARDGAME, null, null, "BGG")
-        val gloomhaven = MediaItem("bgg:174430", "Gloomhaven", MediaType.BOARDGAME, null, null, "BGG")
-        val pandemic = MediaItem("bgg:30549", "Pandemic", MediaType.BOARDGAME, null, null, "BGG")
+        val catan = MediaItem("bgg:13", "Catan", MediaType.BOARDGAMES, null, null, "BGG")
+        val gloomhaven = MediaItem("bgg:174430", "Gloomhaven", MediaType.BOARDGAMES, null, null, "BGG")
+        val pandemic = MediaItem("bgg:30549", "Pandemic", MediaType.BOARDGAMES, null, null, "BGG")
 
         assertEquals("Catan", catan.title)
         assertEquals("Gloomhaven", gloomhaven.title)

@@ -1,4 +1,4 @@
-export type MediaType = "GAME" | "MOVIE" | "SHOW" | "MUSIC" | "BOOK" | "BOARD GAME";
+export type MediaType = "GAME" | "MOVIE" | "SHOW" | "MUSIC" | "BOOK" | "BOARDGAME";
 
 export interface MediaItem {
     id: string;

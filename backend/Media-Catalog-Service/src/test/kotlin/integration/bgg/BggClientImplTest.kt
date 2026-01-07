@@ -67,7 +67,7 @@ class BggClientImplTest {
         assertEquals(2, result.items.size)
         assertEquals("bgg:174430", result.items[0].id)
         assertEquals("Gloomhaven", result.items[0].title)
-        assertEquals(MediaType.BOARDGAME, result.items[0].type)
+        assertEquals(MediaType.BOARDGAMES, result.items[0].type)
     }
 
     @Test

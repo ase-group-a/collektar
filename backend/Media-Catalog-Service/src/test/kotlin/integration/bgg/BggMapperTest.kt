@@ -88,7 +88,7 @@ class BggMapperTest {
 
         assertEquals("bgg:174430", items[0].id)
         assertEquals("Gloomhaven", items[0].title)
-        assertEquals(MediaType.BOARDGAME, items[0].type)
+        assertEquals(MediaType.BOARDGAMES, items[0].type)
         assertEquals("https://cf.geekdo-images.com/gloomhaven-thumb.jpg", items[0].imageUrl)
         assertEquals("BGG", items[0].source)
         assertNull(items[0].description)
@@ -170,7 +170,7 @@ class BggMapperTest {
         assertEquals("bgg:174430", items[0].id)
         assertEquals("Gloomhaven", items[0].title)
         assertEquals("https://cf.geekdo-images.com/gloomhaven-full.jpg", items[0].imageUrl)
-        assertEquals(MediaType.BOARDGAME, items[0].type)
+        assertEquals(MediaType.BOARDGAMES, items[0].type)
         assertEquals("BGG", items[0].source)
     }
 
