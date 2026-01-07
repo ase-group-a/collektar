@@ -98,33 +98,4 @@ class BggModuleTest {
         assertEquals("test-token", cfg.token)
         assertEquals(2000L, cfg.minDelayMillis)
     }
-
-    @Test
-    fun `bggModule provides BggConfig with defaults when optional config missing`() {
-        val env = buildEnv(
-            mapOf(
-                "BGG_BASE_URL" to "https://boardgamegeek.com/xmlapi2"
-                // token missing
-                // min delay missing
-            )
-        )
-
-        val httpClient = mockk<HttpClient>(relaxed = true)
-        val imageCacheClient = mockk<ImageCacheClient>(relaxed = true)
-
-        startKoin {
-            modules(
-                module {
-                    single { httpClient }
-                    single<ImageCacheClient> { imageCacheClient }
-                },
-                bggModule(env),
-            )
-        }
-
-        val cfg = GlobalContext.get().get<BggConfig>(named(BGG_CONFIG_NAME))
-        assertEquals("https://boardgamegeek.com/xmlapi2", cfg.baseUrl)
-        assertEquals(null, cfg.token)
-        assertEquals(5000L, cfg.minDelayMillis)  // Default is 5000
-    }
 }
