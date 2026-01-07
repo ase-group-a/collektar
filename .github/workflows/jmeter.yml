@@ -1,0 +1,81 @@
+name: JMeter Performance Testing
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+jobs:
+  compose-and-test:
+    name: Setup Docker Compose and run JMeter Performance Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout collektar repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Docker Compose
+        uses: docker/setup-compose-action@v1
+        with:
+          version: "latest"
+      - name: Create .env file from .env.development
+        run: grep -v -e '^[[:space:]]*$' -e '^[[:space:]]*#' -e '^[^=]*=$' .env.development > .env
+      - name: Add secrets to .env file
+        run: |
+          echo "SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }}" >> .env
+          echo "SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }}" >> .env
+          echo "TMDB_BEARER_TOKEN=${{ secrets.TMDB_BEARER_TOKEN }}" >> .env
+          echo "IGDB_CLIENT_ID=${{ secrets.IGDB_CLIENT_ID }}" >> .env
+          echo "IGDB_CLIENT_SECRET=${{ secrets.IGDB_CLIENT_SECRET }}" >> .env
+          echo "GOOGLE_BOOKSAPI_KEY=${{ secrets.GOOGLE_BOOKSAPI_KEY }}" >> .env
+          echo "BGG_API_TOKEN=${{ secrets.BGG_API_TOKEN }}" >> .env
+      - name: Generate Required Keys and Certificates
+        run: make setup
+      - name: Fix cert permissions
+        run: |
+          sudo chgrp 1000 ./secrets/jwt_private.pem ./secrets/token_hasher_secret
+          sudo chmod 640  ./secrets/jwt_private.pem ./secrets/token_hasher_secret
+      - name: Export environment variables
+        run: export $(cat .env | xargs)
+      - name: Start Services
+        run: docker compose -f docker-compose.yml up -d
+      
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: 'zulu'
+      - name: Install JMeter
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget
+          wget https://dlcdn.apache.org//jmeter/binaries/apache-jmeter-5.6.3.tgz
+          tar -xzf apache-jmeter-5.6.3.tgz
+          sudo ln -s $(pwd)/apache-jmeter-5.6.3/bin/jmeter /usr/local/bin/jmeter
+      - name: Run JMeter Test
+        run: |
+          mkdir -p out
+          jmeter -n -t performance.jmx -l results.jtl -e -o out -Jjmeter.reportgenerator.overall_granularity=5000 -Jjmeter.reportgenerator.report_title="Collektar JMeter Performance Test"
+        continue-on-error: true
+      - name: Print JMeter Logs
+        run: |
+          if [ -f jmeter.log ]; then
+            cat jmeter.log
+          else
+            echo "JMeter log file does not exit."
+          fi
+      - name: Move results and logs into out folder
+        run: |
+          mv results.jtl out
+          mv jmeter.log out
+      - name: Upload JMeter Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: jmeter-results
+          path: out
+      - name: Output service logs
+        if: ${{ always() }}
+        run: docker compose -f docker-compose.yml logs
+      - name: Stop Services
+        if: ${{ always() }}
+        run: docker compose -f docker-compose.yml down --rmi 'all'
+      - name: Cleanup .env
+        if: ${{ always() }}
+        run: rm .env
