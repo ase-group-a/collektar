@@ -9,7 +9,8 @@ describe('/media/movies displays correctly', () => {
         cy.visit('/')
 
         // Find and search movies button
-        cy.get('a[href="/media/movies"]')
+        cy.get('.navbar')
+            .find('a[href="/media/movies"]')
             .should('exist')
             .click()
     })

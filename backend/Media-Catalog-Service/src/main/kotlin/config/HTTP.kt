@@ -16,6 +16,9 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNamingStrategy
 
 fun Application.configureHTTP() {
+    val isProd = System.getenv("KTOR_ENVIRONMENT") == "production"
+    val domain = System.getenv("DOMAIN") ?: "localhost"
+
     install(CORS) {
         allowMethod(HttpMethod.Options)
         allowMethod(HttpMethod.Get)
@@ -29,8 +32,11 @@ fun Application.configureHTTP() {
 
         allowCredentials = true
 
-        // allowHost("collektar.com", schemes = listOf("https")) for prod
-        anyHost() // For dev only
+        if (isProd) {
+            allowHost(domain, schemes = listOf("https"))
+        } else {
+            anyHost()
+        }
     }
     install(DefaultHeaders) {
         header("X-Engine", "Ktor")
@@ -58,14 +64,5 @@ object HttpProvider {
         }
     }
 
-    // Client with default configuration
     val client: HttpClient by lazy { HttpClient(CIO, defaultConfig) }
-
-    // Client with specific configuration
-    fun createClient(configure: HttpClientConfig<CIOEngineConfig>.() -> Unit): HttpClient {
-        return HttpClient(CIO) {
-            defaultConfig()
-            configure()
-        }
-    }
 }
