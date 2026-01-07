@@ -22,4 +22,10 @@ class OpaqueTokenGenerator(private val config: OpaqueTokenConfig) : IOpaqueToken
             userId = userId
         )
     }
+
+    override fun generateRaw(byteLength: Int): String {
+        val bytes = ByteArray(byteLength)
+        secureRandom.nextBytes(bytes)
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
+    }
 }
