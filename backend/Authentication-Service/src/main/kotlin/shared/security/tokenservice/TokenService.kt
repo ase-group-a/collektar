@@ -79,6 +79,54 @@ class TokenService(
         repository.revokeRefreshToken(tokenHash)
     }
 
+    override suspend fun generatePasswordResetToken(userId: UUID): PasswordResetToken {
+        val rawTokenData = opaqueTokenGenerator.generateRaw()
+        val tokenHash = tokenHasher.hash(rawTokenData.rawToken)
+        val expiresAt = Instant.now().plusSeconds(rawTokenData.validityInMinutes * 60L)
+
+        repository.savePasswordResetToken(
+            userId = userId,
+            tokenHash = tokenHash,
+            expiresAt = expiresAt
+        )
+
+        return PasswordResetToken(
+            token = rawTokenData.rawToken,
+            expiresAt = expiresAt,
+            validityMinutes = rawTokenData.validityInMinutes
+        )
+    }
+
+    override suspend fun validatePasswordResetToken(token: String): PasswordResetTokenClaims {
+        val tokenHash = tokenHasher.hash(token)
+
+        val storedToken = repository.findPasswordResetToken(tokenHash)
+            ?: throw AppError.BadRequest.InvalidOrExpiredToken()
+
+        if (Instant.now().isAfter(storedToken.expiresAt)) {
+            throw AppError.BadRequest.InvalidOrExpiredToken()
+        }
+
+        if (storedToken.usedAt != null) {
+            throw AppError.BadRequest.InvalidOrExpiredToken()
+        }
+
+        return PasswordResetTokenClaims(
+            userId = storedToken.userId,
+            tokenId = storedToken.id
+        )
+    }
+
+    override suspend fun consumePasswordResetToken(token: String): PasswordResetTokenClaims {
+        val claims = validatePasswordResetToken(token)
+        repository.markPasswordResetTokenAsUsed(claims.tokenId)
+        return claims
+    }
+
+    override suspend fun invalidatePasswordResetTokens(userId: UUID) {
+        repository.deletePasswordResetTokensOfUser(userId)
+    }
+
     private suspend fun saveRefreshToken(token: RefreshToken) {
         val tokenHash = tokenHasher.hash(token.token)
 

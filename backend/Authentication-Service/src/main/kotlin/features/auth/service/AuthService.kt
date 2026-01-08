@@ -2,18 +2,19 @@ package com.collektar.features.auth.service
 
 import com.collektar.dto.*
 import com.collektar.features.auth.repository.IAuthRepository
+import com.collektar.shared.email.IEmailService
 import com.collektar.shared.errors.AppError
 import com.collektar.shared.security.passwordhasher.IPasswordHasher
 import com.collektar.shared.security.tokenservice.ITokenService
 import com.collektar.shared.security.tokenservice.TokenPair
 import io.ktor.server.routing.*
 import java.util.*
-import kotlin.String
 
 class AuthService(
     private val repository: IAuthRepository,
     private val tokenService: ITokenService,
     private val passwordHasher: IPasswordHasher,
+    private val emailService: IEmailService
 ) : IAuthService {
     override suspend fun register(request: RegisterRequest): AuthenticationResponse {
         if (repository.usernameExists(request.username)) {
@@ -41,6 +42,8 @@ class AuthService(
             username = request.username,
             displayName = request.displayName
         )
+
+        emailService.sendWelcomeEmail(to = request.email, displayName = request.displayName)
 
         return AuthenticationResponse(
             refreshToken = tokenPair.refreshToken,
@@ -115,5 +118,66 @@ class AuthService(
 
     override suspend fun logout(token: String) {
         tokenService.revokeRefreshToken(token)
+    }
+
+    override suspend fun forgotPassword(request: ForgotPasswordRequest) {
+        val user = repository.findByEmail(request.email) ?: return
+
+        val passwordResetToken = tokenService.generatePasswordResetToken(user.id)
+
+        emailService.sendPasswordResetEmail(
+            to = user.email,
+            displayName = user.displayName,
+            resetToken = passwordResetToken.token,
+            expiryMinutes = passwordResetToken.validityMinutes
+        )
+    }
+
+    override suspend fun resetPassword(request: ResetPasswordRequest) {
+        val claims = tokenService.consumePasswordResetToken(request.token)
+        val user = repository.findByUserId(claims.userId) ?: throw AppError.NotFound.UserNotFound()
+        val newPasswordHash = passwordHasher.hash(request.newPassword)
+
+        repository.updatePassword(claims.userId, newPasswordHash)
+        repository.revokeAllUserTokens(claims.userId)
+
+        emailService.sendPasswordChangedEmail(
+            to = user.email,
+            displayName = user.displayName
+        )
+    }
+
+    override suspend fun changePassword(userId: UUID, request: ChangePasswordRequest) {
+        val user = repository.findByUserId(userId) ?: throw AppError.NotFound.UserNotFound()
+
+        if (!passwordHasher.verify(request.currentPassword, user.passwordHash)) {
+            throw AppError.Unauthorized.InvalidCredentials()
+        }
+
+        val newPasswordHash = passwordHasher.hash(request.newPassword)
+        repository.updatePassword(userId, newPasswordHash)
+        repository.revokeAllUserTokens(userId)
+        repository.deletePasswordResetTokensOfUser(userId)
+        emailService.sendPasswordChangedEmail(
+            to = user.email,
+            displayName = user.displayName
+        )
+    }
+
+    override suspend fun deleteAccount(userId: UUID, request: DeleteAccountRequest) {
+        val user = repository.findByUserId(userId) ?: throw AppError.NotFound.UserNotFound()
+        if (!passwordHasher.verify(request.password, user.passwordHash)) {
+            throw AppError.Unauthorized.InvalidCredentials()
+        }
+
+        val email = user.email
+        val displayName = user.displayName
+
+        repository.deleteUser(userId)
+
+        emailService.sendAccountDeletedEmail(
+            to = email,
+            displayName = displayName
+        )
     }
 }

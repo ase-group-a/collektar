@@ -40,4 +40,29 @@ export const authApi = {
             method: "GET",
             headers: { Authorization: `Bearer ${accessToken}` },
         }),
+
+    forgotPassword: (email: string) =>
+        fetcher<void>("/api/auth/forgot-password", {
+            method: "POST",
+            body: JSON.stringify({ email }),
+        }),
+
+    resetPassword: (token: string, new_password: string) =>
+        fetcher<void>("/api/auth/reset-password", {
+            method: "POST",
+            body: JSON.stringify({ token, new_password }),
+        }),
+
+
+    changePassword: (current_password: string, new_password: string) =>
+        fetcher<void>("/api/auth/change-password", {
+            method: "POST",
+            body: JSON.stringify({ current_password, new_password }),
+        }),
+
+    deleteAccount: (password: string) =>
+        fetcher<void>("/api/auth/account", {
+            method: "DELETE",
+            body: JSON.stringify({ password }),
+        }),
 };

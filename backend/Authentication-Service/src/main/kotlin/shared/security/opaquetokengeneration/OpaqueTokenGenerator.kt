@@ -22,4 +22,15 @@ class OpaqueTokenGenerator(private val config: OpaqueTokenConfig) : IOpaqueToken
             userId = userId
         )
     }
+
+    override fun generateRaw(byteLength: Int): RawPasswordResetToken {
+        val bytes = ByteArray(byteLength)
+        secureRandom.nextBytes(bytes)
+        val rawToken = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
+
+        return RawPasswordResetToken(
+            rawToken = rawToken,
+            validityInMinutes = config.passwordResetTokenValidityMinutes
+        )
+    }
 }
