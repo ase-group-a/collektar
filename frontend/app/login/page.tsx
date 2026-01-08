@@ -37,10 +37,9 @@ export default function LoginPage() {
                 <button
                     type="button"
                     className="btn btn-outline w-full flex items-center gap-2"
-                    // TODO onClick={handleGoogleLogin}
                 >
                     <img src="/google-logo.svg" alt="Google logo" width={20} height={20} className="inline-block mr-2" />
-                    Login with Google
+                    Login with Google (coming soon)
                 </button>
 
                 <div className="flex items-center gap-4">
