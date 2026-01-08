@@ -64,4 +64,61 @@ class OpaqueTokenGeneratorTest {
         assertTrue(token.issuedAt.isAfter(before.minusSeconds(1)))
         assertTrue(token.issuedAt.isBefore(after.plusSeconds(1)))
     }
+
+    @Test
+    fun shouldGenerateRawTokenWithCorrectByteLength() {
+        val byteLength = 32
+        val rawToken = tokenGenerator.generateRaw(byteLength)
+
+        assertFalse(rawToken.rawToken.isEmpty())
+    }
+
+    @Test
+    fun shouldGenerateRawTokenWithValidityInMinutes() {
+        val rawToken = tokenGenerator.generateRaw(32)
+
+        assertEquals(config.passwordResetTokenValidityMinutes, rawToken.validityInMinutes)
+    }
+
+    @Test
+    fun shouldGenerateUniqueRawTokens() {
+        val rawToken1 = tokenGenerator.generateRaw(32)
+        val rawToken2 = tokenGenerator.generateRaw(32)
+
+        assertNotEquals(rawToken1.rawToken, rawToken2.rawToken)
+    }
+
+    @Test
+    fun shouldGenerateRawTokenWithDifferentByteLengths() {
+        val rawToken16 = tokenGenerator.generateRaw(16)
+        val rawToken32 = tokenGenerator.generateRaw(32)
+        val rawToken64 = tokenGenerator.generateRaw(64)
+
+        assertNotEquals(rawToken16.rawToken.length, rawToken32.rawToken.length)
+        assertNotEquals(rawToken32.rawToken.length, rawToken64.rawToken.length)
+        assertTrue(rawToken16.rawToken.length < rawToken32.rawToken.length)
+        assertTrue(rawToken32.rawToken.length < rawToken64.rawToken.length)
+    }
+
+    @Test
+    fun shouldGenerateRawTokenWithoutPadding() {
+        val rawToken = tokenGenerator.generateRaw(32)
+
+        assertFalse(rawToken.rawToken.contains("="))
+    }
+
+    @Test
+    fun shouldGenerateUrlSafeRawToken() {
+        val rawToken = tokenGenerator.generateRaw(32)
+
+        assertFalse(rawToken.rawToken.contains("+"))
+        assertFalse(rawToken.rawToken.contains("/"))
+    }
+
+    @Test
+    fun shouldGenerateNonEmptyRawToken() {
+        val rawToken = tokenGenerator.generateRaw(32)
+
+        assertFalse(rawToken.rawToken.isEmpty())
+    }
 }

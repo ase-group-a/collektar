@@ -1,5 +1,6 @@
 package com.collektar.features.auth.repository
 
+import com.collektar.shared.security.tokenservice.PasswordResetTokenData
 import java.time.Instant
 import java.util.*
 
@@ -22,4 +23,10 @@ interface IAuthRepository {
     suspend fun updateLastUsed(tokenHash: String)
     suspend fun revokeRefreshToken(tokenHash: String)
     suspend fun revokeAllUserTokens(userId: UUID)
+    suspend fun deleteUser(userId: UUID)
+    suspend fun updatePassword(userId: UUID, newPasswordHash: String)
+    suspend fun savePasswordResetToken(userId: UUID, tokenHash: String, expiresAt: Instant): UUID
+    suspend fun findPasswordResetToken(tokenHash: String): PasswordResetTokenData?
+    suspend fun markPasswordResetTokenAsUsed(tokenId: UUID)
+    suspend fun deletePasswordResetTokensOfUser(userId: UUID)
 }

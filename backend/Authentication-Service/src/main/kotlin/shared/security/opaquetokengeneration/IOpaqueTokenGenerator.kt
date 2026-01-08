@@ -5,4 +5,5 @@ import java.util.*
 
 interface IOpaqueTokenGenerator {
     fun generate(userId: UUID): RefreshToken
+    fun generateRaw(byteLength: Int = 32): RawPasswordResetToken
 }

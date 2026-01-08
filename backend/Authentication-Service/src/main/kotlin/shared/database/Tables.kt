@@ -30,4 +30,15 @@ object Tables {
             index(false, expiresAt)
         }
     }
+
+    object PasswordResetTokens : Table("password_reset_tokens") {
+        val id = uuid("id").uniqueIndex()
+        val userId = uuid("user_id").references(Users.id)
+        val tokenHash = varchar("token_hash", 255)
+        val expiresAt = long("expires_at")
+        val usedAt = long("used_at").nullable()
+        val createdAt = long("created_at")
+
+        override val primaryKey = PrimaryKey(id)
+    }
 }

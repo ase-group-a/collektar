@@ -20,6 +20,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.util.*
 
 class AuthRoutesTest {
     private lateinit var authService: IAuthService
@@ -363,10 +364,12 @@ class AuthRoutesTest {
                 call.respond(HttpStatusCode.InternalServerError, ErrorResponse("Internal Server Error"))
             }
         }
-        routing { authRoutes(
-            authService,
-            cookieProvider
-        ) }
+        routing {
+            authRoutes(
+                authService,
+                cookieProvider
+            )
+        }
     }
 
     @Test
@@ -387,4 +390,177 @@ class AuthRoutesTest {
         verify(exactly = 1) { cookieProvider.delete(any(), "refresh_token") }
     }
 
+    @Test
+    fun shouldReturnOKForValidForgotPasswordRequest() = testApplication {
+        coEvery { authService.forgotPassword(any()) } just runs
+
+        application { configureTestRouting() }
+        val client = jsonClient()
+
+        val request = ForgotPasswordRequest(email = "user@example.com")
+
+        val result = client.post("/forgot-password") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+
+        assertEquals(HttpStatusCode.OK, result.status)
+        coVerify(exactly = 1) { authService.forgotPassword(any()) }
+    }
+
+    @Test
+    fun shouldReturnBadRequestForInvalidEmailInForgotPassword() = testApplication {
+        application { configureTestRouting() }
+        val client = jsonClient()
+
+        val request = ForgotPasswordRequest(email = "invalid-email")
+
+        val result = client.post("/forgot-password") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+
+        assertEquals(HttpStatusCode.BadRequest, result.status)
+        coVerify(exactly = 0) { authService.forgotPassword(any()) }
+    }
+
+    @Test
+    fun shouldReturnOKForValidResetPasswordRequest() = testApplication {
+        coEvery { authService.resetPassword(any()) } just runs
+
+        application { configureTestRouting() }
+        val client = jsonClient()
+
+        val request = ResetPasswordRequest(
+            token = "valid_reset_token",
+            newPassword = "NewPassword123!"
+        )
+
+        val result = client.post("/reset-password") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+
+        assertEquals(HttpStatusCode.OK, result.status)
+        coVerify(exactly = 1) { authService.resetPassword(any()) }
+    }
+
+    @Test
+    fun shouldReturnBadRequestForInvalidPasswordInResetPassword() = testApplication {
+        application { configureTestRouting() }
+        val client = jsonClient()
+
+        val request = ResetPasswordRequest(
+            token = "valid_reset_token",
+            newPassword = "weak"
+        )
+
+        val result = client.post("/reset-password") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+
+        assertEquals(HttpStatusCode.BadRequest, result.status)
+        coVerify(exactly = 0) { authService.resetPassword(any()) }
+    }
+
+    @Test
+    fun shouldReturnOKForValidChangePasswordRequest() = testApplication {
+        coEvery { authService.changePassword(any(), any()) } just runs
+        every { cookieProvider.delete(any(), "refresh_token") } just runs
+
+        application { configureTestRouting() }
+        val client = jsonClient()
+
+        val request = ChangePasswordRequest(
+            currentPassword = "OldPassword123!",
+            newPassword = "NewPassword123!"
+        )
+
+        val result = client.post("/change-password") {
+            contentType(ContentType.Application.Json)
+            header("X-User-Id", UUID.randomUUID().toString())
+            setBody(request)
+        }
+
+        assertEquals(HttpStatusCode.OK, result.status)
+        coVerify(exactly = 1) { authService.changePassword(any(), any()) }
+        verify(exactly = 1) { cookieProvider.delete(any(), "refresh_token") }
+    }
+
+    @Test
+    fun shouldReturnBadRequestForInvalidNewPasswordInChangePassword() = testApplication {
+        application { configureTestRouting() }
+        val client = jsonClient()
+
+        val request = ChangePasswordRequest(
+            currentPassword = "OldPassword123!",
+            newPassword = "weak"
+        )
+
+        val result = client.post("/change-password") {
+            contentType(ContentType.Application.Json)
+            header("X-User-Id", UUID.randomUUID().toString())
+            setBody(request)
+        }
+
+        assertEquals(HttpStatusCode.BadRequest, result.status)
+        coVerify(exactly = 0) { authService.changePassword(any(), any()) }
+    }
+
+    @Test
+    fun shouldReturnUnauthorizedForMissingUserIdInChangePassword() = testApplication {
+        application { configureTestRouting() }
+        val client = jsonClient()
+
+        val request = ChangePasswordRequest(
+            currentPassword = "OldPassword123!",
+            newPassword = "NewPassword123!"
+        )
+
+        val result = client.post("/change-password") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+
+        assertEquals(HttpStatusCode.Unauthorized, result.status)
+        coVerify(exactly = 0) { authService.changePassword(any(), any()) }
+    }
+
+    @Test
+    fun shouldReturnOKForValidDeleteAccountRequest() = testApplication {
+        coEvery { authService.deleteAccount(any(), any()) } just runs
+        every { cookieProvider.delete(any(), "refresh_token") } just runs
+
+        application { configureTestRouting() }
+        val client = jsonClient()
+
+        val request = DeleteAccountRequest(password = "Password123!")
+
+        val result = client.delete("/account") {
+            contentType(ContentType.Application.Json)
+            header("X-User-Id", UUID.randomUUID().toString())
+            setBody(request)
+        }
+
+        assertEquals(HttpStatusCode.OK, result.status)
+        coVerify(exactly = 1) { authService.deleteAccount(any(), any()) }
+        verify(exactly = 1) { cookieProvider.delete(any(), "refresh_token") }
+    }
+
+    @Test
+    fun shouldReturnUnauthorizedForMissingUserIdInDeleteAccount() = testApplication {
+        application { configureTestRouting() }
+        val client = jsonClient()
+
+        val request = DeleteAccountRequest(password = "Password123!")
+
+        val result = client.delete("/account") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+
+        assertEquals(HttpStatusCode.Unauthorized, result.status)
+        coVerify(exactly = 0) { authService.deleteAccount(any(), any()) }
+    }
 }
