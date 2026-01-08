@@ -47,8 +47,9 @@ export default function ForgotPasswordPage() {
                         Enter your email to receive a password reset link.
                     </p>
 
-                    <label className="label">Email</label>
+                    <label htmlFor="email" className="label">Email</label>
                     <input
+                        id="email"
                         className="input"
                         type="email"
                         value={email}
